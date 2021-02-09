@@ -4,31 +4,32 @@
 #include <SD.h>
 
 #include <FastLED.h>
-//#include "AudioGeneratorAAC.h"
 #include "AudioGeneratorMP3.h"
+#include "AudioGeneratorWav.h"
 #include "AudioOutputI2S.h"
 #include "AudioFileSourcePROGMEM.h"
-#include "sampleaac.h"
+#include "AudioFileSourceSD.h"
 #include "samplemp3.h"
 
 #include "driver/i2s.h"
 
 #define NUM_LEDS 24
 
-
 #define I2S_PORT I2S_NUM_1
 #define I2S_SAMPLE_RATE   (16000)
 #define I2S_SAMPLE_BITS   (32)
 #define I2S_READ_LEN      (16 * 1024)
-#define RECORD_TIME       (10) //Seconds
+#define RECORD_TIME       (2) //Seconds
 #define I2S_CHANNEL_NUM   (1)
 #define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
 
 File file;
-const char filename[] = "/recording.wav";
+File file16;
+const char filename[] = "/recording32.wav";
+const char filename16[] = "/recording16.wav";
 const int headerSize = 44;
 
-void wavHeader(byte* header, int wavSize){
+void wavHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution){
   header[0] = 'R';
   header[1] = 'I';
   header[2] = 'F';
@@ -56,21 +57,35 @@ void wavHeader(byte* header, int wavSize){
   header[23] = 0x00;
 //  header[24] = 0x44;  // sampling rate 44100
 //  header[25] = 0xAC;  // sampling rate 44100
-  header[24] = 0x80; // sampling rate 16000
-  header[25] = 0x3E; // sampling rate 16000
-  header[26] = 0x00;
-  header[27] = 0x00;
-  header[28] = 0x00; // Bytes/s = 16000 (Sampling) * (32 bit / 8) x 1 channel = 
-  header[29] = 0xFA;
-  header[30] = 0x00;
-  header[31] = 0x00;
+  // header[24] = 0x80; // sampling rate 16000
+  // header[25] = 0x3E; // sampling rate 16000
+  // header[26] = 0x00;
+  // header[27] = 0x00;
+
+  header[24] = (byte)(samplingRate & 0xFF);
+  header[25] = (byte)((samplingRate >> 8) & 0xFF);
+  header[26] = (byte)((samplingRate >> 16) & 0xFF);
+  header[27] = (byte)((samplingRate >> 24) & 0xFF);
+  
+  unsigned int channels = 1;
+  unsigned int bytesPerSecond = samplingRate * (resolution / 8) * channels;
+
+  // header[28] = 0x00; // Bytes/s = 16000 (Sampling) * (32 bit / 8) x 1 channel = 
+  // header[29] = 0xFA;
+  // header[30] = 0x00;
+  // header[31] = 0x00;
+  header[28] = (byte)(bytesPerSecond & 0xFF);
+  header[29] = (byte)((bytesPerSecond >> 8) & 0xFF);
+  header[30] = (byte)((bytesPerSecond >> 16) & 0xFF);
+  header[31] = (byte)((bytesPerSecond >> 24) & 0xFF);
 //  header[28] = 0x00;
 //  header[29] = 0x7D;
 //  header[30] = 0x00;
 //  header[31] = 0x00;
   header[32] = 0x02; // 16bit monoral
   header[33] = 0x00;
-  header[34] = 0x20; // 32bit resolution
+//  header[34] = 0x20; // 32bit resolution
+  header[34] = resolution; 
   header[35] = 0x00;
   header[36] = 'd';
   header[37] = 'a';
@@ -80,9 +95,7 @@ void wavHeader(byte* header, int wavSize){
   header[41] = (byte)((wavSize >> 8) & 0xFF);
   header[42] = (byte)((wavSize >> 16) & 0xFF);
   header[43] = (byte)((wavSize >> 24) & 0xFF);
-  
 }
-
 
 // Define the array of leds
 CRGB leds[NUM_LEDS];
@@ -103,7 +116,23 @@ const int MIC_PIN_BCLK = 17; // Yellow (Serial Clock)
 const int MIC_PIN_LRCL = 21; // Green (Word / Channel Select)
 const int MIC_PIN_SD = 22; // Blue (Serial Data)
 
+const int LDR_PIN = 36;
+
+const int BUTTON1_IN = 14;
+const int BUTTON2_IN = 27;
+const int BUTTON3_IN = 26;
+
+const int BUTTON1_LED = 0;
+const int BUTTON2_LED = 4;
+const int BUTTON3_LED = 16;
+
+int button1Value;
+int button2Value;
+int button3Value;
+
 int potValue; // do not change
+int ldrValue; // do not change
+
 float voltage = 0;// do not change
 
 int freq = 5000;
@@ -111,10 +140,15 @@ int ledChannel = 0;
 int resolution = 8;
 
 
-AudioFileSourcePROGMEM *in;
-AudioGeneratorMP3 *audio;
+AudioFileSourcePROGMEM *testSoundIn;
+AudioFileSourceSD *testRecordingIn;
+
+AudioGeneratorMP3 *testSound;
+AudioGeneratorWAV *testRecording;
 AudioOutputI2S *out;
-long start = 0;
+
+bool triggerRecordingPlay = false;
+bool triggerResampling = false;
 
 void i2s_adc(void *arg)
 {
@@ -124,6 +158,7 @@ void i2s_adc(void *arg)
     size_t bytes_read;
 
     char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
+    //char* write16_buffer = (char*) calloc(i2s_read_len / 2, sizeof(char));
     
     Serial.println(" *** Recording Start *** ");
     while (flash_wr_size < FLASH_RECORD_SIZE) {
@@ -134,7 +169,10 @@ void i2s_adc(void *arg)
         ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
         ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
     }
+
     file.close();
+
+    Serial.println(" *** Recording End *** ");
 
     free(i2s_read_buff);
     i2s_read_buff = NULL;
@@ -146,14 +184,29 @@ void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
 
+  pinMode(BUTTON1_LED, OUTPUT);
+  pinMode(BUTTON2_LED, OUTPUT);
+  pinMode(BUTTON3_LED, OUTPUT);
+
+  pinMode(BUTTON1_IN, INPUT_PULLDOWN);
+  pinMode(BUTTON2_IN, INPUT_PULLDOWN);
+  pinMode(BUTTON3_IN, INPUT_PULLDOWN);
 
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on 
   delay(500);                       // wait for half a second
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off 
+  digitalWrite(BUTTON1_LED, HIGH);   // turn the LED on 
+  delay(500);                       // wait for half a second
+  digitalWrite(BUTTON2_LED, HIGH);   // turn the LED on 
+  delay(500);                       // wait for half a second
+  digitalWrite(BUTTON3_LED, HIGH);   // turn the LED on 
   delay(500);                       // wait for half a second
   
-
-
+  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off 
+  digitalWrite(BUTTON1_LED, LOW);    // turn the LED off 
+  digitalWrite(BUTTON2_LED, LOW);    // turn the LED off 
+  digitalWrite(BUTTON3_LED, LOW);    // turn the LED off 
+  delay(500);                       // wait for half a second
+  
   ledcSetup(ledChannel, freq, resolution);
   ledcAttachPin(LED_BUILTIN, ledChannel);
 
@@ -173,15 +226,16 @@ void setup() {
   // Serial.begin(115200);
 
   audioLogger = &Serial;
-  // in = new AudioFileSourcePROGMEM(sampleaac, sizeof(sampleaac));
-  in = new AudioFileSourcePROGMEM(samplemp3, sizeof(samplemp3));
-  //audio = new AudioGeneratorAAC();
-  audio = new AudioGeneratorMP3();
   out = new AudioOutputI2S();
   out -> SetGain(0.128);
   out -> SetPinout(AMP_PIN_BCLK, AMP_PIN_LRC, AMP_PIN_DIN);
-  audio->begin(in, out);  
 
+
+  testSound = new AudioGeneratorMP3();
+  testSoundIn = new AudioFileSourcePROGMEM(samplemp3, sizeof(samplemp3));
+  testSound->begin(testSoundIn, out);  
+
+  testRecording = new AudioGeneratorWAV();
 
   // Initialize SD card
   SD.begin(SD_SPI_CS);  
@@ -203,7 +257,10 @@ void setup() {
   Serial.println("SD Card ready");
 
   if (SD.exists(filename)) {
-    SD.remove(filename);
+    Serial.println("File exists, removing");
+    if (!SD.remove(filename)) {
+        Serial.println("Unable to delete file.");
+    }
   }
   file = SD.open(filename, FILE_WRITE);
   if(!file){
@@ -211,9 +268,9 @@ void setup() {
   }
 
   byte header[headerSize];
-  wavHeader(header, FLASH_RECORD_SIZE);
+  wavHeader(header, FLASH_RECORD_SIZE, I2S_SAMPLE_RATE, I2S_SAMPLE_BITS);
   file.write(header, headerSize);
-  
+
   esp_err_t err;
 
   // The I2S config as per the example
@@ -251,26 +308,31 @@ void setup() {
     while (true);
   }
   Serial.println("I2S driver installed.");
-  start = millis();
-
-  xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
 }
 
+long lastPrint = 0;
+long lastRead = 0;
+bool recordingStarted = false;
 void loop() {
 
-  if (millis() % 10 == 0) {
+  if (millis() > 10000 && !recordingStarted) {
+    recordingStarted = true;
+    xTaskCreate(i2s_adc, "i2s_adc", 1024 * 2, NULL, 1, NULL);
+  }
 
-    // read the input on analog pin potPin:
+  if (millis() - 10 > lastRead) {
+
+    lastRead = millis();
+
     potValue = analogRead(POT_IN);
     voltage = (3.3/4095.0) * potValue;
-    
-    
-    // Serial.print("potValue:");
-    // Serial.print(potValue);
-    
-    // Serial.print(" Voltage:");
-    // Serial.print(voltage);
-    // Serial.println("V");  
+
+    ldrValue = analogRead(LDR_PIN);
+
+
+    button1Value = digitalRead(BUTTON1_IN);
+    button2Value = digitalRead(BUTTON2_IN);
+    button3Value = digitalRead(BUTTON3_IN);
 
     int ledLevel = potValue / 16;
     ledcWrite(ledChannel, ledLevel);
@@ -278,12 +340,42 @@ void loop() {
     // static uint8_t hue = 0;
     //FastLED.showColor(CHSV(hue++, 128, ledLevel)); 
     FastLED.showColor(CHSV(ledLevel, 255, 255)); 
+
+
+    digitalWrite(BUTTON1_LED, button1Value);
+    digitalWrite(BUTTON2_LED, button2Value);
+    digitalWrite(BUTTON3_LED, button3Value);
+
+    if (millis() - 1000 > lastPrint) {
+      
+      lastPrint = millis();
+
+      Serial.print("potValue: ");
+      Serial.print(potValue);
+      
+      Serial.print(", Voltage: ");
+      Serial.print(voltage);
+      Serial.print("V");  
+
+      Serial.print(", button1: ");
+      Serial.print(button1Value);
+
+      Serial.print(", button2: ");
+      Serial.print(button2Value);
+
+      Serial.print(", button3: ");
+      Serial.print(button3Value);
+
+      Serial.print(", light: ");
+      Serial.print(ldrValue);
+
+      Serial.println();
+    }
   }
 
-  if (audio->isRunning()) {
-    audio->loop();
-  } else {
-    audio -> stop();
-    Serial.println("Audio");
+
+  if (testSound->isRunning()) {
+    
+    testSound->loop();
   }
 }
