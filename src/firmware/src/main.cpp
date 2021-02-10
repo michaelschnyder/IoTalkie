@@ -2,14 +2,16 @@
 
 #include "UserInterface.h"
 #include "Application.h"
+#include "Fsm.h"
 
 UserInterface ui;
-Application app(ui);
+
+Application app(&ui);
 
 void setup() {
 
   Serial.begin(115200);
-
+  
   ui.setup();
 
 }

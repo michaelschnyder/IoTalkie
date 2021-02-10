@@ -5,8 +5,8 @@ OneButton button1 = OneButton(BUTTON1_IN, false, false);
 OneButton button2 = OneButton(BUTTON2_IN, false, false);
 OneButton button3 = OneButton(BUTTON3_IN, false, false);
 
-void raiseButtonEvent(ButtonContext *ctx, Action) {
-  ButtonEvent evt = {ctx->buttonId, Clicked, ctx->button.getPressedTicks()};
+void raiseButtonEvent(ButtonContext *ctx, Action action) {
+  ButtonEvent evt = {ctx->buttonId, action, ctx->button.getPressedTicks()};
 
   UserInterface* uiCast = (UserInterface *)ctx->ui;
 
@@ -35,7 +35,7 @@ void fLongPressEnd(void *s)
   ButtonContext* ctx = (ButtonContext *)s;
   Serial.print("Long Press End: ");
   Serial.println(ctx->buttonId);
-  raiseButtonEvent(ctx, Clicked);
+  raiseButtonEvent(ctx, LongPressEnd);
 }
 
 void UserInterface::setup() 
@@ -62,22 +62,4 @@ void UserInterface::loop()
   button1.tick();
   button2.tick();
   button3.tick();
-}
-
-// void clicked() {
-  
-// }
-
-// void longPressStart() {
-//   Serial.println("Long Press Started");
-// }
-
-// void longPressEnd() {
-//   Serial.print("Long Press Ended after ");
-//   Serial.print(button1.getPressedTicks());
-//   Serial.println(" ms");
-// }
-void UserInterface::raiseEvent(int buttonId, Action action, long duration) 
-{
-    
 }

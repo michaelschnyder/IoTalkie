@@ -31,7 +31,7 @@ ButtonContext btnCtx1;
 ButtonContext btnCtx2;
 ButtonContext btnCtx3;
 
-void raiseEvent(int buttonId, Action action, long duration);
+// void raiseEvent(int buttonId, Action action, long duration);
 
 public:
     void setup();
