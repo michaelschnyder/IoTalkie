@@ -1,9 +1,21 @@
 #include <Arduino.h>
 
+#include "UserInterface.h"
+#include "Application.h"
+
+UserInterface ui;
+Application app(ui);
+
 void setup() {
-  // put your setup code here, to run once:
+
+  Serial.begin(115200);
+
+  ui.setup();
+
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
+  app.run();
 }
+
