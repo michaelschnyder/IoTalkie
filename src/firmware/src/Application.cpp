@@ -4,8 +4,12 @@ Application::Application(UserInterface* ui) : Application()
 {
     this->ui = ui;
     
-    this->fsm.add_transition(&state_idle, &state_record, BUTTON_LONGSTART, nullptr);
-    this->fsm.add_transition(&state_record, &state_idle, BUTTON_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_idle, &state_record1, BUTTON1_LONGSTART, nullptr);
+    this->fsm.add_transition(&state_record1, &state_idle, BUTTON1_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_idle, &state_record2, BUTTON2_LONGSTART, nullptr);
+    this->fsm.add_transition(&state_record2, &state_idle, BUTTON2_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_idle, &state_record2, BUTTON3_LONGSTART, nullptr);
+    this->fsm.add_transition(&state_record3, &state_idle, BUTTON3_LONG_RELEASE, nullptr);
 
     this->fsm.add_transition(&state_idle, &state_play, BUTTON_CLICK, nullptr);
     this->fsm.add_transition(&state_play, &state_idle, MESSAGE_PLAYED, nullptr);
@@ -18,11 +22,25 @@ Application::Application(UserInterface* ui) : Application()
         }
 
         if (evt.action == Action::LongPressStart) {
-            this->fsm.trigger(Event::BUTTON_LONGSTART);
+            switch (evt.buttonId)
+            {
+            case 1: this->fsm.trigger(Event::BUTTON1_LONGSTART); break;
+            case 2: this->fsm.trigger(Event::BUTTON2_LONGSTART); break;
+            case 3: this->fsm.trigger(Event::BUTTON3_LONGSTART); break;
+            default:
+                break;
+            }
         }
 
         if (evt.action == Action::LongPressEnd) {
-            this->fsm.trigger(Event::BUTTON_LONG_RELEASE);
+            switch (evt.buttonId)
+            {
+            case 1: this->fsm.trigger(Event::BUTTON1_LONG_RELEASE); break;
+            case 2: this->fsm.trigger(Event::BUTTON2_LONG_RELEASE); break;
+            case 3: this->fsm.trigger(Event::BUTTON3_LONG_RELEASE); break;
+            default:
+                break;
+            }
         }
      });
 
