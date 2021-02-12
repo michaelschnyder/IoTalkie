@@ -27,20 +27,19 @@ struct ButtonContext {
 
 class UserInterface {
 
-ButtonContext btnCtx1;
-ButtonContext btnCtx2;
-ButtonContext btnCtx3;
+    ButtonContext btnCtx1;
+    ButtonContext btnCtx2;
+    ButtonContext btnCtx3;
 
-// void raiseEvent(int buttonId, Action action, long duration);
 
-public:
-    void setup();
-    void loop();
-  
-    BUTTON_PRESS_CALLBACK_TYPE buttonActionCallback;
-    void onButtonEvent(BUTTON_PRESS_CALLBACK_TYPE callback) {
-        this->buttonActionCallback = callback;    
-    }
+    public:
+        void setup();
+        void loop();
+    
+        BUTTON_PRESS_CALLBACK_TYPE buttonActionCallback;
+        void onButtonEvent(BUTTON_PRESS_CALLBACK_TYPE callback) {
+            this->buttonActionCallback = callback;    
+        }
 };
 
 #endif // __USERINTERFACE_H__

@@ -230,12 +230,11 @@ void setup() {
   out -> SetGain(0.128);
   out -> SetPinout(AMP_PIN_BCLK, AMP_PIN_LRC, AMP_PIN_DIN);
 
-
   testSound = new AudioGeneratorMP3();
   testSoundIn = new AudioFileSourcePROGMEM(samplemp3, sizeof(samplemp3));
   testSound->begin(testSoundIn, out);  
 
-  testRecording = new AudioGeneratorWAV();
+  // testRecording = new AudioGeneratorWAV();
 
   // Initialize SD card
   SD.begin(SD_SPI_CS);  
