@@ -19,6 +19,10 @@ private:
     // Unknown max lenght, taking 256
     char azIoTSASToken[257]; 
 
+    char deviceId[33];
+
+    char postMessageUrl[257];
+
     log4Esp::Logger logger = log4Esp::Logger("AppConfig");
 public:
     AppConfig();   
@@ -29,6 +33,8 @@ public:
     String getWifiKey();
     String getAzIoTHubName();
     String getAzIoTSASToken();
+    String getDeviceId();
+    String getPostMessageUrl();
 };
 
 #endif

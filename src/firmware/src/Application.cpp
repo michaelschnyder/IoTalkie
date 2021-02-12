@@ -13,9 +13,12 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_idle, &state_record1, BUTTON1_LONGSTART, nullptr);
     this->fsm.add_transition(&state_idle, &state_record2, BUTTON2_LONGSTART, nullptr);
     this->fsm.add_transition(&state_idle, &state_record3, BUTTON3_LONGSTART, nullptr);
-    this->fsm.add_transition(&state_record1, &state_idle, BUTTON1_LONG_RELEASE, nullptr);
-    this->fsm.add_transition(&state_record2, &state_idle, BUTTON2_LONG_RELEASE, nullptr);
-    this->fsm.add_transition(&state_record3, &state_idle, BUTTON3_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record1, &state_validate, BUTTON1_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record2, &state_validate, BUTTON2_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record3, &state_validate, BUTTON3_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_validate, &state_send, SEND_MESSAGE, nullptr);
+    this->fsm.add_transition(&state_send, &state_idle, MESSAGE_SENT, nullptr);
+    this->fsm.add_transition(&state_validate, &state_idle, DISCARD_MESSAGE, nullptr);
 
     this->fsm.add_transition(&state_idle, &state_play1, BUTTON1_CLICK, nullptr);
     this->fsm.add_transition(&state_idle, &state_play2, BUTTON2_CLICK, nullptr);
@@ -77,30 +80,48 @@ void Application::run() {
     fsm.run_machine();
 }
 
-File* currRec;
+char currentRecordingName[30];
 
 void Application::recordMessageFor(int buttonId) 
 {
-    char filename[30];
-    sprintf(filename, "/to_btn%i_at_%i.wav\0", buttonId, millis());
+    sprintf(currentRecordingName, "/to_btn%i_at_%i.wav\0", buttonId, millis());
 
     Serial.print("Recording to ");
-    Serial.println(filename);
+    Serial.println(currentRecordingName);
 
-    File recording = SD.open(filename, FILE_WRITE);
-    currRec = &recording;
+    File recording = SD.open(currentRecordingName, FILE_WRITE);
     this->recoder->record(&recording);    
 }
 
-void Application::completeRecording() 
+void Application::validateRecording() 
 {
     Serial.println("Finishing recording");
     this->recoder->stop();
+
+    Serial.print(&fsm.get_current_state() == &state_validate);
+    Serial.println("trigger");
+    this->fsm.trigger(Event::SEND_MESSAGE);
+}
+
+WiFiClient httpClient;
+
+void Application::sendLastMessage() 
+{
+    Serial.println("Sending last message");
+    logger.trace(F("Sending message '%s' to %s"), currentRecordingName, config.getPostMessageUrl());
+
+
+
+}
+
+void Application::whileMessageSending() 
+{
     
 }
 
 void Application::whileMessageRecording() 
 {
+    // TODO: Update ui if below 24s and otherwise stop
 }
 
 void Application::playMessageFrom(int buttonId) 

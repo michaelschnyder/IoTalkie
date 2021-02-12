@@ -35,6 +35,8 @@ void AppConfig::load() {
     strcpy(AppConfig::wifiKey, root["wifiKey"]);
     strcpy(AppConfig::azIoTHubName, root["azIoTHubName"]);
     strcpy(AppConfig::azIoTSASToken, root["azIoTSASToken"]);
+    strcpy(AppConfig::deviceId, root["deviceId"]);
+    strcpy(AppConfig::postMessageUrl, root["postMessageUrl"]);
 
     logger.trace(F("Application configuration loaded."));
 }
@@ -74,4 +76,14 @@ String AppConfig::getAzIoTHubName() {
 
 String AppConfig::getAzIoTSASToken() {
     return AppConfig::azIoTSASToken;
+}
+
+String AppConfig::getDeviceId() 
+{
+    return AppConfig::deviceId;
+}
+
+String AppConfig::getPostMessageUrl() 
+{
+    return AppConfig::postMessageUrl;
 }

@@ -6,6 +6,7 @@
         "algorithm": "cpp",
         "fstream": "cpp",
         "sstream": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "vector": "cpp"
     }
 }

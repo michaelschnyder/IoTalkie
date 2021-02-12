@@ -22,7 +22,10 @@ class Application
         BUTTON2_LONG_RELEASE,
         BUTTON3_LONGSTART,
         BUTTON3_LONG_RELEASE,
-        MESSAGE_PLAYED
+        MESSAGE_PLAYED,
+        SEND_MESSAGE,
+        DISCARD_MESSAGE,
+        MESSAGE_SENT,
     };
 
     AppConfig config;
@@ -35,6 +38,9 @@ class Application
     FunctionState state_record1;
     FunctionState state_record2;
     FunctionState state_record3;
+    FunctionState state_validate;
+    FunctionState state_send;
+
     FunctionState state_play1;
     FunctionState state_play2;
     FunctionState state_play3;
@@ -44,21 +50,26 @@ class Application
     void whileStarting();
 
     void recordMessageFor(int buttonId);
-    void completeRecording();
     void whileMessageRecording();
-    
+    void validateRecording();
+    void sendLastMessage();
+    void whileMessageSending();
+
     void playMessageFrom(int buttonId);
     void whileMessagePlaying();
 
     Application() : state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
-                    state_idle([this]() { Serial.println("Ready"); }, [this]() {}, [this]() {}),
-                    state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, [this]() { completeRecording(); }),
-                    state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, [this]() { completeRecording(); }),
-                    state_record3([this]() { recordMessageFor(3); }, [this]() { whileMessageRecording(); }, [this]() { completeRecording(); }),
+                    state_idle([this]() { Serial.println("Ready"); }, nullptr, nullptr),
 
-                    state_play1([this]() { playMessageFrom(1); }, [this]() { whileMessagePlaying(); }, [this]() {}),
-                    state_play2([this]() { playMessageFrom(2); }, [this]() { whileMessagePlaying(); }, [this]() {}),
-                    state_play3([this]() { playMessageFrom(3); }, [this]() { whileMessagePlaying(); }, [this]() {}),
+                    state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, nullptr),
+                    state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, nullptr),
+                    state_record3([this]() { recordMessageFor(3); }, [this]() { whileMessageRecording(); }, nullptr),
+                    state_validate(nullptr, [this]() { validateRecording(); }, nullptr),
+                    state_send([this]() { sendLastMessage(); }, [this]() { whileMessageSending(); }, [this]() {}),
+
+                    state_play1([this]() { playMessageFrom(1); }, [this]() { whileMessagePlaying(); }, nullptr),
+                    state_play2([this]() { playMessageFrom(2); }, [this]() { whileMessagePlaying(); }, nullptr),
+                    state_play3([this]() { playMessageFrom(3); }, [this]() { whileMessagePlaying(); }, nullptr),
 
                     fsm(&state_startup)
     {
