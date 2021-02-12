@@ -29,7 +29,7 @@ void AudioRecorder::setup()
       //.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,     // Interrupt level 1
       .intr_alloc_flags = 0,     
       .dma_buf_count = 32,               // relates somehow to resolution
-      .dma_buf_len = 1024,                // maximum
+      .dma_buf_len = 512,                // maximum: 1024
       .use_apll = 1
   };
 
