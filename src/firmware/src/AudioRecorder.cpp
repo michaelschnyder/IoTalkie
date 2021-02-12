@@ -5,9 +5,8 @@
 #define I2S_SAMPLE_RATE   (16000)
 #define I2S_SAMPLE_BITS   (32)
 #define I2S_READ_LEN      (16 * 1024)
-#define RECORD_TIME       (2) //Seconds
 #define I2S_CHANNEL_NUM   (1)
-#define FLASH_RECORD_SIZE (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8 * RECORD_TIME)
+#define BYTES_PER_SECOND (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8)
 
 const int headerSize = 44;
 
@@ -55,6 +54,7 @@ void AudioRecorder::setup()
     while (true);
   }
   Serial.println("I2S driver installed.");
+  i2s_stop(I2S_PORT);
 }
 
 void fillHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution){
@@ -118,6 +118,8 @@ File currentRecording;
 
 void i2s_adc(void *arg)
 {
+    i2s_start(I2S_PORT);
+
     //File* file = reinterpret_cast<File*>(arg);
     currentRecording.getTimeout();
 
@@ -133,7 +135,7 @@ void i2s_adc(void *arg)
         i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
         currentRecording.write((const byte*) i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
-        ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
+        ets_printf("Sound recording %i\n", flash_wr_size / BYTES_PER_SECOND);
         ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
     }
 
@@ -147,6 +149,8 @@ void i2s_adc(void *arg)
 
     free(i2s_read_buff);
     i2s_read_buff = NULL;
+    i2s_stop(I2S_PORT);
+
     hasStopped = true;
     vTaskDelete(NULL);
 }
@@ -163,7 +167,7 @@ void AudioRecorder::record(File* file)
     isRecording = true;
     hasStopped = false;
 
-    xTaskCreate(i2s_adc, "i2s_adc", 10000, file, 1, NULL);
+    xTaskCreate(i2s_adc, "i2s_adc", 2 * 1024, file, 1, NULL);
 }
 
 void AudioRecorder::stop() 
