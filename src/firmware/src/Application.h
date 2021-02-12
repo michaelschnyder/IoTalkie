@@ -5,11 +5,14 @@
 #include "UserInterface.h"
 #include "AudioRecorder.h"
 #include "AudioPlayer.h"
-
+#include "AppConfig.h"
+#include <Log4Esp.h>
 class Application
 {
+    log4Esp::Logger logger = log4Esp::Logger("Application");
 
     enum Event {
+        SYSTEM_READY,
         BUTTON1_CLICK,
         BUTTON2_CLICK,
         BUTTON3_CLICK,
@@ -22,10 +25,12 @@ class Application
         MESSAGE_PLAYED
     };
 
+    AppConfig config;
     UserInterface *ui;
     AudioRecorder *recoder;
     AudioPlayer *player;
     
+    FunctionState state_startup;
     FunctionState state_idle;
     FunctionState state_record1;
     FunctionState state_record2;
@@ -36,6 +41,8 @@ class Application
 
     FunctionFsm fsm;
 
+    void whileStarting();
+
     void recordMessageFor(int buttonId);
     void completeRecording();
     void whileMessageRecording();
@@ -43,7 +50,8 @@ class Application
     void playMessageFrom(int buttonId);
     void whileMessagePlaying();
 
-    Application() : state_idle([this]() { Serial.println("Enter Idle"); }, [this]() {}, [this]() {}),
+    Application() : state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
+                    state_idle([this]() { Serial.println("Ready"); }, [this]() {}, [this]() {}),
                     state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, [this]() { completeRecording(); }),
                     state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, [this]() { completeRecording(); }),
                     state_record3([this]() { recordMessageFor(3); }, [this]() { whileMessageRecording(); }, [this]() { completeRecording(); }),
@@ -52,13 +60,14 @@ class Application
                     state_play2([this]() { playMessageFrom(2); }, [this]() { whileMessagePlaying(); }, [this]() {}),
                     state_play3([this]() { playMessageFrom(3); }, [this]() { whileMessagePlaying(); }, [this]() {}),
 
-                    fsm(&state_idle)
+                    fsm(&state_startup)
     {
     }
 
 public:
     Application(UserInterface*, AudioRecorder*, AudioPlayer*);
 
+    void start();
     void run();
 };
 

@@ -5,6 +5,7 @@
 #include "Fsm.h"
 #include "FS.h"
 #include "SD.h"
+#include "SPIFFS.h"
 
 UserInterface ui;
 AudioRecorder recorder;
@@ -15,12 +16,25 @@ Application app(&ui, &recorder, &player);
 void setup() {
 
   Serial.begin(115200);
-  SD.begin();
+  Serial.println();
   
+  SD.begin();
+  Serial.printf("Card total bytes: %i", SD.totalBytes());
+  Serial.println();
+  Serial.printf("Card total used:  %i", SD.usedBytes());
+  Serial.println();
+
+  SPIFFS.begin();
+  Serial.printf("Data total bytes: %i", SPIFFS.totalBytes());
+  Serial.println();
+  Serial.printf("Data total used:  %i", SPIFFS.usedBytes());
+  Serial.println();
+
   ui.setup();
   player.setup();
   recorder.setup();
 
+  app.start();
 }
 
 void loop() {

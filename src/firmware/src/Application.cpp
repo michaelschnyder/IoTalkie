@@ -1,12 +1,15 @@
 #include "Application.h"
 #include "SD.h"
+#include "WiFi.h"
 
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player) : Application()
 {
     this->ui = ui;
     this->recoder = recoder;
     this->player = player;
-    
+
+    this->fsm.add_transition(&state_startup, &state_idle, SYSTEM_READY, nullptr);
+
     this->fsm.add_transition(&state_idle, &state_record1, BUTTON1_LONGSTART, nullptr);
     this->fsm.add_transition(&state_idle, &state_record2, BUTTON2_LONGSTART, nullptr);
     this->fsm.add_transition(&state_idle, &state_record3, BUTTON3_LONGSTART, nullptr);
@@ -58,6 +61,18 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
      });
 }
 
+void Application::start() 
+{
+    config.load();
+
+    WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
+    WiFi.persistent(false); // Do not store WIFI information in EEPROM.
+
+    logger.trace(F("Connecting to WLAN with SSID '%s'. This may take some time..."), config.getWifiSSID().c_str());
+
+    WiFi.begin(config.getWifiSSID().c_str(), config.getWifiKey().c_str());
+}
+
 void Application::run() {    
     fsm.run_machine();
 }
@@ -86,7 +101,6 @@ void Application::completeRecording()
 
 void Application::whileMessageRecording() 
 {
-    
 }
 
 void Application::playMessageFrom(int buttonId) 
@@ -98,5 +112,12 @@ void Application::whileMessagePlaying()
 {
     if (millis() % 100 == 0) {
         this->fsm.trigger(Event::MESSAGE_PLAYED);
+    }
+}
+
+void Application::whileStarting() 
+{
+    if (WiFi.isConnected()) {
+        this->fsm.trigger(Event::SYSTEM_READY);
     }
 }
