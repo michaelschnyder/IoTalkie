@@ -119,5 +119,6 @@ void Application::whileStarting()
 {
     if (WiFi.isConnected()) {
         this->fsm.trigger(Event::SYSTEM_READY);
+        logger.trace(F("WiFi connection established. IP address: %s"), WiFi.localIP().toString().c_str());
     }
 }

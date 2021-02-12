@@ -120,7 +120,6 @@ void i2s_adc(void *arg)
 {
     i2s_start(I2S_PORT);
 
-    //File* file = reinterpret_cast<File*>(arg);
     currentRecording.getTimeout();
 
     int i2s_read_len = I2S_READ_LEN;
@@ -135,8 +134,8 @@ void i2s_adc(void *arg)
         i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
         currentRecording.write((const byte*) i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
-        ets_printf("Sound recording %i\n", flash_wr_size / BYTES_PER_SECOND);
-        ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
+        ets_printf("Sound recording %u\n", flash_wr_size / BYTES_PER_SECOND);
+        ets_printf("Untouched stack size: %u\n", uxTaskGetStackHighWaterMark(NULL));
     }
 
     Serial.println(" *** Recording End *** ");
