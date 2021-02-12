@@ -17,24 +17,18 @@ void raiseButtonEvent(ButtonContext *ctx, Action action) {
 void fClicked(void *s)
 {
   ButtonContext* ctx = (ButtonContext *)s;
-  Serial.print("Clicked: ");
-  Serial.println(ctx->buttonId);
   raiseButtonEvent(ctx, Clicked);
 }
 
 void fLongPressStart(void *s)
 {
   ButtonContext* ctx = (ButtonContext *)s;
-  Serial.print("Long Press Start: ");
-  Serial.println(ctx->buttonId);
   raiseButtonEvent(ctx, LongPressStart);
 }
 
 void fLongPressEnd(void *s)
 {
   ButtonContext* ctx = (ButtonContext *)s;
-  Serial.print("Long Press End: ");
-  Serial.println(ctx->buttonId);
   raiseButtonEvent(ctx, LongPressEnd);
 }
 
