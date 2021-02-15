@@ -15,5 +15,6 @@ class AudioRecorder {
         void setup();
         void record(File*);
         long stop();
+        long duration();
 };
 #endif // __AUDIORECORDER_H__

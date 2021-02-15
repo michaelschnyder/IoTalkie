@@ -3,6 +3,7 @@
 #include "WiFi.h"
 
 #define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
+#define MAXIMAL_MESSAGE_LENGTH_IN_MS 24000
 
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : Application()
 {
@@ -19,6 +20,10 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_record1, &state_validate, BUTTON1_LONG_RELEASE, nullptr);
     this->fsm.add_transition(&state_record2, &state_validate, BUTTON2_LONG_RELEASE, nullptr);
     this->fsm.add_transition(&state_record3, &state_validate, BUTTON3_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record1, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+    this->fsm.add_transition(&state_record2, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+    this->fsm.add_transition(&state_record3, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+
     this->fsm.add_transition(&state_validate, &state_send, SEND_MESSAGE, nullptr);
     this->fsm.add_transition(&state_send, &state_idle, MESSAGE_SENT, nullptr);
     this->fsm.add_transition(&state_validate, &state_idle, DISCARD_MESSAGE, nullptr);
@@ -145,7 +150,12 @@ void Application::whileMessageSending()
 
 void Application::whileMessageRecording() 
 {
-    // TODO: Update ui if below 24s and otherwise stop
+    int recordingDuration = this->recoder->duration();
+
+    if (recordingDuration >= MAXIMAL_MESSAGE_LENGTH_IN_MS) {
+        logger.trace(F("Stopped recording because current recording lenght (%ims) is above maximum of %ims"), recordingDuration, MAXIMAL_MESSAGE_LENGTH_IN_MS);
+        this->fsm.trigger(RECORDING_LENGTH_EXCEEDED);
+    }
 }
 
 void Application::playMessageFrom(int buttonId) 

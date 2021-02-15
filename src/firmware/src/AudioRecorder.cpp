@@ -141,7 +141,6 @@ void i2s_adc(void *arg)
 
     char* i2s_read_buff = (char*) calloc(i2s_read_len, sizeof(char));
     
-    Serial.println(" *** Recording Start *** ");
     while (isRecording) {
 
         i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
@@ -152,11 +151,9 @@ void i2s_adc(void *arg)
         Serial.printf("X|recording duration: %.3fs", durationInS);
         Serial.println();
 
-        // ets_printf("Recording duration: %i (ms)\n", (flash_wr_size * 1000) / BYTES_PER_SECOND);
-        ets_printf("Untouched stack size: %u (bytes)\n", uxTaskGetStackHighWaterMark(NULL));
+        ets_printf("X|Untouched stack size: %u (bytes)\n", uxTaskGetStackHighWaterMark(NULL));
     }
 
-    Serial.println(" *** Recording End *** ");
     updateHeader(&currentRecording, flash_wr_size);
 
     free(i2s_read_buff);
@@ -185,9 +182,11 @@ long AudioRecorder::stop()
     isRecording = false;
     while (!hasStopped) { delay(10); }
 
-    Serial.printf("Size: %i, position %i", currentRecording.size(), currentRecording.position());
-    Serial.println();
+    return currentRecording.position() / (BYTES_PER_SECOND / 1000);
+}
 
+long AudioRecorder::duration() 
+{
     return currentRecording.position() / (BYTES_PER_SECOND / 1000);
 }
 
