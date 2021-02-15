@@ -120,6 +120,8 @@ void Application::whileMessageSending()
     if (uploader->isCompleted()) {
         currentBytesSent = 0;
         logger.trace(F("Message is sent."));
+        f.close();
+
         this->fsm.trigger(Event::MESSAGE_SENT);    
     }
     else {
