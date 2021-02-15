@@ -2,6 +2,8 @@
 #include "SD.h"
 #include "WiFi.h"
 
+#define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
+
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : Application()
 {
     this->ui = ui;
@@ -83,26 +85,34 @@ void Application::run() {
 
 char currentRecordingName[30];
 long currentBytesSent = 0;
+File f;
+
 
 void Application::recordMessageFor(int buttonId) 
 {
     sprintf(currentRecordingName, "/to_btn%i_at_%i.wav\0", buttonId, millis());
 
-    Serial.print("Recording to ");
-    Serial.println(currentRecordingName);
+    logger.trace(F("Recording to %s"), currentRecordingName);
 
-    File recording = SD.open(currentRecordingName, FILE_WRITE);
-    this->recoder->record(&recording);    
+    f = SD.open(currentRecordingName, FILE_WRITE);
+    this->recoder->record(&f);    
 }
 
 void Application::validateRecording() 
 {
-    Serial.println("Finishing recording");
-    this->recoder->stop();
-    this->fsm.trigger(Event::SEND_MESSAGE);
-}
+    long lenghtInMs = this->recoder->stop();
+    f.close();
 
-File f;
+    logger.trace(F("Stopped recording. Validating recording length: %ims"), lenghtInMs);
+
+    if (lenghtInMs >= MINIMAL_MESSAGE_LENGTH_IN_MS) {
+        this->fsm.trigger(Event::SEND_MESSAGE);
+    }
+    else {
+        logger.trace(F("Message length was below threshold of %ims, ignoring."), MINIMAL_MESSAGE_LENGTH_IN_MS);
+        this->fsm.trigger(Event::DISCARD_MESSAGE);
+    }
+}
 
 void Application::sendLastMessage() 
 {
@@ -114,7 +124,6 @@ void Application::sendLastMessage()
     uploader->send(&f, config.getPostMessageUrl().c_str());
 }
 
-
 void Application::whileMessageSending() 
 {
     if (uploader->isCompleted()) {
@@ -122,16 +131,15 @@ void Application::whileMessageSending()
         logger.trace(F("Message is sent."));
         f.close();
 
-        this->fsm.trigger(Event::MESSAGE_SENT);    
+        this->fsm.trigger(Event::MESSAGE_SENT);
+        return;  
     }
-    else {
 
-        if (this->uploader->getBytesSent() != currentBytesSent) {
-            currentBytesSent = this->uploader->getBytesSent();
-            long total = this->uploader->getBytesTotal();
-            int percent = (int)((currentBytesSent * 100.0f) / total);
-            logger.verbose("Upload progress: %i/%i, %i%%", currentBytesSent, total, percent);
-        }
+    if (this->uploader->getBytesSent() != currentBytesSent) {
+        currentBytesSent = this->uploader->getBytesSent();
+        long total = this->uploader->getBytesTotal();
+        int percent = (int)((currentBytesSent * 100.0f) / total);
+        logger.verbose("Upload progress: %i/%i, %i%%", currentBytesSent, total, percent);
     }
 }
 

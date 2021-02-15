@@ -112,6 +112,19 @@ void fillHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution)
   header[43] = (byte)((wavSize >> 24) & 0xFF);
 }
 
+void writeHeader(File* file, int size) {
+    byte header[headerSize];
+    fillHeader(header, size, I2S_SAMPLE_RATE, I2S_SAMPLE_BITS);
+    file->seek(0);
+    file->write(header, headerSize);
+}
+
+void updateHeader(File* file, int size) {
+    long currentPosition = file->position();
+    writeHeader(file, size);
+    file->seek(currentPosition);
+}
+
 bool isRecording = false;
 bool hasStopped = false;
 File currentRecording;
@@ -134,17 +147,17 @@ void i2s_adc(void *arg)
         i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
         currentRecording.write((const byte*) i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
-        ets_printf("Recording duration: %i (ms)\n", (flash_wr_size * 1000) / BYTES_PER_SECOND);
+        
+        float durationInS = flash_wr_size * 1.0f / BYTES_PER_SECOND;
+        Serial.printf("X|recording duration: %.3fs", durationInS);
+        Serial.println();
+
+        // ets_printf("Recording duration: %i (ms)\n", (flash_wr_size * 1000) / BYTES_PER_SECOND);
         ets_printf("Untouched stack size: %u (bytes)\n", uxTaskGetStackHighWaterMark(NULL));
     }
 
     Serial.println(" *** Recording End *** ");
-
-    byte header[headerSize];
-    fillHeader(header, flash_wr_size, I2S_SAMPLE_RATE, I2S_SAMPLE_BITS);
-    currentRecording.seek(0);
-    currentRecording.write(header, headerSize);
-    currentRecording.close();
+    updateHeader(&currentRecording, flash_wr_size);
 
     free(i2s_read_buff);
     i2s_read_buff = NULL;
@@ -154,14 +167,12 @@ void i2s_adc(void *arg)
     vTaskDelete(NULL);
 }
 
+
 void AudioRecorder::record(File* file) 
 {
-    byte header[headerSize];
-
     currentRecording = *file;
 
-    fillHeader(header, 0, I2S_SAMPLE_RATE, I2S_SAMPLE_BITS);
-    currentRecording.write(header, headerSize);
+    writeHeader(file, 0);
 
     isRecording = true;
     hasStopped = false;
@@ -169,9 +180,14 @@ void AudioRecorder::record(File* file)
     xTaskCreate(i2s_adc, "i2s_adc", 2 * 1024, file, 1, NULL);
 }
 
-void AudioRecorder::stop() 
+long AudioRecorder::stop() 
 {
     isRecording = false;
-    while (!hasStopped) { }
+    while (!hasStopped) { delay(10); }
+
+    Serial.printf("Size: %i, position %i", currentRecording.size(), currentRecording.position());
+    Serial.println();
+
+    return currentRecording.position() / (BYTES_PER_SECOND / 1000);
 }
 

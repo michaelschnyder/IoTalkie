@@ -8,10 +8,12 @@
 
 class AudioRecorder {
 
+    File* currentFile;
+
     public:
         void loop();
         void setup();
         void record(File*);
-        void stop();
+        long stop();
 };
 #endif // __AUDIORECORDER_H__
