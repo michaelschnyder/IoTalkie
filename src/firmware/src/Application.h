@@ -33,7 +33,7 @@ class Application
     AppConfig config;
     UserInterface *ui;
     AudioRecorder *recoder;
-    FileUploader uploader;
+    FileUploader* uploader;
 
     AudioPlayer *player;
     
@@ -80,7 +80,7 @@ class Application
     }
 
 public:
-    Application(UserInterface*, AudioRecorder*, AudioPlayer*);
+    Application(UserInterface*, AudioRecorder*, AudioPlayer*, FileUploader*);
 
     void start();
     void run();

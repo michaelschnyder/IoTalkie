@@ -2,11 +2,12 @@
 #include "SD.h"
 #include "WiFi.h"
 
-Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player) : Application()
+Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : Application()
 {
     this->ui = ui;
     this->recoder = recoder;
     this->player = player;
+    this->uploader = uploader;
 
     this->fsm.add_transition(&state_startup, &state_idle, SYSTEM_READY, nullptr);
 
@@ -100,22 +101,26 @@ void Application::validateRecording()
     this->fsm.trigger(Event::SEND_MESSAGE);
 }
 
+File f;
+
 void Application::sendLastMessage() 
 {
     logger.trace(F("Sending message '%s' to '%s'"), currentRecordingName, config.getPostMessageUrl().c_str());
 
+    f = SD.open(currentRecordingName, FILE_READ);
+    logger.trace(F("Message size: %i bytes"), f.size());
+
+    uploader->send(&f, config.getPostMessageUrl().c_str());
 }
+
 
 void Application::whileMessageSending() 
 {
-    File f = SD.open(currentRecordingName, FILE_READ);
-    logger.trace(F("Message size: %i bytes"), f.size());
 
-    uploader.send(&f, config.getPostMessageUrl().c_str());
-    f.close();
-
-    logger.trace(F("Sending completed."));
-    this->fsm.trigger(Event::MESSAGE_SENT);    
+    if (f.position() == f.size()) {
+        logger.trace(F("Message is sent."));
+        this->fsm.trigger(Event::MESSAGE_SENT);    
+    }
 }
 
 void Application::whileMessageRecording() 

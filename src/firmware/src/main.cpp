@@ -10,8 +10,9 @@
 UserInterface ui;
 AudioRecorder recorder;
 AudioPlayer player;
+FileUploader uploader;
 
-Application app(&ui, &recorder, &player);
+Application app(&ui, &recorder, &player, &uploader);
 
 void setup() {
 
