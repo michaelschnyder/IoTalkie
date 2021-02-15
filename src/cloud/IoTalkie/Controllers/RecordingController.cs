@@ -23,11 +23,13 @@ namespace IoTalkie.Controllers
         {
             try
             {
-                var filename = Path.GetRandomFileName().Replace(".", "") + ".wav";
+                var filename = Path.Combine("messages", Path.GetRandomFileName().Replace(".", "") + ".wav");
 
-                var file = new FileStream(filename, FileMode.CreateNew);
-                await Request.Body.CopyToAsync(file);
-                file.Close();
+                using (var file = new FileStream(filename, FileMode.CreateNew))
+                {
+                    await Request.Body.CopyToAsync(file);
+                }
+                
                 
                 Debug.WriteLine($"Saved to '{Path.GetFullPath(filename) }'");
             }
@@ -35,8 +37,6 @@ namespace IoTalkie.Controllers
             {
                 Console.WriteLine(e);
             }
-
-
             return this.Ok();
         }
     }
