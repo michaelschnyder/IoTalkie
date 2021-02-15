@@ -82,6 +82,7 @@ void Application::run() {
 }
 
 char currentRecordingName[30];
+long currentBytesSent = 0;
 
 void Application::recordMessageFor(int buttonId) 
 {
@@ -116,10 +117,19 @@ void Application::sendLastMessage()
 
 void Application::whileMessageSending() 
 {
-
-    if (f.position() == f.size()) {
+    if (uploader->isCompleted()) {
+        currentBytesSent = 0;
         logger.trace(F("Message is sent."));
         this->fsm.trigger(Event::MESSAGE_SENT);    
+    }
+    else {
+
+        if (this->uploader->getBytesSent() != currentBytesSent) {
+            currentBytesSent = this->uploader->getBytesSent();
+            long total = this->uploader->getBytesTotal();
+            int percent = (int)((currentBytesSent * 100.0f) / total);
+            logger.verbose("Upload progress: %i/%i, %i%%", currentBytesSent, total, percent);
+        }
     }
 }
 
