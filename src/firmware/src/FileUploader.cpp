@@ -10,14 +10,14 @@ typedef struct UploadTaskParam
 void sendBackground(void *arg)
 {
     UploadTaskParam* args = (UploadTaskParam*)arg;
-    args->instance->sendInternal(args->file, args->url);
+    args->instance->_sendInternal(args->file, args->url);
 
     free(args->url);
     free(arg);
     vTaskDelete(NULL);
 }
 
-void FileUploader::sendInternal(File* file , const char* url) 
+void FileUploader::_sendInternal(File* file , const char* url) 
 {
     logger.trace("Upload Url: %s, Size: %i", url, file->size());
 

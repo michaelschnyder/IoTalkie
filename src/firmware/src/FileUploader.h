@@ -19,7 +19,7 @@ public:
 
 
     void send(File *, const char *);
-    void sendInternal(File *, const char *);
+    void _sendInternal(File *, const char *);
     bool isCompleted();
     long getBytesSent();
     long getBytesTotal();
