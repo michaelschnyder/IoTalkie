@@ -50,7 +50,7 @@ void AudioPlayer::play(File* file)
 
 void AudioPlayer::loop() 
 {
-    if (audioGenerator->isRunning()) {
+    if (audioGenerator !=NULL && audioGenerator->isRunning()) {
     
         audioGenerator->loop();
   }

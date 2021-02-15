@@ -7,6 +7,8 @@
 #include "AudioPlayer.h"
 #include "AppConfig.h"
 #include <Log4Esp.h>
+#include "FileUploader.h"
+
 class Application
 {
     log4Esp::Logger logger = log4Esp::Logger("Application");
@@ -31,6 +33,8 @@ class Application
     AppConfig config;
     UserInterface *ui;
     AudioRecorder *recoder;
+    FileUploader uploader;
+
     AudioPlayer *player;
     
     FunctionState state_startup;

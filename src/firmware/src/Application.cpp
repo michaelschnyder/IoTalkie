@@ -97,26 +97,25 @@ void Application::validateRecording()
 {
     Serial.println("Finishing recording");
     this->recoder->stop();
-
-    Serial.print(&fsm.get_current_state() == &state_validate);
-    Serial.println("trigger");
     this->fsm.trigger(Event::SEND_MESSAGE);
 }
 
-WiFiClient httpClient;
-
 void Application::sendLastMessage() 
 {
-    Serial.println("Sending last message");
-    logger.trace(F("Sending message '%s' to %s"), currentRecordingName, config.getPostMessageUrl());
-
-
+    logger.trace(F("Sending message '%s' to '%s'"), currentRecordingName, config.getPostMessageUrl().c_str());
 
 }
 
 void Application::whileMessageSending() 
 {
-    
+    File f = SD.open(currentRecordingName, FILE_READ);
+    logger.trace(F("Message size: %i bytes"), f.size());
+
+    uploader.send(&f, config.getPostMessageUrl().c_str());
+    f.close();
+
+    logger.trace(F("Sending completed."));
+    this->fsm.trigger(Event::MESSAGE_SENT);    
 }
 
 void Application::whileMessageRecording() 

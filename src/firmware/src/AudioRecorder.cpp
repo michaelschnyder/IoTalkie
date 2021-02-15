@@ -134,7 +134,7 @@ void i2s_adc(void *arg)
         i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
         currentRecording.write((const byte*) i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
-        ets_printf("Recording duration: %us\n", flash_wr_size / BYTES_PER_SECOND);
+        ets_printf("Recording duration: %i (ms)\n", (flash_wr_size * 1000) / BYTES_PER_SECOND);
         ets_printf("Untouched stack size: %u (bytes)\n", uxTaskGetStackHighWaterMark(NULL));
     }
 
