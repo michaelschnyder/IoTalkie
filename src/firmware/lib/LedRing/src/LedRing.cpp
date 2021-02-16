@@ -7,13 +7,16 @@
 void LedRing::setup() 
 {
     FastLED.addLeds<WS2811, LED_RING_PIN, GRB>(strip, NUM_LEDS).setCorrection(TypicalLEDStrip);
-
+	
     FastLED.setBrightness(BRIGHTNESS);
  	FastLED.clear(true);
 }
 
 void LedRing::loop() 
 {
+	if (this->currentAnimation != NULL) {
+		this->currentAnimation->run();
+	}
 }
 
 void LedRing::progress(int numberOfLeds) 
@@ -31,11 +34,17 @@ void LedRing::progress(int numberOfLeds)
 
 void LedRing::reset() 
 {
+	this->currentAnimation = NULL;
 	FastLED.clear();
 	FastLED.show();	
 }
 
-void LedRing::show(LedAnimation*) 
+void LedRing::show(LedAnimation* animation) 
 {
-	
+	if (currentAnimation == animation) {
+		return;
+	}
+
+	animation->initialize(strip, NUM_LEDS);
+	this->currentAnimation = animation;
 }

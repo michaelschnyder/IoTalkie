@@ -13,6 +13,8 @@ class LedRing {
 
 CRGB strip[NUM_LEDS];
 
+LedAnimation* currentAnimation;
+
 public:
     void setup();
     void loop();

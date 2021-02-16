@@ -6,6 +6,7 @@
 #include "ViewModel.h"
 
 #include "LedRing.h"
+#include "animations/Spin.h"
 
 #define BUTTON_PRESS_CALLBACK_TYPE std::function<void(ButtonEvent)>
 
@@ -39,6 +40,8 @@ class UserInterface {
     ButtonContext btnCtx3;
 
     LedRing ledRing;
+    Spinner SpinningAnimation;
+    
     ViewModel* vm;
 
     public:
