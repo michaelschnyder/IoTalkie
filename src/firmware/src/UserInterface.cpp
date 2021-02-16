@@ -74,7 +74,8 @@ void UserInterface::loop()
     }
     else if (this->vm->isBusy) {
       // Spin
-      this->ledRing.show(&SpinningAnimation);
+      // this->ledRing.show(&SpinningAnimation);
+      this->ledRing.show(&WaveAnimation);
     }
     else {
       ledRing.reset();
