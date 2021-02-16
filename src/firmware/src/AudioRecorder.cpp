@@ -174,7 +174,7 @@ void AudioRecorder::record(File* file)
     isRecording = true;
     hasStopped = false;
 
-    xTaskCreate(i2s_adc, "i2s_adc", 2 * 1024, file, 1, NULL);
+    xTaskCreate(i2s_adc, "i2s_adc", 4 * 1024, file, 1, NULL);
 }
 
 long AudioRecorder::stop() 

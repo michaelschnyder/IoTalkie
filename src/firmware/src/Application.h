@@ -8,6 +8,7 @@
 #include "AppConfig.h"
 #include <Log4Esp.h>
 #include "FileUploader.h"
+#include "ViewModel.h"
 
 class Application
 {
@@ -52,7 +53,10 @@ class Application
 
     FunctionFsm fsm;
 
+    ViewModel vm;
+
     void whileStarting();
+    void whenIdle();
 
     void recordMessageFor(int buttonId);
     void whileMessageRecording();
@@ -64,7 +68,7 @@ class Application
     void whileMessagePlaying();
 
     Application() : state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
-                    state_idle([this]() { Serial.println("Ready"); }, nullptr, nullptr),
+                    state_idle([this]() { whenIdle(); }, nullptr, nullptr),
 
                     state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, nullptr),
                     state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, nullptr),

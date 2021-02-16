@@ -3,8 +3,15 @@
 #include <functional>
 
 #include <OneButton.h>
+#include "ViewModel.h"
+
+#include "LedRing.h"
 
 #define BUTTON_PRESS_CALLBACK_TYPE std::function<void(ButtonEvent)>
+
+struct RecordingProgressData {
+    int progress;
+};
 
 enum Action {
     Clicked,
@@ -31,6 +38,8 @@ class UserInterface {
     ButtonContext btnCtx2;
     ButtonContext btnCtx3;
 
+    LedRing ledRing;
+    ViewModel* vm;
 
     public:
         void setup();
@@ -40,6 +49,10 @@ class UserInterface {
         void onButtonEvent(BUTTON_PRESS_CALLBACK_TYPE callback) {
             this->buttonActionCallback = callback;    
         }
+
+        void setVm(ViewModel*);
+
+        
 };
 
 #endif // __USERINTERFACE_H__

@@ -70,6 +70,8 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
             }
         }
      });
+
+     this->ui->setVm(&this->vm);
 }
 
 void Application::start() 
@@ -92,7 +94,6 @@ char currentRecordingName[30];
 long currentBytesSent = 0;
 File f;
 
-
 void Application::recordMessageFor(int buttonId) 
 {
     sprintf(currentRecordingName, "/to_btn%i_at_%i.wav\0", buttonId, millis());
@@ -105,6 +106,8 @@ void Application::recordMessageFor(int buttonId)
 
 void Application::validateRecording() 
 {
+    this->vm.isRecording = false;
+    
     long lenghtInMs = this->recoder->stop();
     f.close();
 
@@ -121,6 +124,8 @@ void Application::validateRecording()
 
 void Application::sendLastMessage() 
 {
+    this->vm.isBusy = true;
+
     logger.trace(F("Sending message '%s' to '%s'"), currentRecordingName, config.getPostMessageUrl().c_str());
 
     f = SD.open(currentRecordingName, FILE_READ);
@@ -136,6 +141,7 @@ void Application::whileMessageSending()
         logger.trace(F("Message is sent."));
         f.close();
 
+        this->vm.isBusy = false;
         this->fsm.trigger(Event::MESSAGE_SENT);
         return;  
     }
@@ -156,6 +162,9 @@ void Application::whileMessageRecording()
         logger.trace(F("Stopped recording because current recording lenght (%ims) is above maximum of %ims"), recordingDuration, MAXIMAL_MESSAGE_LENGTH_IN_MS);
         this->fsm.trigger(RECORDING_LENGTH_EXCEEDED);
     }
+
+    this->vm.isRecording = true;
+    this->vm.recordedSeconds = (recordingDuration / 1000) + 1;
 }
 
 void Application::playMessageFrom(int buttonId) 
@@ -172,8 +181,15 @@ void Application::whileMessagePlaying()
 
 void Application::whileStarting() 
 {
+    this->vm.isBusy = true;
+
     if (WiFi.isConnected()) {
         this->fsm.trigger(Event::SYSTEM_READY);
         logger.trace(F("WiFi connection established. IP address: %s"), WiFi.localIP().toString().c_str());
     }
+}
+
+void Application::whenIdle() 
+{
+    this->vm.isBusy = false;
 }

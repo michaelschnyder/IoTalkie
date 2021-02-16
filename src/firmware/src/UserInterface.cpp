@@ -34,6 +34,13 @@ void fLongPressEnd(void *s)
 
 void UserInterface::setup() 
 {
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  pinMode(BUTTON1_LED, OUTPUT);
+  pinMode(BUTTON2_LED, OUTPUT);
+  pinMode(BUTTON3_LED, OUTPUT);
+
+
   btnCtx1 = (ButtonContext){ 1, button1, this};
   btnCtx2 = (ButtonContext){ 2, button2, this};
   btnCtx3 = (ButtonContext){ 3, button3, this};
@@ -49,11 +56,38 @@ void UserInterface::setup()
   button3.attachClick(fClicked, &btnCtx3);
   button3.attachLongPressStart(fLongPressStart, &btnCtx3);
   button3.attachLongPressStop(fLongPressEnd, &btnCtx3);    
+
+  ledRing.setup();
 }
+
+unsigned long previousMillis;
+#define interval 50
 
 void UserInterface::loop() 
 {
+
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    if (this->vm->isRecording) {
+      ledRing.progress(this->vm->recordedSeconds);
+    }
+    else if (this->vm->isBusy) {
+      // Spin
+    }
+    else {
+      ledRing.reset();
+    }
+  }
+
   button1.tick();
   button2.tick();
   button3.tick();
+
+  ledRing.loop();
+}
+
+void UserInterface::setVm(ViewModel* vm) 
+{
+  this->vm = vm;
 }
