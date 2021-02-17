@@ -73,9 +73,7 @@ void UserInterface::loop()
       ledRing.progress(this->vm->recordedSeconds);
     }
     else if (this->vm->isBusy) {
-      // this->ledRing.show(&SpinningAnimation);
-      // this->ledRing.show(&WaveAnimation);
-      this->ledRing.show(&GlowAnimation, 2);
+      this->ledRing.show(&BlueProgressAnimation);
     }
     else {
       ledRing.reset();

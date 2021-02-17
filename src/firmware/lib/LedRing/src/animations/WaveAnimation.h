@@ -1,11 +1,12 @@
-#ifndef __WAVE_H__
-#define __WAVE_H__
+#ifndef __WAVEANIMATION_H__
+#define __WAVEANIMATION_H__
+
 #include <FastLED.h>
 #include "animations/LedAnimation.h"
 
 #define MAX_INT_VALUE 65536
 
-class Wave : public LedAnimation
+class WaveAnimation : public LedAnimation
 {
     uint16_t frame = 0;
     uint16_t animateSpeed = 100;
@@ -43,5 +44,4 @@ class Wave : public LedAnimation
         }
     }
 };
-
-#endif // __WAVE_H__
+#endif // __WAVEANIMATION_H__

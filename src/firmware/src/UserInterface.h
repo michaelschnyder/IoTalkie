@@ -6,9 +6,8 @@
 #include "ViewModel.h"
 
 #include "LedRing.h"
-#include "animations/Spin.h"
-#include "animations/Wave.h"
-#include "animations/Glow.h"
+#include "animations/WaveAnimation.h"
+#include "animations/GlowAnimation.h"
 
 #define BUTTON_PRESS_CALLBACK_TYPE std::function<void(ButtonEvent)>
 
@@ -42,9 +41,8 @@ class UserInterface {
     ButtonContext btnCtx3;
 
     LedRing ledRing;
-    Spinner SpinningAnimation;
-    Wave WaveAnimation;
-    Glow GlowAnimation;
+    WaveAnimation BlueProgressAnimation;
+    GlowAnimation ErrorGlowAnimiation;
 
     ViewModel* vm;
 

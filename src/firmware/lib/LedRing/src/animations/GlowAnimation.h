@@ -1,11 +1,12 @@
-#ifndef __GLOW_H__
-#define __GLOW_H__
+#ifndef __GLOWANIMATION_H__
+#define __GLOWANIMATION_H__
+
 #include <FastLED.h>
 #include "animations/LedAnimation.h"
 
 #define MAX_INT_VALUE 65536
 
-class Glow : public LedAnimation
+class GlowAnimation : public LedAnimation
 {
     uint16_t animateSpeed = 200;
     uint16_t hue = 7;
@@ -53,4 +54,4 @@ class Glow : public LedAnimation
     }
 };
 
-#endif // __WAVE_H__
+#endif // __GLOWANIMATION_H__

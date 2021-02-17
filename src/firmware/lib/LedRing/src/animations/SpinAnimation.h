@@ -1,10 +1,10 @@
-#ifndef __SPIN_H__
-#define __SPIN_H__
+#ifndef __SPINANIMATION_H__
+#define __SPINANIMATION_H__
 
 #include <FastLED.h>
 #include "animations/LedAnimation.h"
 
-class Spinner : public LedAnimation {
+class SpinAnimation : public LedAnimation {
 
     #define MAX_INT_VALUE 65536
 
