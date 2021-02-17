@@ -15,13 +15,13 @@ class Spinner : public LedAnimation {
     CRGB* strip;
     uint8_t stripLength;
 
-    void initialize(CRGB targetStrip[], int size) {
+    void initialize(CRGB targetStrip[], int size, int repetitions) {
         this->strip = targetStrip;
         this->stripLength = size;
         this->frame = 0;
     }
 
-    void run() {
+    bool run() {
         FastLED.clear();
 
         int pos16 = map(frame, 0, MAX_INT_VALUE, 0, ((stripLength) * 16));
@@ -29,6 +29,7 @@ class Spinner : public LedAnimation {
 
         FastLED.show();	
         frame += animateSpeed;
+        return true;
     }   
 
     //Anti-aliasing code care of Mark Kriegsman Google+: https://plus.google.com/112916219338292742137/posts/2VYNQgD38Pw

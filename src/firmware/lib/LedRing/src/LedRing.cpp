@@ -3,6 +3,7 @@
 #include "LedRing.h"
 
 #define BRIGHTNESS 128 
+#define REPEAT_FOREVER -1
 
 void LedRing::setup() 
 {
@@ -14,14 +15,21 @@ void LedRing::setup()
 
 void LedRing::loop() 
 {
+	if (animationCompleted) {
+		return;
+	}
+
 	if (this->currentAnimation != NULL) {
-		this->currentAnimation->run();
+		bool isRunning = this->currentAnimation->run();
+		this->animationCompleted = !isRunning;
 	}
 }
 
 void LedRing::progress(int numberOfLeds) 
 {
-    int progressHue = 150;
+    this->currentAnimation = NULL;
+	this->animationCompleted = false;
+	int progressHue = 150;
 	
 	FastLED.clear();
 
@@ -35,16 +43,22 @@ void LedRing::progress(int numberOfLeds)
 void LedRing::reset() 
 {
 	this->currentAnimation = NULL;
+	this->animationCompleted = false;
 	FastLED.clear();
 	FastLED.show();	
 }
 
 void LedRing::show(LedAnimation* animation) 
 {
+	show(animation, REPEAT_FOREVER);
+}
+
+void LedRing::show(LedAnimation* animation, int repetitions) 
+{
 	if (currentAnimation == animation) {
 		return;
 	}
 
-	animation->initialize(strip, NUM_LEDS);
-	this->currentAnimation = animation;
+	animation->initialize(strip, NUM_LEDS, repetitions);
+	this->currentAnimation = animation;	
 }

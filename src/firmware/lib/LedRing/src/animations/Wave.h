@@ -14,18 +14,19 @@ class Wave : public LedAnimation
     CRGB *strip;
     uint8_t stripLength;
 
-    void initialize(CRGB targetStrip[], int size)
+    void initialize(CRGB targetStrip[], int size, int repetitions)
     {
         this->strip = targetStrip;
         this->stripLength = size;
         this->frame = 0;
     }
 
-    void run()
+    bool run()
     {
         WaveInt(strip, frame, 150);
         FastLED.show();
         frame += animateSpeed;
+        return true;
     }
 
     void WaveInt(CRGB targetStrip[], uint16_t animationFrame, uint8_t hue)

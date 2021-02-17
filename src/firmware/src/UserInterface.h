@@ -8,6 +8,7 @@
 #include "LedRing.h"
 #include "animations/Spin.h"
 #include "animations/Wave.h"
+#include "animations/Glow.h"
 
 #define BUTTON_PRESS_CALLBACK_TYPE std::function<void(ButtonEvent)>
 
@@ -43,7 +44,8 @@ class UserInterface {
     LedRing ledRing;
     Spinner SpinningAnimation;
     Wave WaveAnimation;
-    
+    Glow GlowAnimation;
+
     ViewModel* vm;
 
     public:
