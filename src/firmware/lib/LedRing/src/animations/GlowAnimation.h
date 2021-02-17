@@ -8,7 +8,9 @@
 
 class GlowAnimation : public LedAnimation
 {
-    uint16_t animateSpeed = 200;
+    static const uint8_t HUE_BLUE = 150;
+
+    uint16_t animateSpeed = 100;
     uint16_t hue = 7;
 
     uint16_t frame = 0;
@@ -18,12 +20,11 @@ class GlowAnimation : public LedAnimation
     CRGB *strip;
     uint8_t stripLength;
 
-    void initialize(CRGB targetStrip[], int size, int repetitions)
+    void initialize(CRGB targetStrip[], int size)
     {
         this->strip = targetStrip;
         this->stripLength = size;
         this->frame = 0;
-        this->repetitions = repetitions;
     }
 
     bool run()
@@ -51,6 +52,13 @@ class GlowAnimation : public LedAnimation
         oldValue = value;
         frame += animateSpeed;
         return true;
+    }
+public:
+    GlowAnimation(uint8_t hue = HUE_BLUE, uint8_t speed = 100, uint8_t repetitions = ANIMIATION_REPEAT_FOREVER)
+    {
+        this->hue = hue;
+        this->animateSpeed = speed;
+        this->repetitions = repetitions;
     }
 };
 

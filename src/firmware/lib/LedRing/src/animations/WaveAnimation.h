@@ -10,12 +10,12 @@ class WaveAnimation : public LedAnimation
 {
     uint16_t frame = 0;
     uint16_t animateSpeed = 100;
-    uint16_t hue = 150;
+    uint16_t hue = HUE_BLUE;
 
     CRGB *strip;
     uint8_t stripLength;
 
-    void initialize(CRGB targetStrip[], int size, int repetitions)
+    void initialize(CRGB targetStrip[], int size)
     {
         this->strip = targetStrip;
         this->stripLength = size;
@@ -42,6 +42,11 @@ class WaveAnimation : public LedAnimation
                 targetStrip[stripLength - 1 - i] += CHSV(hue, 255, value);
             }
         }
+    }
+
+public:
+    WaveAnimation(uint8_t hue = HUE_BLUE) {
+        this->hue = hue;
     }
 };
 #endif // __WAVEANIMATION_H__

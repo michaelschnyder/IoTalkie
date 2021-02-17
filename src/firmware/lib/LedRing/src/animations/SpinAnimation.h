@@ -15,7 +15,7 @@ class SpinAnimation : public LedAnimation {
     CRGB* strip;
     uint8_t stripLength;
 
-    void initialize(CRGB targetStrip[], int size, int repetitions) {
+    void initialize(CRGB targetStrip[], int size) {
         this->strip = targetStrip;
         this->stripLength = size;
         this->frame = 0;

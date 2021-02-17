@@ -68,7 +68,7 @@ void UserInterface::loop()
 
   unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis >= interval) {
+  // if (currentMillis - previousMillis >= interval) {
     if (this->vm->isRecording) {
       ledRing.progress(this->vm->recordedSeconds);
     }
@@ -78,7 +78,7 @@ void UserInterface::loop()
     else {
       ledRing.reset();
     }
-  }
+  //}
 
   button1.tick();
   button2.tick();

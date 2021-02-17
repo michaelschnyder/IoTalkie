@@ -3,7 +3,6 @@
 #include "LedRing.h"
 
 #define BRIGHTNESS 128 
-#define REPEAT_FOREVER -1
 
 void LedRing::setup() 
 {
@@ -50,15 +49,10 @@ void LedRing::reset()
 
 void LedRing::show(LedAnimation* animation) 
 {
-	show(animation, REPEAT_FOREVER);
-}
-
-void LedRing::show(LedAnimation* animation, int repetitions) 
-{
 	if (currentAnimation == animation) {
 		return;
 	}
 
-	animation->initialize(strip, NUM_LEDS, repetitions);
+	animation->initialize(strip, NUM_LEDS);
 	this->currentAnimation = animation;	
 }
