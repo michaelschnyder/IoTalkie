@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Prevent from checking in an sensitive data (Wifi, Tokens, etc.)
+sdcard/settings.json
+data/config.json

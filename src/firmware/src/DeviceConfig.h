@@ -6,12 +6,9 @@
 #include <ArduinoJson.h>
 #include <Log4Esp.h>
 
-class AppConfig {
+class DeviceConfig {
 private:
     const String filename = "/config.json";
-
-    char wifiSSID[33];
-    char wifiKey[33]; 
 
     // Name max lenght: 50 (according to azure)
     char azIoTHubName[51];
@@ -23,14 +20,11 @@ private:
 
     char postMessageUrl[257];
 
-    log4Esp::Logger logger = log4Esp::Logger("AppConfig");
+    log4Esp::Logger logger = log4Esp::Logger("DeviceConfig");
 public:
-    AppConfig();   
-    void load();
+    bool load();
     bool update(String& content);
 
-    String getWifiSSID();
-    String getWifiKey();
     String getAzIoTHubName();
     String getAzIoTSASToken();
     String getDeviceId();

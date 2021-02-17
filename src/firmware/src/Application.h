@@ -5,7 +5,9 @@
 #include "UserInterface.h"
 #include "AudioRecorder.h"
 #include "AudioPlayer.h"
-#include "AppConfig.h"
+#include "DeviceConfig.h"
+#include "Settings.h"
+
 #include <Log4Esp.h>
 #include "FileUploader.h"
 
@@ -31,7 +33,9 @@ class Application
         MESSAGE_SENT,
     };
 
-    AppConfig config;
+    DeviceConfig config;
+    Settings settings;
+    
     UserInterface *ui;
     AudioRecorder *recoder;
     FileUploader* uploader;
