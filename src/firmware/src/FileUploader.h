@@ -13,6 +13,7 @@ class FileUploader
 
     WiFiClient client;
     bool completed;
+    bool successful;
     File* currentFile;
 
 public:
@@ -21,6 +22,8 @@ public:
     void send(File *, const char *);
     void _sendInternal(File *, const char *);
     bool isCompleted();
+    bool isSuccessful();
+    
     long getBytesSent();
     long getBytesTotal();
 };

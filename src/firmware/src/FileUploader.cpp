@@ -27,16 +27,19 @@ void FileUploader::_sendInternal(File* file , const char* url)
     client.setUserAgent("IoTalkie/Arduino");
     client.addHeader("clientId", "abcdefg");
 
-    client.sendRequest("POST", file, file->size());
+    int responseCode = client.sendRequest("POST", file, file->size());
     client.end();
-    logger.verbose("Upload completed");
+    
+    logger.verbose("Upload completed with result: %i", responseCode);
     delay(1);
     this->completed = true;
+    this->successful = (responseCode >= 200 && responseCode < 300);
 }
 
 void FileUploader::send(File* file, const char* url) 
 {
     this->completed = false;
+    this->successful = false;
     this->currentFile = file;
 
     UploadTaskParam *struct1 = (UploadTaskParam*)malloc(sizeof(UploadTaskParam));
@@ -52,6 +55,11 @@ void FileUploader::send(File* file, const char* url)
 bool FileUploader::isCompleted() 
 {
     return this->completed;
+}
+
+bool FileUploader::isSuccessful() 
+{
+    return this->successful;
 }
 
 long FileUploader::getBytesSent() 

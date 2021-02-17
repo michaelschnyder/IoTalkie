@@ -167,10 +167,17 @@ void Application::whileMessageSending()
     if (uploader->isCompleted()) {
         currentBytesSent = 0;
         f.close();
+        
+        bool wasSuccessful = uploader->isSuccessful();
+        logger.trace(F("Message is sent. Successful: %s"), wasSuccessful ? "yes" : "no");
 
-        logger.trace(F("Message is sent."));
+        if (wasSuccessful) {
+            this->ui->showSuccess();
+        }
+        else {
+            this->ui->showError();
+        }
 
-        this->ui->showSuccess();
         this->fsm.trigger(Event::MESSAGE_SENT);
         return;  
     }

@@ -24,7 +24,6 @@ public:
     void show(LedAnimation*);
     void show(LedAnimation*, int repetitions);
     void hide(LedAnimation*);
-
 };
 
 

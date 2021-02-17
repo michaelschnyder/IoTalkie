@@ -52,7 +52,7 @@ class UserInterface {
             WarmGlowAnimiation(HUE_BLUE, ANI_SPEED_FAST, 1),
             SucessGlowAnimiation(HUE_GREEN, ANI_SPEED_FAST, 1),
             WarningGlowAnimiation(HUE_ORANGE, ANI_SPEED_FAST, 1),
-            ErrorGlowAnimiation(HUE_RED, ANI_SPEED_FAST, 2)
+            ErrorGlowAnimiation(HUE_RED, ANI_SPEED_FAST, 1)
             { };
 
         void setup();
