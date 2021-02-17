@@ -15,8 +15,6 @@ CRGB strip[NUM_LEDS];
 
 LedAnimation* currentAnimation;
 
-bool animationCompleted;
-
 public:
     void setup();
     void loop();
@@ -25,6 +23,7 @@ public:
     void reset();
     void show(LedAnimation*);
     void show(LedAnimation*, int repetitions);
+    void hide(LedAnimation*);
 
 };
 

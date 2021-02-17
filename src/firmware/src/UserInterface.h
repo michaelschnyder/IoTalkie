@@ -3,7 +3,6 @@
 #include <functional>
 
 #include <OneButton.h>
-#include "ViewModel.h"
 
 #include "LedRing.h"
 #include "animations/WaveAnimation.h"
@@ -42,11 +41,20 @@ class UserInterface {
 
     LedRing ledRing;
     WaveAnimation BlueProgressAnimation;
+    GlowAnimation WarmGlowAnimiation;
+    GlowAnimation SucessGlowAnimiation;
+    GlowAnimation WarningGlowAnimiation;
     GlowAnimation ErrorGlowAnimiation;
 
-    ViewModel* vm;
-
     public:
+
+        UserInterface() : 
+            WarmGlowAnimiation(HUE_BLUE, ANI_SPEED_FAST, 1),
+            SucessGlowAnimiation(HUE_GREEN, ANI_SPEED_FAST, 1),
+            WarningGlowAnimiation(HUE_ORANGE, ANI_SPEED_FAST, 1),
+            ErrorGlowAnimiation(HUE_RED, ANI_SPEED_FAST, 2)
+            { };
+
         void setup();
         void loop();
     
@@ -55,8 +63,12 @@ class UserInterface {
             this->buttonActionCallback = callback;    
         }
 
-        void setVm(ViewModel*);
-
+        void isBusy(bool);
+        void showRecordingProgress(int);
+        void showSuccess();
+        void showWarning();
+        void showError();
+        void showWelcome();
         
 };
 

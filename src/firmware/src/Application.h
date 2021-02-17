@@ -8,7 +8,6 @@
 #include "AppConfig.h"
 #include <Log4Esp.h>
 #include "FileUploader.h"
-#include "ViewModel.h"
 
 class Application
 {
@@ -52,8 +51,6 @@ class Application
     FunctionState state_play3;
 
     FunctionFsm fsm;
-
-    ViewModel vm;
 
     void whileStarting();
     void whenIdle();

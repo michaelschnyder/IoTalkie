@@ -40,7 +40,6 @@ void UserInterface::setup()
   pinMode(BUTTON2_LED, OUTPUT);
   pinMode(BUTTON3_LED, OUTPUT);
 
-
   btnCtx1 = (ButtonContext){ 1, button1, this};
   btnCtx2 = (ButtonContext){ 2, button2, this};
   btnCtx3 = (ButtonContext){ 3, button3, this};
@@ -58,6 +57,7 @@ void UserInterface::setup()
   button3.attachLongPressStop(fLongPressEnd, &btnCtx3);    
 
   ledRing.setup();
+
 }
 
 unsigned long previousMillis;
@@ -66,20 +66,6 @@ unsigned long previousMillis;
 void UserInterface::loop() 
 {
 
-  unsigned long currentMillis = millis();
-
-  // if (currentMillis - previousMillis >= interval) {
-    if (this->vm->isRecording) {
-      ledRing.progress(this->vm->recordedSeconds);
-    }
-    else if (this->vm->isBusy) {
-      this->ledRing.show(&BlueProgressAnimation);
-    }
-    else {
-      ledRing.reset();
-    }
-  //}
-
   button1.tick();
   button2.tick();
   button3.tick();
@@ -87,7 +73,37 @@ void UserInterface::loop()
   ledRing.loop();
 }
 
-void UserInterface::setVm(ViewModel* vm) 
+void UserInterface::isBusy(bool isBusy) 
 {
-  this->vm = vm;
+  if (isBusy) {
+    ledRing.show(&BlueProgressAnimation);
+  }
+  else {
+    ledRing.hide(&BlueProgressAnimation);
+  }
+}
+
+void UserInterface::showRecordingProgress(int value) 
+{
+  ledRing.progress(value);
+}
+
+void UserInterface::showSuccess() 
+{
+  ledRing.show(&SucessGlowAnimiation);
+}
+
+void UserInterface::showWarning() 
+{
+  ledRing.show(&WarningGlowAnimiation);  
+}
+
+void UserInterface::showError() 
+{
+  ledRing.show(&ErrorGlowAnimiation);
+}
+
+void UserInterface::showWelcome() 
+{
+  ledRing.show(&WarmGlowAnimiation);    
 }

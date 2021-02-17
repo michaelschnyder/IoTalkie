@@ -1,5 +1,3 @@
-// Source: https://gist.github.com/hsiboy/f9ef711418b40e259b06
-
 #include "LedRing.h"
 
 #define BRIGHTNESS 128 
@@ -14,20 +12,18 @@ void LedRing::setup()
 
 void LedRing::loop() 
 {
-	if (animationCompleted) {
+	if (this->currentAnimation == NULL) {
 		return;
 	}
 
-	if (this->currentAnimation != NULL) {
-		bool isRunning = this->currentAnimation->run();
-		this->animationCompleted = !isRunning;
+	if (!this->currentAnimation->run()) {
+		this->currentAnimation = NULL;
 	}
 }
 
 void LedRing::progress(int numberOfLeds) 
 {
     this->currentAnimation = NULL;
-	this->animationCompleted = false;
 	int progressHue = 150;
 	
 	FastLED.clear();
@@ -42,7 +38,6 @@ void LedRing::progress(int numberOfLeds)
 void LedRing::reset() 
 {
 	this->currentAnimation = NULL;
-	this->animationCompleted = false;
 	FastLED.clear();
 	FastLED.show();	
 }
@@ -55,4 +50,14 @@ void LedRing::show(LedAnimation* animation)
 
 	animation->initialize(strip, NUM_LEDS);
 	this->currentAnimation = animation;	
+}
+
+void LedRing::hide(LedAnimation* animation) 
+{
+	if (currentAnimation != animation) {
+		return;
+	}
+
+	reset();
+
 }

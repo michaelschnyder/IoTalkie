@@ -8,13 +8,13 @@
 
 class GlowAnimation : public LedAnimation
 {
-    static const uint8_t HUE_BLUE = 150;
-
-    uint16_t animateSpeed = 100;
     uint16_t hue = 7;
+    uint16_t repetitions;
+    uint16_t animateSpeed = 100;
 
     uint16_t frame = 0;
-    uint16_t repetitions;
+    uint16_t remainingRepetitions;
+
     uint8_t oldValue = 0;
 
     CRGB *strip;
@@ -25,6 +25,7 @@ class GlowAnimation : public LedAnimation
         this->strip = targetStrip;
         this->stripLength = size;
         this->frame = 0;
+        this->remainingRepetitions = repetitions;
     }
 
     bool run()
@@ -33,9 +34,9 @@ class GlowAnimation : public LedAnimation
         uint8_t value = (sin16(frame) + (MAX_INT_VALUE / 2)) / 256;
 
         if (value == 0 && oldValue > 0) {
-            repetitions--;
+            remainingRepetitions--;
 
-            if (repetitions == 0) {
+            if (remainingRepetitions == 0) {
                 return false;
             }
         }
@@ -54,11 +55,12 @@ class GlowAnimation : public LedAnimation
         return true;
     }
 public:
-    GlowAnimation(uint8_t hue = HUE_BLUE, uint8_t speed = 100, uint8_t repetitions = ANIMIATION_REPEAT_FOREVER)
+    GlowAnimation(uint8_t hue = HUE_BLUE, uint8_t speed = ANI_SPEED_NORMAL, uint8_t repetitions = ANI_REPEAT_FOREVER)
     {
         this->hue = hue;
         this->animateSpeed = speed;
         this->repetitions = repetitions;
+        this->remainingRepetitions = repetitions;
     }
 };
 

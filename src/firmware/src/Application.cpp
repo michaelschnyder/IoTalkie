@@ -70,8 +70,10 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
             }
         }
      });
+}
 
-     this->ui->setVm(&this->vm);
+void Application::run() {    
+    fsm.run_machine();
 }
 
 void Application::start() 
@@ -86,8 +88,21 @@ void Application::start()
     WiFi.begin(config.getWifiSSID().c_str(), config.getWifiKey().c_str());
 }
 
-void Application::run() {    
-    fsm.run_machine();
+void Application::whileStarting() 
+{
+    this->ui->isBusy(true);
+
+    if (WiFi.isConnected()) {
+        logger.trace(F("WiFi connection established. IP address: %s"), WiFi.localIP().toString().c_str());
+
+        this->ui->showWelcome();
+        this->fsm.trigger(Event::SYSTEM_READY);
+    }
+}
+
+void Application::whenIdle() 
+{
+    this->ui->isBusy(false);
 }
 
 char currentRecordingName[30];
@@ -104,10 +119,21 @@ void Application::recordMessageFor(int buttonId)
     this->recoder->record(&f);    
 }
 
+
+void Application::whileMessageRecording() 
+{
+    int recordingDuration = this->recoder->duration();
+
+    if (recordingDuration >= MAXIMAL_MESSAGE_LENGTH_IN_MS) {
+        logger.trace(F("Stopped recording because current recording lenght (%ims) is above maximum of %ims"), recordingDuration, MAXIMAL_MESSAGE_LENGTH_IN_MS);
+        this->fsm.trigger(RECORDING_LENGTH_EXCEEDED);
+    }
+
+    this->ui->showRecordingProgress((recordingDuration / 1000) + 1);
+}
+
 void Application::validateRecording() 
 {
-    this->vm.isRecording = false;
-    
     long lenghtInMs = this->recoder->stop();
     f.close();
 
@@ -118,13 +144,15 @@ void Application::validateRecording()
     }
     else {
         logger.trace(F("Message length was below threshold of %ims, ignoring."), MINIMAL_MESSAGE_LENGTH_IN_MS);
+        
+        this->ui->showWarning();
         this->fsm.trigger(Event::DISCARD_MESSAGE);
     }
 }
 
 void Application::sendLastMessage() 
 {
-    this->vm.isBusy = true;
+    this->ui->isBusy(true);
 
     logger.trace(F("Sending message '%s' to '%s'"), currentRecordingName, config.getPostMessageUrl().c_str());
 
@@ -138,10 +166,11 @@ void Application::whileMessageSending()
 {
     if (uploader->isCompleted()) {
         currentBytesSent = 0;
-        logger.trace(F("Message is sent."));
         f.close();
 
-        this->vm.isBusy = false;
+        logger.trace(F("Message is sent."));
+
+        this->ui->showSuccess();
         this->fsm.trigger(Event::MESSAGE_SENT);
         return;  
     }
@@ -154,19 +183,6 @@ void Application::whileMessageSending()
     }
 }
 
-void Application::whileMessageRecording() 
-{
-    int recordingDuration = this->recoder->duration();
-
-    if (recordingDuration >= MAXIMAL_MESSAGE_LENGTH_IN_MS) {
-        logger.trace(F("Stopped recording because current recording lenght (%ims) is above maximum of %ims"), recordingDuration, MAXIMAL_MESSAGE_LENGTH_IN_MS);
-        this->fsm.trigger(RECORDING_LENGTH_EXCEEDED);
-    }
-
-    this->vm.isRecording = true;
-    this->vm.recordedSeconds = (recordingDuration / 1000) + 1;
-}
-
 void Application::playMessageFrom(int buttonId) 
 {
     
@@ -177,19 +193,4 @@ void Application::whileMessagePlaying()
     if (millis() % 100 == 0) {
         this->fsm.trigger(Event::MESSAGE_PLAYED);
     }
-}
-
-void Application::whileStarting() 
-{
-    this->vm.isBusy = true;
-
-    if (WiFi.isConnected()) {
-        this->fsm.trigger(Event::SYSTEM_READY);
-        logger.trace(F("WiFi connection established. IP address: %s"), WiFi.localIP().toString().c_str());
-    }
-}
-
-void Application::whenIdle() 
-{
-    this->vm.isBusy = false;
 }

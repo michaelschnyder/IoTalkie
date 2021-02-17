@@ -1,7 +1,9 @@
 #ifndef __LEDANIMATION_H__
 #define __LEDANIMATION_H__
 
-#define ANIMIATION_REPEAT_FOREVER -1
+#define ANI_REPEAT_FOREVER -1
+#define ANI_SPEED_NORMAL 100
+#define ANI_SPEED_FAST 200 
 
 class LedAnimation {
 
