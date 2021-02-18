@@ -14,25 +14,30 @@ boolean clientReady = false;
 long lastReconnectAttempt = 0;
 int retryTimoutInMs = 5000;
 
-AzureIoTMqttClient::AzureIoTMqttClient(AppConfig& appConfig) : config(appConfig) { 
+AzureIoTMqttClient::AzureIoTMqttClient() { 
   
-  AzureIoTMqttClient::wifiClient.setInsecure();
+  // AzureIoTMqttClient::wifiClient.setInsecure();
   AzureIoTMqttClient::client.setClient(AzureIoTMqttClient::wifiClient);
+  client.setBufferSize(512);
 
   // Required to make signature of member function (that comes with a implict *this) match
   // with expected signature. See: https://stackoverflow.com/a/46489820
   client.setCallback([this](char* a, uint8_t* b, unsigned int c) { this->callback(a, b, c); });
 }
 
-void AzureIoTMqttClient::setup(String devId) {
+void AzureIoTMqttClient::setup(const char* hubName, const char* deviceId, const char* token) {
   
+  this->hubName = hubName;
+  this->deviceId = deviceId;
+  this->token = token;
+
   const char* domain = "azure-devices.net";
-  deviceId = devId;
-  mqtt_server = AzureIoTMqttClient::config.getAzIoTHubName() + '.' + domain;
   
-  mqtt_user = mqtt_server + "/" + deviceId + "/?api-version=2018-06-30";
-  inbound_topic = "devices/" + deviceId + "/messages/devicebound/#";
-  outbound_topic = "devices/" + deviceId + "/messages/events/";
+  mqtt_server = this->hubName + '.' + domain;
+  
+  mqtt_user = mqtt_server + "/" + this->deviceId + "/?api-version=2018-06-30";
+  inbound_topic = "devices/" + this->deviceId + "/messages/devicebound/#";
+  outbound_topic = "devices/" + this->deviceId + "/messages/events/";
 
 
   int maxAttempts = 5;
@@ -53,37 +58,37 @@ void AzureIoTMqttClient::setup(String devId) {
   lastReconnectAttempt = millis();
 }
 
-void AzureIoTMqttClient::loadCACert() {
+// void AzureIoTMqttClient::loadCACert() {
 
-  // Load CA file from SPIFFS
-  File ca = SPIFFS.open("/BaltimoreCyberTrustRoot.der", "r"); 
-  if (!ca) {
-    logger.verbose(F("Failed to open ca "));
-  }
-  else
-    logger.verbose(F("Success to open ca"));
+//   // Load CA file from SPIFFS
+//   File ca = SPIFFS.open("/BaltimoreCyberTrustRoot.der", "r"); 
+//   if (!ca) {
+//     logger.verbose(F("Failed to open ca "));
+//   }
+//   else
+//     logger.verbose(F("Success to open ca"));
 
-  delay(1000);
+//   delay(1000);
 
-  // Set server CA file
-  if(wifiClient.loadCACert(ca, ca.size())) {
-    logger.verbose(F("CA loaded to wifiClientSecure"));
-  }
-  else {
-    logger.verbose(F("CA loading failed"));
-  }
+//   // Set server CA file
+//   if(wifiClient.loadCACert(ca, ca.size())) {
+//     logger.verbose(F("CA loaded to wifiClientSecure"));
+//   }
+//   else {
+//     logger.verbose(F("CA loading failed"));
+//   }
 
-  File ca2 = SPIFFS.open("/BaltimoreCyberTrustRoot.der", "r"); 
-  if(wifiClient.loadCertificate(ca2, ca.size())) {
-    logger.verbose(F("cert loaded"));
-  }
-  else {
-    logger.verbose(F("cert failed"));
-  }
+//   File ca2 = SPIFFS.open("/BaltimoreCyberTrustRoot.der", "r"); 
+//   if(wifiClient.loadCertificate(ca2, ca.size())) {
+//     logger.verbose(F("cert loaded"));
+//   }
+//   else {
+//     logger.verbose(F("cert failed"));
+//   }
 
-  wifiClient.setInsecure();
-  wifiClient.allowSelfSignedCerts();
-}
+//   wifiClient.setInsecure();
+//   wifiClient.allowSelfSignedCerts();
+// }
 
 void AzureIoTMqttClient::callback(char* topic, byte* payload, unsigned int length) {
   
@@ -110,15 +115,15 @@ void AzureIoTMqttClient::callback(char* topic, byte* payload, unsigned int lengt
 boolean AzureIoTMqttClient::connect() {
 
   logger.trace(F("Attempting to connect to MQTT server..."));
-  logger.verbose(F("URL: %s:%d, MQTT_MAX_PACKET_SIZE: %d"), mqtt_server.c_str(), port, MQTT_MAX_PACKET_SIZE);  
+  logger.verbose(F("URL: %s:%d, MQTT_MAX_PACKET_SIZE: %d"), mqtt_server.c_str(), port, client.getBufferSize());  
 
   AzureIoTMqttClient::client.setServer(mqtt_server.c_str(), port);
 
-  logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), deviceId.c_str(), mqtt_user.c_str(), AzureIoTMqttClient::config.getAzIoTSASToken().c_str());
+  logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), deviceId.c_str(), mqtt_user.c_str(), this->token.c_str());
 
-  if (!client.connect(deviceId.c_str(), mqtt_user.c_str(), AzureIoTMqttClient::config.getAzIoTSASToken().c_str())) {
+  if (!client.connect(deviceId.c_str(), mqtt_user.c_str(), this->token.c_str())) {
     char lastErrorText[64];
-    int errorNo = AzureIoTMqttClient::wifiClient.getLastSSLError(lastErrorText, 64);
+    int errorNo = AzureIoTMqttClient::wifiClient.lastError(lastErrorText, 64);
     
     logger.fatal(F("Connection to MQTT failed!. Client-State: %d, lastSSLError: %d ('%s'). Next try in 5s"), client.state(), errorNo, lastErrorText);  
 

@@ -13,13 +13,19 @@
 
 class AzureIoTMqttClient {
 private:
-    AppConfig& config;
+    
+    String hubName;
+
+    String token; 
+
+    String deviceId;
+    
     WiFiClientSecure wifiClient;
     PubSubClient client;
     
     ONCOMMAND_CALLBACK_SIGNATURE;
     DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE;
-    void loadCACert();
+    // void loadCACert();
     boolean connect();
     
     log4Esp::Logger logger = log4Esp::Logger("AzureIoTMqttClient");
@@ -30,10 +36,10 @@ private:
     bool handleCloudToDeviceCommand(String topic, char *payload, unsigned int length);
 
 public:
-    AzureIoTMqttClient(AppConfig&);   
+    AzureIoTMqttClient();   
     void callback(char*, uint8_t*, unsigned int);
     
-    void setup(String);
+    void setup(const char* hubName, const char* deviceId, const char* token);
     
     void onCommand(ONCOMMAND_CALLBACK_SIGNATURE);
     void onDesiredPropertyChange(DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE);
