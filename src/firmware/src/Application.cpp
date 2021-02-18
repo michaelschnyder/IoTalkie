@@ -95,7 +95,7 @@ void Application::whileStarting()
     this->ui->isBusy(true);
 
     if (WiFi.isConnected()) {
-        logger.trace(F("WiFi connection established. IP address: %s"), WiFi.localIP().toString().c_str());
+        logger.trace(F("WiFi connection established. IP address: %s, MAC: %s"), WiFi.localIP().toString().c_str(), WiFi.macAddress().c_str());
 
         this->ui->showWelcome();
         this->fsm.trigger(Event::SYSTEM_READY);
