@@ -40,8 +40,17 @@ void setup() {
   app.start();
 }
 
+// long lastPrint = 0;
+
 void loop() {
-  
+
+  // if (millis() - lastPrint >= 1000) {
+  //   lastPrint = millis();
+
+  //   Serial.printf("Pot: %i, Ldr: %i", analogRead(POT_IN), analogRead(LDR_PIN));
+  //   Serial.println();
+  // }
+
   ui.loop();
   player.loop();
 

@@ -101,7 +101,7 @@ void wavHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution){
 CRGB leds[NUM_LEDS];
 
 const int LED_RING = 12; // White (Input does not work on this PIN)
-const int POT_IN = 13;   // Grey 
+const int POT_IN = 39;   // Grey 
 
 const int SD_SPI_CS = 5;    // White (Slave Select)
 const int SD_SPI_CLK = 18;  // Violett (Clock)
