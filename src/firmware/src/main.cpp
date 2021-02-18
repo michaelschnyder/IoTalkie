@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include "pins.h"
+
 #include "UserInterface.h"
 #include "Application.h"
 #include "Fsm.h"
@@ -8,7 +10,7 @@
 #include "SPIFFS.h"
 
 UserInterface ui;
-AudioRecorder recorder;
+AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
 AudioPlayer player;
 FileUploader uploader;
 

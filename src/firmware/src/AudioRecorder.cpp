@@ -1,7 +1,4 @@
 #include "AudioRecorder.h"
-#include "pins.h"
-
-const int headerSize = 44;
 
 struct RecorderTaskParam
 {
@@ -17,19 +14,17 @@ void AudioRecorder::setup()
       .bits_per_sample = i2s_bits_per_sample_t(samplingBits), // could only get it to work with 32bits
       .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
       .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
-      //.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,     // Interrupt level 1
       .intr_alloc_flags = 0,     
       .dma_buf_count = I2S_DMA_BUFFER_COUNT,               // relates somehow to resolution
       .dma_buf_len = I2S_DMA_BUFFER_SIZE,                  // maximum: 1024
       .use_apll = 1
   };
 
-    // The pin config as per the setup
   pinConfig = {
-      .bck_io_num = MIC_PIN_BCLK,   // Serial Clock (SCK)
-      .ws_io_num = MIC_PIN_LRCL,    // Word Select (WS)
+      .bck_io_num = serialClockPin,      // Serial Clock (SCK)
+      .ws_io_num = wordSelectPin,        // Word Select (WS)
       .data_out_num = I2S_PIN_NO_CHANGE, // not used (only for speakers)
-      .data_in_num = MIC_PIN_SD   // Serial Data (SD)
+      .data_in_num = dataPin             // Serial Data (SD)
   };
 
   bytesPerSecond = samplingRate * (samplingBits / 8) * numberOfChannels;
@@ -42,7 +37,7 @@ void AudioRecorder::fillHeader(byte* header, int wavSize){
   header[2] = 'F';
   header[3] = 'F';
 
-  unsigned int fileSize = wavSize + headerSize - 8;
+  unsigned int fileSize = wavSize + WAVE_FORMAT_HEADER_SIZE - 8;
   header[4] = (byte)(fileSize & 0xFF);
   header[5] = (byte)((fileSize >> 8) & 0xFF);
   header[6] = (byte)((fileSize >> 16) & 0xFF);
@@ -88,11 +83,18 @@ void AudioRecorder::fillHeader(byte* header, int wavSize){
   header[43] = (byte)((wavSize >> 24) & 0xFF);
 }
 
+AudioRecorder::AudioRecorder(int sckPin, int wsPin, int dataPin) 
+{
+    this->serialClockPin = sckPin;
+    this->wordSelectPin = wsPin;
+    this->dataPin = dataPin;
+}
+
 void AudioRecorder::writeHeader(File* file, int size) {
-    byte header[headerSize];
+    byte header[WAVE_FORMAT_HEADER_SIZE];
     fillHeader(header, size);
     file->seek(0);
-    file->write(header, headerSize);
+    file->write(header, WAVE_FORMAT_HEADER_SIZE);
 }
 
 void AudioRecorder::updateHeader(File* file, int size) {
@@ -157,7 +159,7 @@ void AudioRecorder::_recordInternal(File* file)
         flash_wr_size += i2s_read_len;
         
         float durationInS = flash_wr_size * 1.0f / bytesPerSecond;
-        logger.verbose(F("recording duration: %.3fs"), durationInS);
+        logger.verbose(F("Recording duration: %.3fs"), durationInS);
         logger.verbose(F("Untouched stack size: %i (bytes)"), uxTaskGetStackHighWaterMark(NULL));
     }
 
