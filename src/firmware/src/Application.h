@@ -38,7 +38,7 @@ class Application
     Settings settings;
     AzureIoTMqttClient client;
     UserInterface *ui;
-    AudioRecorder *recoder;
+    AudioRecorder *recorder;
     FileUploader* uploader;
 
     AudioPlayer *player;

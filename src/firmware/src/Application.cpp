@@ -8,7 +8,7 @@
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : Application()
 {
     this->ui = ui;
-    this->recoder = recoder;
+    this->recorder = recorder;
     this->player = player;
     this->uploader = uploader;
 
@@ -122,13 +122,13 @@ void Application::recordMessageFor(int buttonId)
     logger.trace(F("Recording to %s"), currentRecordingName);
 
     f = SD.open(currentRecordingName, FILE_WRITE);
-    this->recoder->record(&f);    
+    this->recorder->record(&f);    
 }
 
 
 void Application::whileMessageRecording() 
 {
-    int recordingDuration = this->recoder->duration();
+    int recordingDuration = this->recorder->duration();
 
     if (recordingDuration >= MAXIMAL_MESSAGE_LENGTH_IN_MS) {
         logger.trace(F("Stopped recording because current recording lenght (%ims) is above maximum of %ims"), recordingDuration, MAXIMAL_MESSAGE_LENGTH_IN_MS);
@@ -140,7 +140,7 @@ void Application::whileMessageRecording()
 
 void Application::validateRecording() 
 {
-    long lenghtInMs = this->recoder->stop();
+    long lenghtInMs = this->recorder->stop();
     f.close();
 
     logger.trace(F("Stopped recording. Validating recording length: %ims"), lenghtInMs);
