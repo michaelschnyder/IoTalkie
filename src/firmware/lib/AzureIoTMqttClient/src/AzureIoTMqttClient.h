@@ -2,21 +2,19 @@
 #define AzureIoTMqttClient_h
 
 #include <stdint.h>
-#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include <Log4Esp.h>
 
-#include "libs/PubSubClient/PubSubClient.h"
-
-#include "AppConfig.h"
+#include <PubSubClient.h>
 
 #define ONCOMMAND_CALLBACK_SIGNATURE std::function<void(String, JsonObject&)> onCommandCallback
 #define DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE std::function<void(JsonObject&, int)> onDesiredPropertyChangeCallback
 
 class AzureIoTMqttClient {
 private:
-    BearSSL::WiFiClientSecure wifiClient;
     AppConfig& config;
+    WiFiClientSecure wifiClient;
     PubSubClient client;
     
     ONCOMMAND_CALLBACK_SIGNATURE;
