@@ -1,63 +1,41 @@
 #include "AudioRecorder.h"
 #include "pins.h"
 
-#define I2S_PORT I2S_NUM_1
-#define I2S_SAMPLE_RATE   (16000)
-#define I2S_SAMPLE_BITS   (32)
-#define I2S_READ_LEN      (16 * 1024)
-#define I2S_CHANNEL_NUM   (1)
-#define BYTES_PER_SECOND (I2S_CHANNEL_NUM * I2S_SAMPLE_RATE * I2S_SAMPLE_BITS / 8)
-
 const int headerSize = 44;
 
-void AudioRecorder::loop() 
+struct RecorderTaskParam
 {
-    
-}
+    File *file;
+    AudioRecorder *instance;
+};
 
 void AudioRecorder::setup() 
 {
-    esp_err_t err;
-
-  // The I2S config as per the example
-  const i2s_config_t i2s_config = {
+  driverConfig = {
       .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX), // Receive, not transfer
-      .sample_rate = I2S_SAMPLE_RATE,                         // 16KHz
-      .bits_per_sample = i2s_bits_per_sample_t(I2S_SAMPLE_BITS), // could only get it to work with 32bits
-      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT, // use both channel
+      .sample_rate = samplingRate,                         
+      .bits_per_sample = i2s_bits_per_sample_t(samplingBits), // could only get it to work with 32bits
+      .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
       .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
       //.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,     // Interrupt level 1
       .intr_alloc_flags = 0,     
-      .dma_buf_count = 32,               // relates somehow to resolution
-      .dma_buf_len = 512,                // maximum: 1024
+      .dma_buf_count = I2S_DMA_BUFFER_COUNT,               // relates somehow to resolution
+      .dma_buf_len = I2S_DMA_BUFFER_SIZE,                  // maximum: 1024
       .use_apll = 1
   };
 
     // The pin config as per the setup
-  const i2s_pin_config_t pin_config = {
+  pinConfig = {
       .bck_io_num = MIC_PIN_BCLK,   // Serial Clock (SCK)
       .ws_io_num = MIC_PIN_LRCL,    // Word Select (WS)
       .data_out_num = I2S_PIN_NO_CHANGE, // not used (only for speakers)
       .data_in_num = MIC_PIN_SD   // Serial Data (SD)
   };
 
-   // Configuring the I2S driver and pins.
-  // This function must be called before any I2S driver read/write operations.
-  err = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
-  if (err != ESP_OK) {
-    Serial.printf("Failed installing driver: %d\n", err);
-    while (true);
-  }
-  err = i2s_set_pin(I2S_PORT, &pin_config);
-  if (err != ESP_OK) {
-    Serial.printf("Failed setting pin: %d\n", err);
-    while (true);
-  }
-  Serial.println("I2S driver installed.");
-  i2s_stop(I2S_PORT);
+  bytesPerSecond = samplingRate * (samplingBits / 8) * numberOfChannels;
 }
 
-void fillHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution){
+void AudioRecorder::fillHeader(byte* header, int wavSize){
 
   header[0] = 'R';
   header[1] = 'I';
@@ -91,8 +69,6 @@ void fillHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution)
   header[26] = (byte)((samplingRate >> 16) & 0xFF);
   header[27] = (byte)((samplingRate >> 24) & 0xFF);
   
-  unsigned int channels = 1;
-  unsigned int bytesPerSecond = samplingRate * (resolution / 8) * channels;
 
   header[28] = (byte)(bytesPerSecond & 0xFF);
   header[29] = (byte)((bytesPerSecond >> 8) & 0xFF);
@@ -100,7 +76,7 @@ void fillHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution)
   header[31] = (byte)((bytesPerSecond >> 24) & 0xFF);
   header[32] = 0x02; // 16bit monoral
   header[33] = 0x00;
-  header[34] = resolution; 
+  header[34] = samplingBits; 
   header[35] = 0x00;
   header[36] = 'd';
   header[37] = 'a';
@@ -112,30 +88,63 @@ void fillHeader(byte* header, int wavSize, int samplingRate, uint8_t resolution)
   header[43] = (byte)((wavSize >> 24) & 0xFF);
 }
 
-void writeHeader(File* file, int size) {
+void AudioRecorder::writeHeader(File* file, int size) {
     byte header[headerSize];
-    fillHeader(header, size, I2S_SAMPLE_RATE, I2S_SAMPLE_BITS);
+    fillHeader(header, size);
     file->seek(0);
     file->write(header, headerSize);
 }
 
-void updateHeader(File* file, int size) {
+void AudioRecorder::updateHeader(File* file, int size) {
     long currentPosition = file->position();
     writeHeader(file, size);
     file->seek(currentPosition);
 }
 
-bool isRecording = false;
-bool hasStopped = false;
-File currentRecording;
-
-void i2s_adc(void *arg)
+void AudioRecorder_unwrapAndDelegateRecording(void *arg)
 {
-    i2s_start(I2S_PORT);
+    RecorderTaskParam* args = (RecorderTaskParam*)arg;
+    args->instance->_recordInternal(args->file);
 
-    currentRecording.getTimeout();
+    free(arg);
 
-    int i2s_read_len = I2S_READ_LEN;
+    vTaskDelete(NULL);
+}
+
+void AudioRecorder::record(File* file) 
+{
+    isRecording = true;
+    hasStopped = false;
+
+    logger.verbose(F("Recording has started with %i-bit @ %ihz (%i bytes/s)"), samplingBits, samplingRate, bytesPerSecond);
+    
+    RecorderTaskParam *params = (RecorderTaskParam*)malloc(sizeof(RecorderTaskParam));
+    params->file = file;
+    params->instance = this;
+    targetFile = *file;
+
+    xTaskCreate(AudioRecorder_unwrapAndDelegateRecording, "recordBackground", 4 * 1024, params, 1, NULL);
+}
+
+void AudioRecorder::_recordInternal(File* file) 
+{
+    esp_err_t err;
+
+    writeHeader(file, 0);
+
+    err = i2s_driver_install(port, &driverConfig, 0, NULL);
+    if (err != ESP_OK) {
+        Serial.printf("Failed installing driver: %d\n", err);
+    }
+
+    err = i2s_set_pin(port, &pinConfig);
+    if (err != ESP_OK) {
+        Serial.printf("Failed setting pin: %d\n", err);
+    }
+
+    logger.trace("I2S driver successfully installed.");
+
+    int i2s_read_len = I2S_READ_CHUNK_SIZE;
     int flash_wr_size = 0;
     size_t bytes_read;
 
@@ -143,50 +152,39 @@ void i2s_adc(void *arg)
     
     while (isRecording) {
 
-        i2s_read(I2S_PORT, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
-        currentRecording.write((const byte*) i2s_read_buff, i2s_read_len);
+        i2s_read(port, (void*) i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);       
+        file->write((const byte*) i2s_read_buff, i2s_read_len);
         flash_wr_size += i2s_read_len;
         
-        float durationInS = flash_wr_size * 1.0f / BYTES_PER_SECOND;
-        Serial.printf("X|recording duration: %.3fs", durationInS);
-        Serial.println();
-
-        ets_printf("X|Untouched stack size: %u (bytes)\n", uxTaskGetStackHighWaterMark(NULL));
+        float durationInS = flash_wr_size * 1.0f / bytesPerSecond;
+        logger.verbose(F("recording duration: %.3fs"), durationInS);
+        logger.verbose(F("Untouched stack size: %i (bytes)"), uxTaskGetStackHighWaterMark(NULL));
     }
 
-    updateHeader(&currentRecording, flash_wr_size);
+    i2s_stop(port);
+
+    i2s_driver_uninstall(port);
 
     free(i2s_read_buff);
     i2s_read_buff = NULL;
-    i2s_stop(I2S_PORT);
+
+    updateHeader(file, flash_wr_size);
 
     hasStopped = true;
-    vTaskDelete(NULL);
-}
-
-
-void AudioRecorder::record(File* file) 
-{
-    currentRecording = *file;
-
-    writeHeader(file, 0);
-
-    isRecording = true;
-    hasStopped = false;
-
-    xTaskCreate(i2s_adc, "i2s_adc", 4 * 1024, file, 1, NULL);
+    logger.verbose("Recording stopped");
 }
 
 long AudioRecorder::stop() 
 {
+    logger.verbose("Stopping recording");
+
     isRecording = false;
     while (!hasStopped) { delay(10); }
 
-    return currentRecording.position() / (BYTES_PER_SECOND / 1000);
+    return targetFile.position() / (bytesPerSecond / 1000);
 }
 
 long AudioRecorder::duration() 
 {
-    return currentRecording.position() / (BYTES_PER_SECOND / 1000);
+    return targetFile.position() / (bytesPerSecond / 1000);
 }
-

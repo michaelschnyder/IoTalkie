@@ -41,7 +41,6 @@ void setup() {
 void loop() {
   
   ui.loop();
-  recorder.loop();
   player.loop();
 
   app.run();
