@@ -1,6 +1,9 @@
 #ifndef __APPLICATION_H__
 #define __APPLICATION_H__
 
+#include <Log4Esp.h>
+#include <AzureIoTMqttClient.h>
+
 #include "FunctionFsm.h"
 #include "UserInterface.h"
 #include "AudioRecorder.h"
@@ -8,9 +11,7 @@
 #include "DeviceConfig.h"
 #include "Settings.h"
 
-#include <Log4Esp.h>
 #include "FileUploader.h"
-
 class Application
 {
     log4Esp::Logger logger = log4Esp::Logger("Application");
@@ -35,7 +36,7 @@ class Application
 
     DeviceConfig config;
     Settings settings;
-    
+    AzureIoTMqttClient client;
     UserInterface *ui;
     AudioRecorder *recoder;
     FileUploader* uploader;

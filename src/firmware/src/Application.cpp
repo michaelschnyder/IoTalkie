@@ -74,6 +74,8 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
 
 void Application::run() {    
     fsm.run_machine();
+
+    client.loop();
 }
 
 void Application::start() 
@@ -99,6 +101,8 @@ void Application::whileStarting()
 
         this->ui->showWelcome();
         this->fsm.trigger(Event::SYSTEM_READY);
+
+        client.setup(config.getAzIoTHubName().c_str(), config.getDeviceId().c_str(), config.getAzIoTSASToken().c_str());
     }
 }
 
