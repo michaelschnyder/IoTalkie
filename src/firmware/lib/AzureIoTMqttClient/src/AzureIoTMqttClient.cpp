@@ -16,7 +16,6 @@ int retryTimoutInMs = 5000;
 
 AzureIoTMqttClient::AzureIoTMqttClient() { 
   
-  // AzureIoTMqttClient::wifiClient.setInsecure();
   AzureIoTMqttClient::client.setClient(AzureIoTMqttClient::wifiClient);
   client.setBufferSize(512);
 
@@ -39,7 +38,6 @@ void AzureIoTMqttClient::setup(const char* hubName, const char* deviceId, const 
   inbound_topic = "devices/" + this->deviceId + "/messages/devicebound/#";
   outbound_topic = "devices/" + this->deviceId + "/messages/events/";
 
-
   int maxAttempts = 5;
 
   for(int i = 0; i < maxAttempts; i++) {
@@ -57,38 +55,6 @@ void AzureIoTMqttClient::setup(const char* hubName, const char* deviceId, const 
   logger.error(F("Initial connection to MQTT not successful. Will continue trying..."));
   lastReconnectAttempt = millis();
 }
-
-// void AzureIoTMqttClient::loadCACert() {
-
-//   // Load CA file from SPIFFS
-//   File ca = SPIFFS.open("/BaltimoreCyberTrustRoot.der", "r"); 
-//   if (!ca) {
-//     logger.verbose(F("Failed to open ca "));
-//   }
-//   else
-//     logger.verbose(F("Success to open ca"));
-
-//   delay(1000);
-
-//   // Set server CA file
-//   if(wifiClient.loadCACert(ca, ca.size())) {
-//     logger.verbose(F("CA loaded to wifiClientSecure"));
-//   }
-//   else {
-//     logger.verbose(F("CA loading failed"));
-//   }
-
-//   File ca2 = SPIFFS.open("/BaltimoreCyberTrustRoot.der", "r"); 
-//   if(wifiClient.loadCertificate(ca2, ca.size())) {
-//     logger.verbose(F("cert loaded"));
-//   }
-//   else {
-//     logger.verbose(F("cert failed"));
-//   }
-
-//   wifiClient.setInsecure();
-//   wifiClient.allowSelfSignedCerts();
-// }
 
 void AzureIoTMqttClient::callback(char* topic, byte* payload, unsigned int length) {
   

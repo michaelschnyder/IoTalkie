@@ -15,9 +15,7 @@ class AzureIoTMqttClient {
 private:
     
     String hubName;
-
     String token; 
-
     String deviceId;
     
     WiFiClientSecure wifiClient;
@@ -25,7 +23,6 @@ private:
     
     ONCOMMAND_CALLBACK_SIGNATURE;
     DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE;
-    // void loadCACert();
     boolean connect();
     
     log4Esp::Logger logger = log4Esp::Logger("AzureIoTMqttClient");
