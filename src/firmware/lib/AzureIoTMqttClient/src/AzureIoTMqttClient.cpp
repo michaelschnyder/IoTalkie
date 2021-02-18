@@ -116,9 +116,9 @@ boolean AzureIoTMqttClient::connectInternal() {
 
   outboundTopicName = outboundMessagesTopicName;
 
-  logger.trace(F("Connection established to '%s:%d'. Subscribing to topics: '%s', '%s', '%s'"), mqttHostname.c_str(), port, outboundTopicName.c_str(), AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_SUBSCRIBE, AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE);      
+  logger.trace(F("Connection established to '%s:%d'. Subscribing to topics: '%s', '%s', '%s'"), mqttHostname.c_str(), port, inboundMessagesTopicName, AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_SUBSCRIBE, AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE);      
     
-  if(!mqttClient.subscribe(outboundTopicName.c_str())) {
+  if(!mqttClient.subscribe(inboundMessagesTopicName)) {
     logger.fatal(F("Subscribe to event topic failed"));
     return false;
   }
