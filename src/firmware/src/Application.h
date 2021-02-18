@@ -10,6 +10,7 @@
 #include "AudioPlayer.h"
 #include "DeviceConfig.h"
 #include "Settings.h"
+#include "Contacts.h"
 
 #include "FileUploader.h"
 class Application
@@ -36,11 +37,13 @@ class Application
 
     DeviceConfig config;
     Settings settings;
+
     AzureIoTMqttClient client;
     UserInterface *ui;
     AudioRecorder *recorder;
     FileUploader* uploader;
 
+    Contacts contacts;
     AudioPlayer *player;
     
     FunctionState state_startup;

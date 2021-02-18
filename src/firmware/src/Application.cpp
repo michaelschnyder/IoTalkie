@@ -84,6 +84,8 @@ void Application::start()
 
     settings.load();
 
+    contacts.load();
+
     WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
     WiFi.persistent(false); // Do not store WIFI information in EEPROM.
 
