@@ -14,6 +14,7 @@
 #define AZIOT_MQTT_PORT 8883
 
 #define AZIOT_USER_TEMPLATE ("%s/%s/?api-version=2018-06-30") // %s = Domain, %s = deviceId
+#define AZIOT_PASSWORD_VALID_PREFIX "SharedAccessSignature sr="
 #define AZIOT_MESSAGING_INBOUND_TOPIC_TMPL ("devices/%s/messages/devicebound/#") //%s = deviceId
 #define AZIOT_MESSAGING_OUTBOUND_TOPIC_TMPL ("devices/%s/messages/events/") //%s = deviceId
 

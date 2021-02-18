@@ -12,10 +12,6 @@ AzureIoTMqttClient::AzureIoTMqttClient() {
 
 void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, const char* token) {
   
-  if (this->mqttPassword.indexOf("SharedAccessSignature sr=") != 0) {
-    logger.error(F("Invalid Azure IoT Hub SharedAccessSignature detected. Please check your configuration."));
-  }
-
   char buff[256];
 
   // Host
@@ -31,6 +27,10 @@ void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, cons
 
   // Password
   this->mqttPassword = token;
+
+  if (!this->mqttPassword.startsWith(AZIOT_PASSWORD_VALID_PREFIX)) {
+    logger.error(F("Invalid Azure IoT Hub SharedAccessSignature detected. Please check your configuration."));
+  }
 
   int maxAttempts = 5;
 
