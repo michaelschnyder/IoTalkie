@@ -1,46 +1,36 @@
 #include "AzureIoTMqttClient.h"
 
-String mqtt_server;
-int port = 8883;
-String mqtt_user;
-String inbound_topic; 
-String outbound_topic;
-char* reportingProp_topic = "$iothub/twin/res/#";
-char* desiredProp_topic = "$iothub/twin/PATCH/properties/desired/#";
-
-String deviceId;
-
-boolean clientReady = false;
-long lastReconnectAttempt = 0;
-int retryTimoutInMs = 5000;
-
 AzureIoTMqttClient::AzureIoTMqttClient() { 
   
-  client.setClient(AzureIoTMqttClient::wifiClient);
-  client.setBufferSize(512);
+  mqttClient.setClient(AzureIoTMqttClient::wifiClient);
+  mqttClient.setBufferSize(512);
 
   // Required to make signature of member function (that comes with a implict *this) match
   // with expected signature. See: https://stackoverflow.com/a/46489820
-  client.setCallback([this](char* a, uint8_t* b, unsigned int c) { this->callback(a, b, c); });
+  mqttClient.setCallback([this](char* a, uint8_t* b, unsigned int c) { this->callback(a, b, c); });
 }
 
 void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, const char* token) {
   
-  this->hubName = hubName;
-  this->deviceId = deviceId;
-  this->token = token;
-
-  if (this->token.indexOf("SharedAccessSignature sr=") != 0) {
+  if (this->mqttPassword.indexOf("SharedAccessSignature sr=") != 0) {
     logger.error(F("Invalid Azure IoT Hub SharedAccessSignature detected. Please check your configuration."));
   }
 
-  const char* domain = "azure-devices.net";
-  
-  mqtt_server = this->hubName + '.' + domain;
-  
-  mqtt_user = mqtt_server + "/" + this->deviceId + "/?api-version=2018-06-30";
-  inbound_topic = "devices/" + this->deviceId + "/messages/devicebound/#";
-  outbound_topic = "devices/" + this->deviceId + "/messages/events/";
+  char buff[256];
+
+  // Host
+  sprintf(buff, AZIOT_DOMAIN_TEMPLATE, hubName);
+  this->mqttHostname = buff;
+
+  // Device Id
+  this->mqttDeviceId = deviceId;
+
+  // User
+  sprintf(buff, AZIOT_USER_TEMPLATE, mqttHostname.c_str(), this->mqttDeviceId.c_str());
+  this->mqttUser = buff;
+
+  // Password
+  this->mqttPassword = token;
 
   int maxAttempts = 5;
 
@@ -102,42 +92,50 @@ String AzureIoTMqttClient::describeConnectionState(int state) {
 boolean AzureIoTMqttClient::connectInternal() {
 
   logger.trace(F("Attempting to connect to MQTT server..."));
-  logger.verbose(F("URL: %s:%d, MQTT_MAX_PACKET_SIZE: %d"), mqtt_server.c_str(), port, client.getBufferSize());  
+  logger.verbose(F("URL: %s:%d, BufferSize: %d"), mqttHostname.c_str(), port, mqttClient.getBufferSize());  
 
-  client.setServer(mqtt_server.c_str(), port);
+  mqttClient.setServer(mqttHostname.c_str(), port);
 
-  logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), deviceId.c_str(), mqtt_user.c_str(), this->token.c_str());
+  logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), mqttDeviceId.c_str(), mqttUser.c_str(), this->mqttPassword.c_str());
 
-  if (!client.connect(deviceId.c_str(), mqtt_user.c_str(), this->token.c_str())) {
+  if (!mqttClient.connect(mqttDeviceId.c_str(), mqttUser.c_str(), this->mqttPassword.c_str())) {
     
     char lastSslError[64];
     int errorNo = wifiClient.lastError(lastSslError, 64);
     
-    logger.fatal(F("Connection to MQTT failed!. Client state: %s (%d). Maybe SSL Error?: %d '%s'. Next try in 5s"), describeConnectionState(client.state()).c_str(), client.state(), errorNo, lastSslError);  
+    logger.fatal(F("Connection to MQTT failed!. Client state: %s (%d). Maybe SSL Error?: %d '%s'. Next try in 5s"), describeConnectionState(mqttClient.state()).c_str(), mqttClient.state(), errorNo, lastSslError);  
 
     return false;    
   }
 
-  logger.trace(F("Connection established to '%s:%d'. Subscribing to topics: '%s', '%s', '%s'"), mqtt_server.c_str(), port, inbound_topic.c_str(), reportingProp_topic, desiredProp_topic);      
+  char inboundMessagesTopicName[255];
+  char outboundMessagesTopicName[255];
+
+  sprintf(inboundMessagesTopicName, AZIOT_MESSAGING_INBOUND_TOPIC_TMPL, this->mqttDeviceId.c_str());
+  sprintf(outboundMessagesTopicName, AZIOT_MESSAGING_OUTBOUND_TOPIC_TMPL, this->mqttDeviceId.c_str());
+
+  outboundTopicName = outboundMessagesTopicName;
+
+  logger.trace(F("Connection established to '%s:%d'. Subscribing to topics: '%s', '%s', '%s'"), mqttHostname.c_str(), port, outboundTopicName.c_str(), AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_SUBSCRIBE, AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE);      
     
-  if(!client.subscribe(inbound_topic.c_str())) {
+  if(!mqttClient.subscribe(outboundTopicName.c_str())) {
     logger.fatal(F("Subscribe to event topic failed"));
     return false;
   }
 
-  if(!client.subscribe(reportingProp_topic)) {
-    logger.error(F("Unable to subscribe to Reported Properties topic on '%s'"), reportingProp_topic);
+  if(!mqttClient.subscribe(AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_SUBSCRIBE)) {
+    logger.error(F("Unable to subscribe to Reported Properties topic on '%s'"), AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_SUBSCRIBE);
     return false;
   }
 
-  if(!client.subscribe(desiredProp_topic)) {
-    logger.error(F("Unable to subscribe to Desired Properties topic on '%s'"), desiredProp_topic);
+  if(!mqttClient.subscribe(AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE)) {
+    logger.error(F("Unable to subscribe to Desired Properties topic on '%s'"), AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE);
     return false;
   }
 
-  logger.verbose(F("Subscribe to topic successful. Sending welcome message to '%s'"), outbound_topic.c_str());  
+  logger.verbose(F("Subscribe to topic successful. Sending welcome message to '%s'"), outboundTopicName.c_str());  
   
-  if (!client.publish(outbound_topic.c_str(), "hello world")) {
+  if (!mqttClient.publish(outboundTopicName.c_str(), "hello world")) {
     logger.fatal(F("Unable to send welcome message!"));
     return false;
   }
@@ -148,19 +146,17 @@ boolean AzureIoTMqttClient::connectInternal() {
 }
 
 void AzureIoTMqttClient::loop() {
-  client.loop();
+  mqttClient.loop();
   reconnectIfNecessary();
 }
 
 bool AzureIoTMqttClient::handleReportedPropertyUpdateResponse(String topic) {
   
-  String topicPrefix = "$iothub/twin/res";
-
-  if (!topic.startsWith(topicPrefix)) {
+  if (!topic.startsWith(AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_PREFIX)) {
     return false;
   }
 
-  String responseCode = topic.substring(topicPrefix.length() + 1, topicPrefix.length() + 4);
+  String responseCode = topic.substring(strlen(AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_PREFIX) + 1, strlen(AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_PREFIX) + 4);
   int ridPosStart = topic.indexOf("$rid") + 5;
   int ridPosEnd = topic.indexOf("&", ridPosStart);
   int versionPosStart = topic.indexOf("$version") + 9;
@@ -171,7 +167,7 @@ bool AzureIoTMqttClient::handleReportedPropertyUpdateResponse(String topic) {
   int requestId = ridString.toInt();
   int version = versionString.toInt();
 
-  if (responseCode == "204") {
+  if (responseCode && responseCode.toInt() == AZIOT_REPORT_PROPERTY_CONFIRM_CODE_SUCCESS) {
     logger.verbose(F("Reported property update (Request: %i) accepted by broker. Response Code: %s. New Version: %i"), requestId, responseCode.c_str(), version);
   }
   else {
@@ -187,7 +183,7 @@ bool AzureIoTMqttClient::handleDesiredPropertiesUpdate(String topic, char* paylo
     return false;
   }
 
-  if (!topic.startsWith("$iothub/twin/PATCH/properties/desired")) {
+  if (!topic.startsWith(AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_PREFIX)) {
     return false;
   }
 
@@ -236,7 +232,7 @@ bool AzureIoTMqttClient::handleCloudToDeviceCommand(String topic, char* payload,
 
 void AzureIoTMqttClient::reconnectIfNecessary() {
 
-  if (clientReady && client.connected()) {
+  if (clientReady && mqttClient.connected()) {
     return;
   }
 
@@ -245,7 +241,7 @@ void AzureIoTMqttClient::reconnectIfNecessary() {
     return;
   }
 
-  if(clientReady && !client.connected()) {
+  if(clientReady && !mqttClient.connected()) {
     // The initial state was valid, means the connection did reset
     clientReady = false;
     logger.warning(F("MQTT client got disconnected. Trying to reconnect."));
@@ -268,44 +264,44 @@ void AzureIoTMqttClient::send(JsonObject& data) {
   char buffer[512];
   data.printTo(buffer);
 
-  if(!client.publish(outbound_topic.c_str(), buffer)) {
+  if(!mqttClient.publish(outboundTopicName.c_str(), buffer)) {
     logger.error(F("Unable to publish message '%s'"), buffer);
     }
 }
 
 void AzureIoTMqttClient::report(String propertyName, int value) {
   String patch = "{\"" + propertyName + "\": " + value + "}";
-  report(client, logger, patch);  
+  report(mqttClient, logger, patch);  
 }
 void AzureIoTMqttClient::report(String propertyName, String value) {
   String patch = "{\"" + propertyName + "\": \"" + value + "\"}";
-  report(client, logger, patch);  
+  report(mqttClient, logger, patch);  
 }
 void AzureIoTMqttClient::report(JsonObject& value) {
   char patch[512];
   value.printTo(patch);
-  report(client, logger, patch);  
+  report(mqttClient, logger, patch);  
 }
 void AzureIoTMqttClient::report(String propertyName, float value) {
   String patch = "{\"" + propertyName + "\": " + value + "}";
-  report(client, logger, patch);  
+  report(mqttClient, logger, patch);  
 }
 
 void AzureIoTMqttClient::report(PubSubClient &client, log4Esp::Logger &logger, String patch) {
   int rid = millis();
     
   char topic[100] = "";
-  sprintf(topic, "$iothub/twin/PATCH/properties/reported/?$rid=%d", rid);
+  sprintf(topic, AZIOT_REPORT_PROPERTY_OUTBOUND_TOPIC_TMPL, rid);
 
   if (!client.publish(topic, patch.c_str())) {
     logger.error(F("Unable to publish Reported Property update to '%s'. Update was: '%s'"), topic, patch.c_str());
   }
 }
 
-void AzureIoTMqttClient::onCommand(ONCOMMAND_CALLBACK_SIGNATURE) {
-    this->onCommandCallback = onCommandCallback;
+void AzureIoTMqttClient::onCommand(ONCOMMAND_CALLBACK_SIGNATURE callback) {
+    this->onCommandCallback = callback;
 }
 
-void AzureIoTMqttClient::onDesiredPropertyChange(DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE) {
-    this->onDesiredPropertyChangeCallback = onDesiredPropertyChangeCallback;
+void AzureIoTMqttClient::onDesiredPropertyChange(DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE callback) {
+    this->onDesiredPropertyChangeCallback = callback;
 }
