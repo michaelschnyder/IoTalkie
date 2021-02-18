@@ -224,9 +224,11 @@ bool AzureIoTMqttClient::handleCloudToDeviceCommand(String topic, char* payload,
   if (onCommandCallback != NULL) {
     logger.trace(F("Dispatching execution of command '%s'"), commandName.c_str());
     onCommandCallback(commandName, jsonMessage);
+    return true;
   }
   else {
     logger.trace(F("No callback registered for command '%s'"), commandName.c_str());
+    return false;
   }
 }
 
