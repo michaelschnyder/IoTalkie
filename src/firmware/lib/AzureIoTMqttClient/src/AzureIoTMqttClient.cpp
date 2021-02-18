@@ -30,6 +30,10 @@ void AzureIoTMqttClient::setup(const char* hubName, const char* deviceId, const 
   this->deviceId = deviceId;
   this->token = token;
 
+  if (this->token.indexOf("SharedAccessSignature sr=") != 0) {
+    logger.error(F("Invalid Azure IoT Hub SharedAccessSignature detected. Please check your configuration."));
+  }
+
   const char* domain = "azure-devices.net";
   
   mqtt_server = this->hubName + '.' + domain;
@@ -78,6 +82,23 @@ void AzureIoTMqttClient::callback(char* topic, byte* payload, unsigned int lengt
   logger.warning(F("Recieved message not handled: '%s'"), buffer);
 }
 
+String describeConnectionState(int state) {
+  
+  switch (state) {
+      case MQTT_CONNECTION_TIMEOUT:      return F("MQTT_CONNECTION_TIMEOUT");
+      case MQTT_CONNECTION_LOST:         return F("MQTT_CONNECTION_LOST");
+      case MQTT_CONNECT_FAILED:          return F("MQTT_CONNECT_FAILED");
+      case MQTT_DISCONNECTED:            return F("MQTT_DISCONNECTED");
+      case MQTT_CONNECTED:               return F("MQTT_CONNECTED");
+      case MQTT_CONNECT_BAD_PROTOCOL:    return F("MQTT_CONNECT_BAD_PROTOCOL");
+      case MQTT_CONNECT_BAD_CLIENT_ID:   return F("MQTT_CONNECT_BAD_CLIENT_ID");
+      case MQTT_CONNECT_UNAVAILABLE:     return F("MQTT_CONNECT_UNAVAILABLE");
+      case MQTT_CONNECT_BAD_CREDENTIALS: return F("MQTT_CONNECT_BAD_CREDENTIALS");
+      case MQTT_CONNECT_UNAUTHORIZED:    return F("MQTT_CONNECT_UNAUTHORIZED");
+      default:                           return F("UNKNOWN/OTHER");
+    }
+}
+
 boolean AzureIoTMqttClient::connect() {
 
   logger.trace(F("Attempting to connect to MQTT server..."));
@@ -88,10 +109,11 @@ boolean AzureIoTMqttClient::connect() {
   logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), deviceId.c_str(), mqtt_user.c_str(), this->token.c_str());
 
   if (!client.connect(deviceId.c_str(), mqtt_user.c_str(), this->token.c_str())) {
-    char lastErrorText[64];
-    int errorNo = AzureIoTMqttClient::wifiClient.lastError(lastErrorText, 64);
     
-    logger.fatal(F("Connection to MQTT failed!. Client-State: %d, lastSSLError: %d ('%s'). Next try in 5s"), client.state(), errorNo, lastErrorText);  
+    char lastSslError[64];
+    int errorNo = AzureIoTMqttClient::wifiClient.lastError(lastSslError, 64);
+    
+    logger.fatal(F("Connection to MQTT failed!. Client state: %s (%d). Maybe SSL Error?: %d '%s'. Next try in 5s"), describeConnectionState(client.state()).c_str(), client.state(), errorNo, lastSslError);  
 
     return false;    
   }
