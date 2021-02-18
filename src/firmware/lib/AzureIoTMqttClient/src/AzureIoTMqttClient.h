@@ -23,10 +23,12 @@ private:
     
     ONCOMMAND_CALLBACK_SIGNATURE;
     DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE;
-    boolean connect();
     
     log4Esp::Logger logger = log4Esp::Logger("AzureIoTMqttClient");
+
+    String describeConnectionState(int);
     void report(PubSubClient &client, log4Esp::Logger &logger, String path);
+    boolean connectInternal();
     void reconnectIfNecessary();
     bool handleReportedPropertyUpdateResponse(String topic);
     bool handleDesiredPropertiesUpdate(String topic, char *payload, unsigned int length);
@@ -36,7 +38,7 @@ public:
     AzureIoTMqttClient();   
     void callback(char*, uint8_t*, unsigned int);
     
-    void setup(const char* hubName, const char* deviceId, const char* token);
+    void connect(const char* hubName, const char* deviceId, const char* token);
     
     void onCommand(ONCOMMAND_CALLBACK_SIGNATURE);
     void onDesiredPropertyChange(DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE);

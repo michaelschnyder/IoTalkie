@@ -102,7 +102,7 @@ void Application::whileStarting()
         this->ui->showWelcome();
         this->fsm.trigger(Event::SYSTEM_READY);
 
-        client.setup(config.getAzIoTHubName().c_str(), config.getDeviceId().c_str(), config.getAzIoTSASToken().c_str());
+        client.connect(config.getAzIoTHubName().c_str(), config.getDeviceId().c_str(), config.getAzIoTSASToken().c_str());
     }
 }
 

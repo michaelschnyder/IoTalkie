@@ -16,7 +16,7 @@ int retryTimoutInMs = 5000;
 
 AzureIoTMqttClient::AzureIoTMqttClient() { 
   
-  AzureIoTMqttClient::client.setClient(AzureIoTMqttClient::wifiClient);
+  client.setClient(AzureIoTMqttClient::wifiClient);
   client.setBufferSize(512);
 
   // Required to make signature of member function (that comes with a implict *this) match
@@ -24,7 +24,7 @@ AzureIoTMqttClient::AzureIoTMqttClient() {
   client.setCallback([this](char* a, uint8_t* b, unsigned int c) { this->callback(a, b, c); });
 }
 
-void AzureIoTMqttClient::setup(const char* hubName, const char* deviceId, const char* token) {
+void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, const char* token) {
   
   this->hubName = hubName;
   this->deviceId = deviceId;
@@ -45,7 +45,7 @@ void AzureIoTMqttClient::setup(const char* hubName, const char* deviceId, const 
   int maxAttempts = 5;
 
   for(int i = 0; i < maxAttempts; i++) {
-    if(this->connect()) {
+    if(this->connectInternal()) {
       clientReady = true;
       return;
     }
@@ -82,7 +82,7 @@ void AzureIoTMqttClient::callback(char* topic, byte* payload, unsigned int lengt
   logger.warning(F("Recieved message not handled: '%s'"), buffer);
 }
 
-String describeConnectionState(int state) {
+String AzureIoTMqttClient::describeConnectionState(int state) {
   
   switch (state) {
       case MQTT_CONNECTION_TIMEOUT:      return F("MQTT_CONNECTION_TIMEOUT");
@@ -99,19 +99,19 @@ String describeConnectionState(int state) {
     }
 }
 
-boolean AzureIoTMqttClient::connect() {
+boolean AzureIoTMqttClient::connectInternal() {
 
   logger.trace(F("Attempting to connect to MQTT server..."));
   logger.verbose(F("URL: %s:%d, MQTT_MAX_PACKET_SIZE: %d"), mqtt_server.c_str(), port, client.getBufferSize());  
 
-  AzureIoTMqttClient::client.setServer(mqtt_server.c_str(), port);
+  client.setServer(mqtt_server.c_str(), port);
 
   logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), deviceId.c_str(), mqtt_user.c_str(), this->token.c_str());
 
   if (!client.connect(deviceId.c_str(), mqtt_user.c_str(), this->token.c_str())) {
     
     char lastSslError[64];
-    int errorNo = AzureIoTMqttClient::wifiClient.lastError(lastSslError, 64);
+    int errorNo = wifiClient.lastError(lastSslError, 64);
     
     logger.fatal(F("Connection to MQTT failed!. Client state: %s (%d). Maybe SSL Error?: %d '%s'. Next try in 5s"), describeConnectionState(client.state()).c_str(), client.state(), errorNo, lastSslError);  
 
@@ -137,7 +137,7 @@ boolean AzureIoTMqttClient::connect() {
 
   logger.verbose(F("Subscribe to topic successful. Sending welcome message to '%s'"), outbound_topic.c_str());  
   
-  if (!AzureIoTMqttClient::client.publish(outbound_topic.c_str(), "hello world")) {
+  if (!client.publish(outbound_topic.c_str(), "hello world")) {
     logger.fatal(F("Unable to send welcome message!"));
     return false;
   }
@@ -148,8 +148,7 @@ boolean AzureIoTMqttClient::connect() {
 }
 
 void AzureIoTMqttClient::loop() {
-  AzureIoTMqttClient::client.loop();
-
+  client.loop();
   reconnectIfNecessary();
 }
 
@@ -256,7 +255,7 @@ void AzureIoTMqttClient::reconnectIfNecessary() {
   logger.verbose(F("Starting new reconnect attempt."));
   lastReconnectAttempt = millis();
    
-  if(this->connect()) {
+  if(this->connectInternal()) {
     clientReady = true;
     logger.trace(F("Successfully re-established connection MQTT Server"));
     return;
@@ -269,27 +268,27 @@ void AzureIoTMqttClient::send(JsonObject& data) {
   char buffer[512];
   data.printTo(buffer);
 
-  if(!AzureIoTMqttClient::client.publish(outbound_topic.c_str(), buffer)) {
+  if(!client.publish(outbound_topic.c_str(), buffer)) {
     logger.error(F("Unable to publish message '%s'"), buffer);
     }
 }
 
 void AzureIoTMqttClient::report(String propertyName, int value) {
   String patch = "{\"" + propertyName + "\": " + value + "}";
-  AzureIoTMqttClient::report(AzureIoTMqttClient::client, logger, patch);  
+  report(client, logger, patch);  
 }
 void AzureIoTMqttClient::report(String propertyName, String value) {
   String patch = "{\"" + propertyName + "\": \"" + value + "\"}";
-  AzureIoTMqttClient::report(AzureIoTMqttClient::client, logger, patch);  
+  report(client, logger, patch);  
 }
 void AzureIoTMqttClient::report(JsonObject& value) {
   char patch[512];
   value.printTo(patch);
-  AzureIoTMqttClient::report(AzureIoTMqttClient::client, logger, patch);  
+  report(client, logger, patch);  
 }
 void AzureIoTMqttClient::report(String propertyName, float value) {
   String patch = "{\"" + propertyName + "\": " + value + "}";
-  AzureIoTMqttClient::report(AzureIoTMqttClient::client, logger, patch);  
+  report(client, logger, patch);  
 }
 
 void AzureIoTMqttClient::report(PubSubClient &client, log4Esp::Logger &logger, String patch) {
@@ -298,7 +297,7 @@ void AzureIoTMqttClient::report(PubSubClient &client, log4Esp::Logger &logger, S
   char topic[100] = "";
   sprintf(topic, "$iothub/twin/PATCH/properties/reported/?$rid=%d", rid);
 
-  if (!AzureIoTMqttClient::client.publish(topic, patch.c_str())) {
+  if (!client.publish(topic, patch.c_str())) {
     logger.error(F("Unable to publish Reported Property update to '%s'. Update was: '%s'"), topic, patch.c_str());
   }
 }
