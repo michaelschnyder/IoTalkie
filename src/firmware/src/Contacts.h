@@ -5,7 +5,7 @@
 #include <SD.h>
 #include <ArduinoJson.h>
 
-typedef struct ContactElement {
+typedef struct Contact {
     String name;
     String userId;
 };
@@ -15,12 +15,12 @@ class Contacts {
 
     log4Esp::Logger logger = log4Esp::Logger("Contacts");
 
-    ContactElement* contacts;
-
+    Contact* contacts;
+    int numberOfContacts;
+    
     public:
         bool load();
-        String getName(int position);
-        String getUserId(int position);
+        Contact* get(int position);
 
 };
 #endif // __CONTACTS_H__

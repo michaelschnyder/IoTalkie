@@ -113,17 +113,38 @@ void Application::whenIdle()
     this->ui->isBusy(false);
 }
 
-char currentRecordingName[30];
+char currentRecordingName[64];
+Contact* currentRecipient;
 long currentBytesSent = 0;
 File f;
 
 void Application::recordMessageFor(int buttonId) 
 {
-    sprintf(currentRecordingName, "/to_btn%i_at_%i.wav\0", buttonId, millis());
+    int position = buttonId - 1;
+    currentRecipient = contacts.get(position);
 
-    logger.trace(F("Recording to %s"), currentRecordingName);
+    if (currentRecipient == NULL) {
+        logger.warning(F("Unable to find contact for button %i (position: %i)"), buttonId, position);
+        this->fsm.trigger(Event::DISCARD_MESSAGE);
+
+        this->ui->showError();
+        return;
+    }
+
+    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId.c_str(), millis());
+    logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name.c_str(), currentRecordingName);
 
     f = SD.open(currentRecordingName, FILE_WRITE);
+
+    if (!f.write(1)) {
+        logger.warning(F("Could not create file '%'. Write error: %i"), currentRecordingName, f.getWriteError());
+        this->fsm.trigger(Event::DISCARD_MESSAGE);
+
+        this->ui->showError();
+        return;
+    }
+    
+    f.seek(0);
     this->recorder->record(&f);    
 }
 
@@ -167,7 +188,10 @@ void Application::sendLastMessage()
     f = SD.open(currentRecordingName, FILE_READ);
     logger.trace(F("Message size: %i bytes"), f.size());
 
-    uploader->send(&f, config.getPostMessageUrl().c_str());
+    String url = config.getPostMessageUrl();
+    url.replace("{recipientId}", currentRecipient->userId);
+
+    uploader->send(&f, url.c_str());
 }
 
 void Application::whileMessageSending() 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IoTalkie.Controllers
 {
-    [Route("api/recording")]
+    [Route("api/message")]
     [ApiController]
     public class RecordingController : ControllerBase
     {
@@ -18,20 +18,20 @@ namespace IoTalkie.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddNewRecordAsync()
+        [HttpPost("{recipientId}")]
+        public async Task<IActionResult> AddNewRecordAsync(string recipientId)
         {
             try
             {
-                var filename = Path.Combine("messages", Path.GetRandomFileName().Replace(".", "") + ".wav");
+                string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
 
-                using (var file = new FileStream(filename, FileMode.CreateNew))
+                using (var file = new FileStream(Path.Combine("messages", path2), FileMode.CreateNew))
                 {
                     await Request.Body.CopyToAsync(file);
                 }
-                
-                
-                Debug.WriteLine($"Saved to '{Path.GetFullPath(filename) }'");
+
+
+                Debug.WriteLine($"Saved to '{Path.GetFullPath(Path.Combine("messages", path2)) }'");
             }
             catch (Exception e)
             {

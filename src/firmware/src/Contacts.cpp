@@ -27,12 +27,12 @@ bool Contacts::load() {
         return false;
     }
 
-    int elements = root.size();
+    numberOfContacts = root.size();
 
-    logger.verbose(F("Found %i contacts..."), elements);
+    logger.verbose(F("Found %i contacts..."), numberOfContacts);
     
     delete[] contacts;
-    contacts = new ContactElement[elements];
+    contacts = new Contact[numberOfContacts];
 
     int i = 0;
 
@@ -43,9 +43,20 @@ bool Contacts::load() {
 
         contacts[i].name = String(name);
         contacts[i].userId = String(userId);
+
+        logger.verbose(F("Found contact[%i] '%s' with id %s"), i, name, userId);
         i++;
     }
 
-    logger.trace(F("Contacts successfully loaded."));
+    logger.trace(F("Contacts loaded successfully: %i"), i);
     return true;
+}
+
+Contact* Contacts::get(int position) 
+{
+    if (position < 0 || position >= numberOfContacts) {
+        return NULL;
+    }
+
+    return &this->contacts[position];
 }
