@@ -11,6 +11,7 @@
 #include "DeviceConfig.h"
 #include "Settings.h"
 #include "Contacts.h"
+#include "Inbox.h"
 
 #include "FileUploader.h"
 class Application
@@ -44,6 +45,7 @@ class Application
     FileUploader* uploader;
 
     Contacts contacts;
+    Inbox inbox;
     AudioPlayer *player;
     
     FunctionState state_startup;
