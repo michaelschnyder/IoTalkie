@@ -12,18 +12,19 @@ typedef struct InboxItem {
 
 bool Inbox::load() 
 {
-    logger.verbose(F("Attempting to load inbox from '%s'"), filename.c_str());
+    sqlite3_initialize();
 
-    if (!SPIFFS.exists(filename)) {
-        
-        logger.warning(F("Inbox store '%s' does not exist."), filename.c_str());
-    }
+    logger.verbose(F("Attempting to load inbox from '%s'"), filename.c_str());
     
     int rc = sqlite3_open(filename.c_str(), &db);
     if (rc) {
-        logger.error(F("Can't open database: %s"), sqlite3_errmsg(db));
+        logger.error(F("Can't open database: %s %s"), sqlite3_extended_errcode(db), sqlite3_errmsg(db));
         return false;
     }
+
+    sqlite3_close(db);
+
+    sqlite3_shutdown();
 
     return true;
 }

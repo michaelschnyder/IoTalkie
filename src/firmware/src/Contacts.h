@@ -17,7 +17,7 @@ class Contacts {
 
     Contact* contacts;
     int numberOfContacts;
-    
+
     public:
         bool load();
         Contact* get(int position);
