@@ -9,17 +9,17 @@ namespace IoTalkie.Controllers
 {
     [Route("api/message")]
     [ApiController]
-    public class RecordingController : ControllerBase
+    public class MessageController : ControllerBase
     {
-        private readonly ILogger<RecordingController> _logger;
+        private readonly ILogger<MessageController> _logger;
 
-        public RecordingController(ILogger<RecordingController> logger)
+        public MessageController(ILogger<MessageController> logger)
         {
             _logger = logger;
         }
 
-        [HttpPost("{recipientId}")]
-        public async Task<IActionResult> AddNewRecordAsync(string recipientId)
+        [HttpPost]
+        public async Task<IActionResult> SubmitMessage(string recipientId)
         {
             try
             {
@@ -39,5 +39,12 @@ namespace IoTalkie.Controllers
             }
             return this.Ok();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMessage(string messageId)
+        {
+            return this.Ok();
+        }
+
     }
 }
