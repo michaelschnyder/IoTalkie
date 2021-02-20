@@ -80,8 +80,6 @@ void Application::run() {
 
 void Application::start() 
 {
-    config.load();
-
     settings.load();
 
     WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
@@ -90,6 +88,8 @@ void Application::start()
     logger.trace(F("Connecting to WLAN with SSID '%s'. This may take some time..."), settings.getWifiSSID().c_str());
 
     WiFi.begin(settings.getWifiSSID().c_str(), settings.getWifiKey().c_str());
+
+    config.load();
 
     contacts.load();
 
