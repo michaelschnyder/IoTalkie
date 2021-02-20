@@ -13,7 +13,7 @@ class QueryContext {
     }
 
     void _handleRowResult(void *param, int columns, char **rowContent, char **columnNames) {
-        log_v("_handleRowResult(): handling result from sqlite. columns: %i", columns);
+        log_v("handling result from sqlite. columns: %i", columns);
         int currentRow = rows;
         rows++;
         
@@ -27,9 +27,9 @@ class QueryContext {
     void debugPrintQueryResult(bool isFirstRow, int columns, char** row, char** columnNames) 
     {
         if (isFirstRow) {
-            log_v("debugPrintQueryResult(): print results from query for the first row (later rows won't log)");
+            log_v("print results from query for the first row (later rows won't log)");
             
-            Serial.print("SQLRESULT| ");
+            Serial.printf("%s", "SQLRESULT| ");
             for (int i = 0; i < columns; i++)
             {
                 if (i) { Serial.print((char)'\t'); }
@@ -38,7 +38,7 @@ class QueryContext {
             Serial.println();
         }
 
-        Serial.print("SQLRESULT| ");
+        Serial.printf("%s", "SQLRESULT| ");
         for (int i = 0; i < columns; i++)
         {
             if (i) { Serial.print((char)'\t'); }
@@ -47,12 +47,11 @@ class QueryContext {
 
         Serial.println();
     }
-
 };
 
 int databaseCallback(void *param, int columns, char **rowContent, char **columnNames)
 {
-    log_v("databaseCallback(): handling result from sqlite. delegating to future");
+    log_v("handling result from sqlite. delegating to future");
     
     QueryContext* ctx = (QueryContext *)param;
     ctx->_handleRowResult(param, columns, rowContent, columnNames);
@@ -155,7 +154,7 @@ bool SQLiteDatabase::query(const char* sql, row_callback_t callback)
     }
 
     if (logStatsToConsole) {
-        Serial.print(F("SQLSTATS| Execution completed. Time taken "));
+        Serial.print(F("SQLSTATS | Execution completed. Time taken "));
         Serial.print(duration);
         Serial.println(F(" us"));
     }    
