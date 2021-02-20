@@ -4,16 +4,15 @@
 #include <Log4Esp.h>
 #include <SD.h>
 #include <ArduinoJson.h>
-#include <sqlite3.h>
+#include <SQLiteDatabase.h>
 
 class Inbox {
     log4Esp::Logger logger = log4Esp::Logger("Inbox");
     
-    sqlite3 *db = NULL;
-    
-    const String filename = "/sd/inbox.db";
-    
+    const char* filename = "/sd/inbox.db";
+    SQLiteDatabase db;
 public:
+    Inbox() : db(filename) {};
     bool load();
     // bool handleUpdate(JsonObject&);
     // bool handleUpdates(JsonArray&);
