@@ -45,20 +45,20 @@ void setup() {
   app.start();
 }
 
-// long lastPrint = 0;
+long lastPrint = 0;
 
 void loop() {
 
-  // if (millis() - lastPrint >= 1000) {
-  //   lastPrint = millis();
+  if (millis() - lastPrint >= 1000) {
+    lastPrint = millis();
 
   //   Serial.printf("Pot: %i, Ldr: %i", analogRead(POT_IN), analogRead(LDR_PIN));
   //   Serial.println();
-  //   Serial.printf("\nHeap size: %d\n", ESP.getHeapSize());
-  //   Serial.printf("Free Heap: %d\n", esp_get_free_heap_size());
-  //   Serial.printf("Min Free Heap: %d\n", esp_get_minimum_free_heap_size());
-  //   Serial.printf("Largest Free block: %d\n", heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
-  // }
+    // Serial.printf("\nHeap size: %d\n", ESP.getHeapSize());
+    // Serial.printf("Free Heap: %d\n", esp_get_free_heap_size());
+    // Serial.printf("Min Free Heap: %d\n", esp_get_minimum_free_heap_size());
+    // Serial.printf("Largest Free block: %d\n", heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+  }
 
   ui.loop();
   player.loop();
