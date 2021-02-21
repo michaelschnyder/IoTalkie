@@ -34,7 +34,11 @@ void setup() {
   Serial.printf("Storage: %s of %s used", file_size(SPIFFS.usedBytes()).c_str(), file_size(SPIFFS.totalBytes()).c_str());
   Serial.println();
 
-  SD.begin();
+  while(!SD.begin()) {
+    Serial.print('.');
+    delay(250);
+  };
+
   Serial.printf("SD card:  %s of %s used", file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
   Serial.println();
 
