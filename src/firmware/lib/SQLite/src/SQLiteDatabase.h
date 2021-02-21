@@ -26,6 +26,7 @@ public:
     bool open();
     bool close();
 
+    bool execute(const char* sql);
     String queryString(const char* sql);
     int64_t queryInt(const char* sql);
 

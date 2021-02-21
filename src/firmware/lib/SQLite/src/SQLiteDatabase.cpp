@@ -21,7 +21,10 @@ class QueryContext {
             debugPrintQueryResult(currentRow == 0, columns, rowContent, columnNames);
         } 
 
-        this->rowCallback(currentRow, rowContent, columnNames, columns);
+        if (this->rowCallback != NULL)
+        {
+            this->rowCallback(currentRow, rowContent, columnNames, columns);
+        }
     }
 
     void debugPrintQueryResult(bool isFirstRow, int columns, char** row, char** columnNames) 
@@ -91,6 +94,11 @@ bool SQLiteDatabase::close()
     return sqlite3_shutdown() == 0;
 }
 
+bool SQLiteDatabase::execute(const char* sql) 
+{
+    return this->query(sql, NULL);
+}
+
 String SQLiteDatabase::queryStringSingle(const char *sql)
 {
     char resultBuff[256];
@@ -126,12 +134,12 @@ bool SQLiteDatabase::query(const char* sql, row_callback_t callback)
 {
     if (db == NULL)
     {
-        Serial.println("No database open");
+        log_e("No database open");
         return false;
     }
     
     if (logQueryToConsole) {
-        Serial.printf("Executing query: %s", sql);
+        Serial.printf("SQLQUERY | Executing: %s", sql);
         Serial.println();
     }
 
@@ -146,7 +154,7 @@ bool SQLiteDatabase::query(const char* sql, row_callback_t callback)
 
     if (rc != SQLITE_OK)
     {
-        Serial.print(F("SQL error: "));
+        Serial.print(F("SQLQUERY | SQL error: "));
         Serial.print(sqlite3_extended_errcode(db));
         Serial.print(" ");
         Serial.println(zErrMsg);
