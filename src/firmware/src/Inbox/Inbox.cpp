@@ -10,15 +10,11 @@ typedef struct InboxItem {
     String localFilename;
 };
 
-
 bool Inbox::load() 
 {
     db.open();
 
-    int tables = db.queryInt("SELECT count(*) FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%';");
-    if (tables == 0){
-        logger.trace("Database is empty, will create initial database structure", tables);
-    }
+    schemaMigrator.runIfMissing(new M_202102211710_Init());
 
     db.close();
 

@@ -11,7 +11,7 @@
 #include "DeviceConfig.h"
 #include "Settings.h"
 #include "Contacts.h"
-#include "Inbox.h"
+#include "Inbox/Inbox.h"
 
 #include "FileUploader.h"
 class Application
