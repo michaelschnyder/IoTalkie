@@ -102,14 +102,21 @@ String SQLiteDatabase::queryStringSingle(const char *sql)
     char * target = resultBuff;
 
     row_callback_t cb = [target](int rowIdx, char** rowData, char** columnNames , int columns) {
-        char * value = rowData[0];
-        const char *p = value;
-        int i = 0;
-        while (*p) {
-            target[i] = *p;
-            p++; i++;
+
+        if (rowData[0]) {
+            char * value = rowData[0];
+            const char *p = value;
+            int i = 0;
+            
+            while (*p) {
+                target[i] = *p;
+                p++; i++;
+            }
+            target[i] = '\0';
         }
-        target[i] = '\0';
+        else {
+            strcpy(target, "NULL");
+        }
     };
 
     query(sql, cb);
@@ -124,7 +131,13 @@ String SQLiteDatabase::queryString(const char *sql)
 
 int64_t SQLiteDatabase::queryInt(const char *sql)
 {
-    return queryStringSingle(sql).toInt();    
+    String result = queryStringSingle(sql);
+
+    if (result.equals("NULL")) {
+        return 0;
+    }
+    
+    return result.toInt();    
 }
 
 bool SQLiteDatabase::query(const char* sql, row_callback_t callback) 
