@@ -135,7 +135,16 @@ int64_t SQLiteDatabase::queryInt(const char *sql)
         return 0;
     }
     
-    return result.toInt();    
+    return atoll(result.c_str());
+}
+
+long long atoll(const char* ptr) {
+  long long result = 0;
+  while (*ptr && isdigit(*ptr)) {
+    result *= 10;
+    result += *ptr++ - '0';
+  }
+  return result;
 }
 
 bool SQLiteDatabase::query(const char* sql, row_callback_t callback) 
@@ -147,7 +156,7 @@ bool SQLiteDatabase::query(const char* sql, row_callback_t callback)
     }
     
     if (logQueryToConsole) {
-        Serial.printf("SQLQUERY | Executing: %s", sql);
+        Serial.printf("SQLQUERY | %s", sql);
         Serial.println();
     }
 
