@@ -1,6 +1,6 @@
 #ifndef __SCHEMAMIGRATION_H__
 #define __SCHEMAMIGRATION_H__
-#include "SQLiteDatabase.h"
+#include "SQLiteConnection.h"
 
 class SchemaMigration {
 
@@ -17,6 +17,6 @@ public:
 
     int64_t getVersion() { return this->version; }
     const char* getName() { return this->name ;}
-    virtual void up(SQLiteDatabase* db) = 0;
+    virtual void up(SQLiteConnection* conn) = 0;
 };
 #endif // __SCHEMAMIGRATION_H__

@@ -4,7 +4,7 @@
 #include <Log4Esp.h>
 #include <SD.h>
 #include <ArduinoJson.h>
-#include <SQLiteDatabase.h>
+#include <SQLite.h>
 #include <SchemaMigrator.h>
 #include <SchemaMigration.h>
 
@@ -16,10 +16,9 @@ class Inbox {
     const char* filename = "/sd/inbox.db";
     
     SQLiteDatabase db;
-    SchemaMigrator schemaMigrator;
 
 public:
-    Inbox() : db(filename), schemaMigrator(&db) { };
+    Inbox() : db(filename) { };
     bool load();
     bool handleNotification(JsonObject&);
     // bool handleUpdates(JsonArray&);

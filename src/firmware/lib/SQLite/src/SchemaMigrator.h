@@ -25,14 +25,14 @@ class SchemaMigrator {
                                             ;
 
     SQLiteDatabase* db;
+    SQLiteConnection conn;
     uint64_t currentVersion = UNKNOWN_VERSION;
 
     bool hasSchemaVersionInfo();
     uint64_t getCurrentSchemaVersion();
 
-
     public:
-        SchemaMigrator(SQLiteDatabase* db);
+        SchemaMigrator(SQLiteDatabase* db) : conn(db) {};
         void runIfMissing(SchemaMigration* migration);
 };
 #endif // __SCHEMAMIGRATOR_H__
