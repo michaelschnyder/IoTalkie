@@ -30,8 +30,6 @@ class QueryContext {
     void debugPrintQueryResult(bool isFirstRow, int columns, char** row, char** columnNames) 
     {
         if (isFirstRow) {
-            log_v("print results from query for the first row (later rows won't log)");
-            
             Serial.printf("%s", "SQLRESULT| ");
             for (int i = 0; i < columns; i++)
             {
