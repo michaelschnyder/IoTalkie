@@ -54,11 +54,8 @@ class QueryContext {
 
 int databaseCallback(void *param, int columns, char **rowContent, char **columnNames)
 {
-    log_v("handling result from sqlite. delegating to future");
-    
     QueryContext* ctx = (QueryContext *)param;
-    ctx->_handleRowResult(param, columns, rowContent, columnNames);
-    
+    ctx->_handleRowResult(param, columns, rowContent, columnNames);    
     return 0;
 }
 
