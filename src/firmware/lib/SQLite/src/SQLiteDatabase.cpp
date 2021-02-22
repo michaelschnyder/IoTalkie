@@ -33,6 +33,8 @@ bool SQLiteDatabase::close()
         sqlite3_close(instance);
     }
 
+    instance = nullptr;
+
     return sqlite3_shutdown() == 0;
 }
 
