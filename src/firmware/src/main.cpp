@@ -25,6 +25,8 @@ String file_size(uint64_t bytes){
   return fsize;
 }
 
+SPIClass spi = SPIClass(VSPI);
+
 void setup() {
 
   Serial.begin(115200);
@@ -34,7 +36,7 @@ void setup() {
   Serial.printf("Storage: %s of %s used", file_size(SPIFFS.usedBytes()).c_str(), file_size(SPIFFS.totalBytes()).c_str());
   Serial.println();
 
-  while(!SD.begin()) {
+  while(!SD.begin(SS, spi)) {
     Serial.print('.');
     delay(250);
   };
