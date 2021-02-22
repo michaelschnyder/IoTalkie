@@ -7,7 +7,7 @@ SchemaMigrator::SchemaMigrator(SQLiteDatabase* db)
 
 void SchemaMigrator::runIfMissing(SchemaMigration* migration) 
 {
-    log_v("Validating if version %lli '%s' has been applied", migration->getVersion(), migration->getName());
+    log_v("Validating if migration %lli '%s' has been applied", migration->getVersion(), migration->getName());
 
     char buff[500];
 
@@ -59,7 +59,7 @@ bool SchemaMigrator::hasSchemaVersionInfo()
 
 void SchemaMigrator::initializeSchemaInfo() 
 {
-const char *create_table =
+    const char *create_table =
     "CREATE TABLE __schemaHistory (\n" 
     "    \"installed_rank\" INT NOT NULL PRIMARY KEY,\n" 
     "    \"version\" VARCHAR(50),\n" 

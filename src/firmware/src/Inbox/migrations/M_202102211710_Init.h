@@ -5,11 +5,10 @@
 #include <SQLiteDatabase.h>
 
 class M_202102211710_Init : public SchemaMigration {
-    
 public:
     M_202102211710_Init() : SchemaMigration(202102211710, "Init") {}
     void up(SQLiteDatabase* db) {
-
-    }
+        delay(123);
+    } 
 };
 #endif // __M_202102211710_INIT_H__

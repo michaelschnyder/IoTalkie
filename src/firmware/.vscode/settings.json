@@ -42,6 +42,7 @@
         "limits": "cpp",
         "numeric": "cpp",
         "streambuf": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "string": "cpp"
     }
 }
