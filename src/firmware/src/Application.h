@@ -73,6 +73,7 @@ class Application
 
     void playMessageFrom(int buttonId);
     void whileMessagePlaying();
+    void dispatchCloudCommand(String, JsonObject&);
 
     Application() : state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
                     state_idle([this]() { whenIdle(); }, nullptr, nullptr),

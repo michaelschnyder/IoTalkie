@@ -21,7 +21,7 @@ class Inbox {
 public:
     Inbox() : db(filename), schemaMigrator(&db) { };
     bool load();
-    // bool handleUpdate(JsonObject&);
+    bool handleNotification(JsonObject&);
     // bool handleUpdates(JsonArray&);
 
     // int getNumberOfMessagesFrom(String userId);

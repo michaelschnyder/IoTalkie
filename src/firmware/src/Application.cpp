@@ -94,6 +94,8 @@ void Application::start()
     contacts.load();
 
     inbox.load();
+
+    client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void Application::whileStarting() 
@@ -232,5 +234,12 @@ void Application::whileMessagePlaying()
 {
     if (millis() % 100 == 0) {
         this->fsm.trigger(Event::MESSAGE_PLAYED);
+    }
+}
+
+void Application::dispatchCloudCommand(String commandName, JsonObject& value) 
+{
+    if (commandName == "newMessage") {
+        inbox.handleNotification(value);
     }
 }
