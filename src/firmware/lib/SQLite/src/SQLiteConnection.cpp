@@ -113,12 +113,17 @@ bool SQLiteConnection::query(const char* sql, row_callback_t callback)
     int rc = sqlite3_exec(this->db->getSQLite3(), sql, _delegateDatabaseCallback, &ctx, &zErrMsg);
     duration = micros() - start;
 
-    if (rc != SQLITE_OK)
-    {
-        Serial.print(F("SQLQUERY | SQL error: "));
-        Serial.print(sqlite3_extended_errcode(this->db->getSQLite3()));
-        Serial.print(" ");
-        Serial.println(zErrMsg);
+    if (rc != SQLITE_OK) {
+        int errCode = sqlite3_extended_errcode(this->db->getSQLite3());
+
+        log_e("Failed to execute sql statement. Error %i: %s", errCode, zErrMsg);
+
+        if (db->isLogResultsToConsole()) {
+            Serial.print(F("SQLQUERY | SQL error: "));
+            Serial.printf("%i: ", errCode);
+            Serial.println(zErrMsg);
+        }
+
         sqlite3_free(zErrMsg);
     }
 
