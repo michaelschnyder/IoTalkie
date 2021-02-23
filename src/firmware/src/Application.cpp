@@ -232,14 +232,36 @@ void Application::whileMessageSending()
 
 void Application::playMessageFrom(int buttonId) 
 {
-    
+    int slot = buttonId - 1;
+    Contact* c = this->contacts.get(slot);
+
+    String nextAudioMessageFile = inbox.getNextFor((const char*)c->userId);
+
+    if (nextAudioMessageFile.isEmpty()) {
+        logger.warning(F("No available audio message found from user '%s' on slot %i"), c->name, c->slot);
+        this->fsm.trigger(Event::MESSAGE_PLAYED);
+        return;
+    }
+
+    if (!SD.exists(nextAudioMessageFile)) {
+        logger.warning(F("File '%s' cannot be found to be played."), nextAudioMessageFile);
+        this->fsm.trigger(Event::MESSAGE_PLAYED);
+        return;
+    }
+
+    logger.verbose("Playing file '%s' as message from '%s' (UserId: %s)", nextAudioMessageFile.c_str(), c->name, c->userId);
+
+    this->player->play(nextAudioMessageFile.c_str());
 }
 
 void Application::whileMessagePlaying() 
 {
-    if (millis() % 100 == 0) {
-        this->fsm.trigger(Event::MESSAGE_PLAYED);
-    }
+    this->fsm.trigger(Event::MESSAGE_PLAYED);
+
+    // if (!player->isPlaying()) {
+    //     this->fsm.trigger(Event::MESSAGE_PLAYED);
+    // }
+
 }
 
 void Application::dispatchCloudCommand(String commandName, JsonObject& value) 

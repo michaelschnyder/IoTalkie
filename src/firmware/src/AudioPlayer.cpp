@@ -26,7 +26,7 @@ const unsigned char emptyMp3[] PROGMEM = {
 0x6E, 0x67, 0x00, 0x00, 0x00, 0x0F};
 
 AudioFileSourcePROGMEM *testSoundIn;
-AudioFileSourceSD *testRecordingIn;
+AudioFileSourceSD *sdCardSoundIn;
 AudioGenerator *audioGenerator;
 AudioOutputI2S *out;
 
@@ -43,16 +43,22 @@ void AudioPlayer::setup()
     audioGenerator->begin(testSoundIn, out);  
 }
 
-void AudioPlayer::play(File* file) 
+void AudioPlayer::play(const char* filename) 
 {
-    
+    sdCardSoundIn = new AudioFileSourceSD(filename);
+
+    audioGenerator = new AudioGeneratorMP3();
+    audioGenerator->begin(sdCardSoundIn, out);   
 }
 
 void AudioPlayer::loop() 
 {
     if (audioGenerator !=NULL && audioGenerator->isRunning()) {
-    
         audioGenerator->loop();
   }
+}
 
+bool AudioPlayer::isPlaying() 
+{
+    return audioGenerator != NULL && audioGenerator->isRunning();
 }

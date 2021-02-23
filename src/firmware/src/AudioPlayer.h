@@ -10,14 +10,9 @@ class AudioPlayer {
 
     public:
         void setup();
-        void play(File* file);
+        void play(const char* filename);
         void loop();
 
-        AUDIO_ENDED_CALLBACK_TYPE audioEndedCallback;
-
-        void onButtonEvent(AUDIO_ENDED_CALLBACK_TYPE callback) {
-            this->audioEndedCallback = callback;    
-        }
-
+        bool isPlaying();
 };
 #endif // __AUDIOPLAYER_H__
