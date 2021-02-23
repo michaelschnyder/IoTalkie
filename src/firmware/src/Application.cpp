@@ -96,6 +96,7 @@ void Application::start()
     inbox.load();
 
     client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
+    inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
 }
 
 void Application::whileStarting() 
@@ -246,4 +247,10 @@ void Application::dispatchCloudCommand(String commandName, JsonObject& value)
     if (commandName == "newMessage") {
         inbox.handleNotification(value);
     }
+}
+
+void Application::showNewMessageFrom(Contact* sender) 
+{
+    logger.trace("There is a new message on slot %i from sender '%s' (UserId: %s)", sender->slot, sender->name, sender->userId);
+    this->ui->showHasNewMessageAt(sender->slot);
 }

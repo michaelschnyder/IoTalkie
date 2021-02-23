@@ -46,6 +46,8 @@ class UserInterface {
     GlowAnimation WarningGlowAnimiation;
     GlowAnimation ErrorGlowAnimiation;
 
+    bool buttonStatus[3];
+
     public:
 
         UserInterface() : 
@@ -69,6 +71,7 @@ class UserInterface {
         void showWarning();
         void showError();
         void showWelcome();
+        void showHasNewMessageAt(int);
         
 };
 

@@ -71,6 +71,10 @@ void UserInterface::loop()
   button3.tick();
 
   ledRing.loop();
+
+  digitalWrite(BUTTON1_LED, buttonStatus[0] ? HIGH : LOW);
+  digitalWrite(BUTTON2_LED, buttonStatus[1] ? HIGH : LOW);
+  digitalWrite(BUTTON3_LED, buttonStatus[2] ? HIGH : LOW);
 }
 
 void UserInterface::isBusy(bool isBusy) 
@@ -106,4 +110,9 @@ void UserInterface::showError()
 void UserInterface::showWelcome() 
 {
   ledRing.show(&WarmGlowAnimiation);    
+}
+
+void UserInterface::showHasNewMessageAt(int buttonIdx) 
+{
+    this->buttonStatus[buttonIdx] = true;
 }
