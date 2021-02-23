@@ -14,9 +14,9 @@ public:
     SQLiteConnection(SQLiteDatabase*);  
     ~SQLiteConnection();
 
-    bool execute(const char* sql);
-    String queryString(const char* sql);
-    int64_t queryInt(const char* sql);
+    bool execute(const char* sql, ...);
+    String queryString(const char* sql, ...);
+    int64_t queryInt(const char* sql, ...);
 
 };
 #endif // __SQLITECONNECTION_H__

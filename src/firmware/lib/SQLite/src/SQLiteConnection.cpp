@@ -46,19 +46,40 @@ String SQLiteConnection::queryStringSingle(const char *sql)
     return target;
 }
 
-bool SQLiteConnection::execute(const char* sql) 
+bool SQLiteConnection::execute(const char* sql, ...) 
 {
-    return this->query(sql, NULL);
+    va_list args;
+    va_start(args, sql);
+    
+    char statement[500];
+    vsprintf(statement, sql, args);
+    va_end(args);
+
+    return this->query(statement, NULL);
 }
 
-String SQLiteConnection::queryString(const char *sql)
+String SQLiteConnection::queryString(const char *sql, ...)
 {
-    return queryStringSingle(sql);
+    va_list args;
+    va_start(args, sql);
+    
+    char statement[500];
+    vsprintf(statement, sql, args);
+    va_end(args);
+
+    return queryStringSingle(statement);
 }
 
-int64_t SQLiteConnection::queryInt(const char *sql)
+int64_t SQLiteConnection::queryInt(const char *sql, ...)
 {
-    String result = queryStringSingle(sql);
+    va_list args;
+    va_start(args, sql);
+    
+    char statement[500];
+    vsprintf(statement, sql, args);
+    va_end(args);
+
+    String result = queryStringSingle(statement);
 
     if (result.equals("NULL")) {
         return 0;
