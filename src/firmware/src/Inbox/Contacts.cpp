@@ -41,8 +41,9 @@ bool Contacts::load() {
         const char* name = element["name"];
         const char* userId = element["userId"];
 
-        contacts[i].name = String(name);
-        contacts[i].userId = String(userId);
+        contacts[i].slot = i;
+        strncpy(contacts[i].name, name, NAME_MAX_LENGTH);
+        strncpy(contacts[i].userId, userId, USER_ID_MAX_LENGTH);
 
         logger.verbose(F("Found contact[%i] '%s' with id %s"), i, name, userId);
         i++;
@@ -52,11 +53,28 @@ bool Contacts::load() {
     return true;
 }
 
-Contact* Contacts::get(int position) 
+Contact* Contacts::get(int slot) 
 {
-    if (position < 0 || position >= numberOfContacts) {
+    if (slot < 0 || slot >= numberOfContacts) {
         return NULL;
     }
 
-    return &this->contacts[position];
+    return &this->contacts[slot];
 }
+
+Contact* Contacts::findByUserId(char* userId) 
+{
+    logger.verbose(F("Trying to find contact with userId '%s'"), userId);
+
+    for (size_t i = 0; i < this->numberOfContacts; i++)
+    {
+        if (strcmp(contacts[i].userId, userId) == 0) {
+            return &this->contacts[i];
+        }
+    }
+
+    logger.verbose(F("Unable to find contact with userId '%s', returning NULL"), userId);
+
+    return NULL;
+}
+

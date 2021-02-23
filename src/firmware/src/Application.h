@@ -10,7 +10,7 @@
 #include "AudioPlayer.h"
 #include "DeviceConfig.h"
 #include "Settings.h"
-#include "Contacts.h"
+#include "Inbox/Contacts.h"
 #include "Inbox/Inbox.h"
 
 #include "FileUploader.h"
