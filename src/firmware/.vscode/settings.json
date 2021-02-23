@@ -43,6 +43,10 @@
         "numeric": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "cerrno": "cpp",
+        "map": "cpp",
+        "iterator": "cpp",
+        "queue": "cpp"
     }
 }
