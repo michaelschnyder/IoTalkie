@@ -65,13 +65,15 @@ public:
     Inbox(Contacts* contacts) : db(filename) {
         this->contacts = contacts;
     }
-    
+
     bool load();
     bool handleNotification(JsonObject&);
     // bool handleUpdates(JsonArray&);
 
     void loop();
     bool hasNewMessages(int slotId);
+    const String getNextFor(const char* userId);
+
     void onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback);
     // int getNumberOfMessagesFrom(String userId);
 };

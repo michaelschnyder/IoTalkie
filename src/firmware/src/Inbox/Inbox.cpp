@@ -61,6 +61,18 @@ bool Inbox::hasNewMessages(int slotId)
     return this->hasNewMessage[slotId];
 }
 
+const String Inbox::getNextFor(const char* userId) 
+{
+    SQLiteConnection conn(&db);
+    String result = conn.queryString("SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1", userId);
+
+    if (result.equals("NULL")) {
+        return "";
+    }
+
+    return result;
+}
+
 void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback) 
 {
     this->onNewMessageCallback = callback;
