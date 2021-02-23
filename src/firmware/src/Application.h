@@ -63,7 +63,9 @@ class Application
     FunctionFsm fsm;
 
     void whileStarting();
+    
     void whenIdle();
+    void whileIdling();
 
     void recordMessageFor(int buttonId);
     void whileMessageRecording();
@@ -74,9 +76,12 @@ class Application
     void playMessageFrom(int buttonId);
     void whileMessagePlaying();
     void dispatchCloudCommand(String, JsonObject&);
+    void showNewMessageFrom(Contact*);
 
-    Application() : state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
-                    state_idle([this]() { whenIdle(); }, nullptr, nullptr),
+    Application() : inbox(&contacts),
+    
+                    state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
+                    state_idle([this]() { whenIdle(); }, [this]() { whileIdling(); }, nullptr),
 
                     state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, nullptr),
                     state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, nullptr),

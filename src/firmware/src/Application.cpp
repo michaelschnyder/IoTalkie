@@ -117,6 +117,10 @@ void Application::whenIdle()
     this->ui->isBusy(false);
 }
 
+void Application::whileIdling() {
+    inbox.loop();
+}
+
 char currentRecordingName[64];
 Contact* currentRecipient;
 long currentBytesSent = 0;
@@ -135,8 +139,8 @@ void Application::recordMessageFor(int buttonId)
         return;
     }
 
-    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId.c_str(), millis());
-    logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name.c_str(), currentRecordingName);
+    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId, millis());
+    logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name, currentRecordingName);
 
     f = SD.open(currentRecordingName, FILE_WRITE);
 
