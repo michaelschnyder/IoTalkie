@@ -20,7 +20,6 @@ bool Inbox::load()
 
 bool Inbox::handleNotification(JsonObject& notification) 
 {
-    char buff[500];
     auto mustHave = {"messageId", "timestamp", "senderId", "size", "remoteUrl"};
     std::initializer_list<const char*>::iterator key;
     
@@ -38,20 +37,18 @@ bool Inbox::handleNotification(JsonObject& notification)
     String remoteUrl = notification.get<String>("remoteUrl");
     
     SQLiteConnection conn(&db);
-
-    sprintf(buff, "SELECT COUNT(*) FROM messages WHERE messageId = '%s'", messageId.c_str());
-
-    bool exists = conn.queryInt(buff);
+    bool exists = conn.queryInt("SELECT COUNT(*) FROM messages WHERE messageId = '%s'", messageId.c_str());
 
     if (exists) {
-        logger.verbose("Message with id '%s' is already present in inbox. Skipping", messageId);
+        logger.verbose("Message with id '%s' is already present in inbox. Skipping", messageId.c_str());
         return false;
     }
-    
-    sprintf(buff, "INSERT INTO messages (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %il, '%s', %i, '%s')", 
-                                         messageId.c_str(), timestamp, senderId, size, remoteUrl.c_str());
 
-    if (conn.execute(buff)) {
-        return true;
-    };
+    char* insertSql = "INSERT INTO messages (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %i, '%s', %i, '%s')";
+    return conn.execute(insertSql, messageId.c_str(), timestamp, senderId, size, remoteUrl.c_str());
+}
+
+void Inbox::loop() 
+{
+    
 }

@@ -2,9 +2,7 @@
 
 void SchemaMigrator::runIfMissing(SchemaMigration* migration) 
 {
-    log_v("Validating if migration %lli '%s' has been applied", migration->getVersion(), migration->getName());
-
-    char buff[500];
+    log_v("Validating if migration %lli: '%s' has been applied", migration->getVersion(), migration->getName());
 
     if (currentVersion == UNKNOWN_VERSION) {
 
@@ -22,10 +20,9 @@ void SchemaMigrator::runIfMissing(SchemaMigration* migration)
         log_v("About to insert new entry. Rank: %li, version: %lli", nextRank, migration->getVersion());
 
         // Insert current migration
-        sprintf(buff, SQL_NEW_MIGRATION_INSERT, nextRank, migration->getVersion(), migration->getName());
-        conn.execute(buff);
+        conn.execute(SQL_NEW_MIGRATION_INSERT, nextRank, migration->getVersion(), migration->getName());
 
-        log_i("Running migration %lli ('%s').", migration->getVersion(), migration->getName());
+        log_i("Running migration %lli:'%s'.", migration->getVersion(), migration->getName());
 
         uint8_t start = millis();
         migration->up(&conn);
@@ -33,8 +30,7 @@ void SchemaMigrator::runIfMissing(SchemaMigration* migration)
         
         // Update
         currentVersion = migration->getVersion();
-        sprintf(buff, SQL_NEW_MIGRATION_COMPLETE, duration, nextRank);
-        conn.execute(buff);
+        conn.execute(SQL_NEW_MIGRATION_COMPLETE, duration, nextRank);
     }
 }
 

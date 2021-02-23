@@ -23,6 +23,7 @@ public:
     bool handleNotification(JsonObject&);
     // bool handleUpdates(JsonArray&);
 
+    void loop();
     // int getNumberOfMessagesFrom(String userId);
 };
 
