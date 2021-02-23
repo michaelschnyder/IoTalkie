@@ -3,5 +3,6 @@
 
 #include "SQLiteDatabase.h"
 #include "SQLiteConnection.h"
+#include "ResultSet.h"
 
 #endif // __SQLITE_H__

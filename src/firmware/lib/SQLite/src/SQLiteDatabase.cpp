@@ -30,8 +30,9 @@ bool SQLiteDatabase::close()
     if (instance)
     {
         log_v("Attempting to close '%s'", filename);
-        if (!sqlite3_close(instance)) {
-            log_w("Coudl not close database '%s'");
+        
+        if (sqlite3_close(instance) != SQLITE_OK) {
+            log_w("Could not close database '%s'");
         };
     }
 
