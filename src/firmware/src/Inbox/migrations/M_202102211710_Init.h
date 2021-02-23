@@ -21,7 +21,7 @@ public:
                     ");\n"
                     );
 
-        conn->execute("CREATE UNIQUE INDEX \"idx_messages_messageId\" ON \"inbox\" (\"messageId\" ASC)");
+        conn->execute("CREATE UNIQUE INDEX \"idx_messages_messageId\" ON \"messages\" (\"messageId\" ASC)");
     } 
 };
 #endif // __M_202102211710_INIT_H__
