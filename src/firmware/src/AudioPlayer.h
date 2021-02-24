@@ -3,10 +3,11 @@
 
 #include <functional>
 #include <FS.h>
-
-#define AUDIO_ENDED_CALLBACK_TYPE std::function<void()>
+#include <Log4Esp.h>
 
 class AudioPlayer {
+    bool playing = false;
+    log4Esp::Logger logger = log4Esp::Logger("AudioPlayer");
 
     public:
         void setup();
