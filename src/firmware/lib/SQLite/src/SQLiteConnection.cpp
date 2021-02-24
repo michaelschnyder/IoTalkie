@@ -162,6 +162,6 @@ bool SQLiteConnection::query(const char* sql, row_callback_t callback)
         Serial.println(F(" us"));
     }    
 
-    return rc == SQLITE_OK;
     log_v("Free Heap after query(): %d\n", esp_get_free_heap_size());
+    return rc == SQLITE_OK;
 }

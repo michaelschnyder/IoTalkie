@@ -7,6 +7,8 @@ SQLiteDatabase::SQLiteDatabase(const char *file)
 
 bool SQLiteDatabase::open()
 {
+    log_v("Free Heap before database open(): %d\n", esp_get_free_heap_size());
+
     if (instance) {
         return true;
     }
@@ -38,7 +40,10 @@ bool SQLiteDatabase::close()
 
     instance = nullptr;
 
-    return sqlite3_shutdown() == 0;
+    bool isShutdown = sqlite3_shutdown() == 0;
+    log_v("Free Heap after database close(): %d\n", esp_get_free_heap_size());
+
+    return isShutdown;
 }
 
 bool SQLiteDatabase::isLogQueryToConsole() 
