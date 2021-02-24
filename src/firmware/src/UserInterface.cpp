@@ -115,9 +115,9 @@ void UserInterface::showWelcome()
 	ledRing.show(&WarmGlowAnimiation);
 }
 
-void UserInterface::showHasNewMessageAt(int buttonIdx)
+void UserInterface::showHasNewMessageAt(int buttonIdx, bool hasMessages)
 {
-	this->buttonStatus[buttonIdx] = true;
+	this->buttonStatus[buttonIdx] = hasMessages;
 }
 
 void UserInterface::showAudioPlaying()

@@ -26,6 +26,7 @@ public:
     bool load();
     Contact* get(int slot);
     Contact* findByUserId(char* userId);
+    int size();
 
 };
 #endif // __CONTACTS_H__

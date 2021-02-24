@@ -4,6 +4,9 @@ bool Inbox::load()
 {
     SchemaMigrator schemaMigrator(&db);
     schemaMigrator.runIfMissing(new M_202102211710_Init());
+    
+    findUnplayedMessagesForEachSlot();
+    
     return true;
 }
 
@@ -56,6 +59,19 @@ void Inbox::loop()
     free(next);
 }
 
+void Inbox::findUnplayedMessagesForEachSlot() {
+    
+    SQLiteConnection conn(&db);
+    for (size_t slot = 0; slot < contacts->size(); slot++)
+    {
+        Contact* c = contacts->get(slot);
+        int numberOfUnplayed = conn.queryInt(QUERY_COUNT_UNPLAYED_MESSAGE_FOR_USERID, c->userId);
+        logger.trace("Found %i new messages from user '%s' (UserId: '%s') on slot %i", numberOfUnplayed, c->name, c->userId, slot);
+        
+        this->hasNewMessage[slot] = numberOfUnplayed > 0;
+    }
+}
+
 bool Inbox::hasNewMessages(int slotId) 
 {
     return this->hasNewMessage[slotId];
@@ -80,6 +96,8 @@ void Inbox::setPlayed(const char * filename)
 {
     SQLiteConnection conn(&db);
     conn.execute("UPDATE messages SET playcount = playcount + 1 WHERE localFile = '%s'", filename);
+
+    findUnplayedMessagesForEachSlot();
 }
 
 void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback) 

@@ -78,3 +78,8 @@ Contact* Contacts::findByUserId(char* userId)
     return NULL;
 }
 
+int Contacts::size() 
+{
+    return this->numberOfContacts;
+}
+

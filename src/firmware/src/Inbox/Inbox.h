@@ -48,6 +48,7 @@ class MessageDownloadTask {
 
 #define ONNEWMESSAGE_CALLBACK_SIGNATURE std::function<void(Contact*)> 
 
+#define QUERY_COUNT_UNPLAYED_MESSAGE_FOR_USERID "SELECT COUNT(*) from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL"
 #define QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1"
 #define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount > 0 ORDER BY timestamp DESC LIMIT 1"
 
@@ -63,6 +64,7 @@ class Inbox {
     MessageDownloadTask* getNextDownloadTask();
     bool download(MessageDownloadTask* t);
     bool setAvailable(MessageDownloadTask* t);
+    void findUnplayedMessagesForEachSlot();
     ONNEWMESSAGE_CALLBACK_SIGNATURE onNewMessageCallback;
 public:
     Inbox(Contacts* contacts) : db(filename) {

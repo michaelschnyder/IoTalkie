@@ -120,6 +120,11 @@ void Application::whileStarting()
 void Application::whenIdle() 
 {
     this->ui->isBusy(false);
+
+    for (size_t i = 0; i < contacts.size(); i++)
+    {
+        this->ui->showHasNewMessageAt(i, inbox.hasNewMessages(i));
+    }
 }
 
 void Application::whileIdling() {
@@ -280,5 +285,5 @@ void Application::dispatchCloudCommand(String commandName, JsonObject& value)
 void Application::showNewMessageFrom(Contact* sender) 
 {
     logger.trace("There is a new message on slot %i from sender '%s' (UserId: %s)", sender->slot, sender->name, sender->userId);
-    this->ui->showHasNewMessageAt(sender->slot);
+    this->ui->showHasNewMessageAt(sender->slot, true);
 }

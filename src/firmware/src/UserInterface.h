@@ -71,7 +71,7 @@ class UserInterface {
         void showWarning();
         void showError();
         void showWelcome();
-        void showHasNewMessageAt(int);
+        void showHasNewMessageAt(int, bool);
         void showAudioPlaying();
 };
 
