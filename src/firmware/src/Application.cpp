@@ -34,6 +34,9 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_play1, &state_idle, MESSAGE_PLAYED, nullptr);
     this->fsm.add_transition(&state_play2, &state_idle, MESSAGE_PLAYED, nullptr);
     this->fsm.add_transition(&state_play3, &state_idle, MESSAGE_PLAYED, nullptr);
+    this->fsm.add_transition(&state_play1, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_play2, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_play3, &state_idle, MESSAGE_NOTFOUND, nullptr);
 
     this->ui->onButtonEvent([this](ButtonEvent evt) {
     
@@ -239,13 +242,13 @@ void Application::playMessageFrom(int buttonId)
 
     if (nextAudioMessageFile.isEmpty()) {
         logger.warning(F("No available audio message found from user '%s' on slot %i"), c->name, c->slot);
-        this->fsm.trigger(Event::MESSAGE_PLAYED);
+        this->fsm.trigger(Event::MESSAGE_NOTFOUND);
         return;
     }
 
     if (!SD.exists(nextAudioMessageFile)) {
         logger.warning(F("File '%s' cannot be found to be played."), nextAudioMessageFile);
-        this->fsm.trigger(Event::MESSAGE_PLAYED);
+        this->fsm.trigger(Event::MESSAGE_NOTFOUND);
         return;
     }
 
@@ -256,9 +259,10 @@ void Application::playMessageFrom(int buttonId)
 
 void Application::whileMessagePlaying() 
 {
-    this->ui->showWelcome();
-
-    if (!player->isPlaying()) {
+    if (player->isPlaying()) {
+        this->ui->showWelcome();
+    }
+    else {
         this->fsm.trigger(Event::MESSAGE_PLAYED);
     }
 }
