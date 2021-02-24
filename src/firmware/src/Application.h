@@ -78,6 +78,8 @@ class Application
 
     void tryPlayMessageFrom(int buttonId);
     void whileMessagePlaying();
+    void messagePlayingEnded();
+
     void dispatchCloudCommand(String, JsonObject&);
     void showNewMessageFrom(Contact*);
 
@@ -95,7 +97,7 @@ class Application
                     state_tryPlay1(nullptr, [this]() { tryPlayMessageFrom(1); }, nullptr),
                     state_tryPlay2(nullptr, [this]() { tryPlayMessageFrom(2); }, nullptr),
                     state_tryPlay3(nullptr, [this]() { tryPlayMessageFrom(3); }, nullptr),
-                    state_play(nullptr, [this]() { whileMessagePlaying(); }, nullptr),
+                    state_play(nullptr, [this]() { whileMessagePlaying(); }, [this]() { messagePlayingEnded(); }),
 
                     fsm(&state_startup)
     {

@@ -38,6 +38,9 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_tryPlay2, &state_play, MESSAGE_FOUND, nullptr);
     this->fsm.add_transition(&state_tryPlay3, &state_play, MESSAGE_FOUND, nullptr);
     this->fsm.add_transition(&state_play, &state_idle, MESSAGE_PLAYED, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, BUTTON1_CLICK, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, BUTTON2_CLICK, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, BUTTON3_CLICK, nullptr);
 
     this->ui->onButtonEvent([this](ButtonEvent evt) {
     
@@ -273,6 +276,10 @@ void Application::whileMessagePlaying()
         this->inbox.setPlayed(this->player->getFilename());
         this->fsm.trigger(Event::MESSAGE_PLAYED);
     }
+}
+
+void Application::messagePlayingEnded() {
+    this->player->stop();
 }
 
 void Application::dispatchCloudCommand(String commandName, JsonObject& value) 

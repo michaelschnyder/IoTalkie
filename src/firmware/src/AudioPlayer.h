@@ -44,6 +44,7 @@ class AudioPlayer {
     public:
         void setup();
         void play(const char* filename);
+        void stop();
         void loop();
 
         bool isPlaying();

@@ -24,6 +24,13 @@ void AudioPlayer::play(const char *filename)
 	strncpy(this->filename, filename, sizeof(this->filename) - 1);
 }
 
+void AudioPlayer::stop() 
+{
+	if (playing) {
+		audioGenerator->stop();
+	}
+}
+
 void AudioPlayer::loop()
 {
 	if (!playing)
