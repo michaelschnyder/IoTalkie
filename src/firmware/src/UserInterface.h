@@ -51,7 +51,7 @@ class UserInterface {
     public:
 
         UserInterface() : 
-            WarmGlowAnimiation(HUE_BLUE, ANI_SPEED_FAST, 1),
+            WarmGlowAnimiation(HUE_YELLOW, ANI_SPEED_FAST, 1),
             SucessGlowAnimiation(HUE_GREEN, ANI_SPEED_FAST, 1),
             WarningGlowAnimiation(HUE_ORANGE, ANI_SPEED_FAST, 1),
             ErrorGlowAnimiation(HUE_RED, ANI_SPEED_FAST, 1)
@@ -72,7 +72,7 @@ class UserInterface {
         void showError();
         void showWelcome();
         void showHasNewMessageAt(int);
-        
+        void showAudioPlaying(int);
 };
 
 #endif // __USERINTERFACE_H__

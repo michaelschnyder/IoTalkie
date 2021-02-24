@@ -256,12 +256,11 @@ void Application::playMessageFrom(int buttonId)
 
 void Application::whileMessagePlaying() 
 {
-    this->fsm.trigger(Event::MESSAGE_PLAYED);
+    this->ui->showWelcome();
 
-    // if (!player->isPlaying()) {
-    //     this->fsm.trigger(Event::MESSAGE_PLAYED);
-    // }
-
+    if (!player->isPlaying()) {
+        this->fsm.trigger(Event::MESSAGE_PLAYED);
+    }
 }
 
 void Application::dispatchCloudCommand(String commandName, JsonObject& value) 
