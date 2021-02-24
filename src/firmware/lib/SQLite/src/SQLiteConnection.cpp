@@ -98,7 +98,7 @@ ResultSet* SQLiteConnection::query(const char* sql, ...)
 
 String SQLiteConnection::getSingleRowFirstCellValue(const char *sql)
 {
-    char resultBuff[256];
+    char resultBuff[256] = "";
     char * target = resultBuff;
 
     row_callback_t cb = [target](int rowIdx, char** rowData, char** columnNames , int columns) {
