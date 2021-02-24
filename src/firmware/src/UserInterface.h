@@ -72,7 +72,7 @@ class UserInterface {
         void showError();
         void showWelcome();
         void showHasNewMessageAt(int);
-        void showAudioPlaying(int);
+        void showAudioPlaying();
 };
 
 #endif // __USERINTERFACE_H__

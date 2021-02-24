@@ -120,7 +120,7 @@ void UserInterface::showHasNewMessageAt(int buttonIdx)
 	this->buttonStatus[buttonIdx] = true;
 }
 
-void UserInterface::showAudioPlaying(int)
+void UserInterface::showAudioPlaying()
 {
 	ledRing.show(&WarmGlowAnimiation);
 }
