@@ -61,16 +61,25 @@ bool Inbox::hasNewMessages(int slotId)
     return this->hasNewMessage[slotId];
 }
 
-const String Inbox::getNextFor(const char* userId) 
+const String Inbox::getAudioMessageFor(const char* userId) 
 {
     SQLiteConnection conn(&db);
-    String result = conn.queryString("SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1", userId);
+    String nextUnplayed = conn.queryString(QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID, userId);
 
-    if (result.equals("NULL")) {
-        return "";
+    if (!nextUnplayed.isEmpty()) {
+        logger.verbose("Found next unplayed message '%s' from senderId '%s'", nextUnplayed.c_str(), userId);
+        return nextUnplayed;
     }
 
-    return result;
+    logger.verbose("No unplayed message available, finding the newest one");
+    String newestMessage = conn.queryString(QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID, userId);
+    return newestMessage;
+}
+
+void Inbox::setPlayed(const char * filename) 
+{
+    SQLiteConnection conn(&db);
+    conn.execute("UPDATE messages SET playcount = playcount + 1 WHERE localFile = '%s'", filename);
 }
 
 void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback) 

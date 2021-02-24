@@ -28,15 +28,16 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_send, &state_idle, MESSAGE_SENT, nullptr);
     this->fsm.add_transition(&state_validate, &state_idle, DISCARD_MESSAGE, nullptr);
 
-    this->fsm.add_transition(&state_idle, &state_play1, BUTTON1_CLICK, nullptr);
-    this->fsm.add_transition(&state_idle, &state_play2, BUTTON2_CLICK, nullptr);
-    this->fsm.add_transition(&state_idle, &state_play3, BUTTON3_CLICK, nullptr);
-    this->fsm.add_transition(&state_play1, &state_idle, MESSAGE_PLAYED, nullptr);
-    this->fsm.add_transition(&state_play2, &state_idle, MESSAGE_PLAYED, nullptr);
-    this->fsm.add_transition(&state_play3, &state_idle, MESSAGE_PLAYED, nullptr);
-    this->fsm.add_transition(&state_play1, &state_idle, MESSAGE_NOTFOUND, nullptr);
-    this->fsm.add_transition(&state_play2, &state_idle, MESSAGE_NOTFOUND, nullptr);
-    this->fsm.add_transition(&state_play3, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_idle, &state_tryPlay1, BUTTON1_CLICK, nullptr);
+    this->fsm.add_transition(&state_idle, &state_tryPlay2, BUTTON2_CLICK, nullptr);
+    this->fsm.add_transition(&state_idle, &state_tryPlay3, BUTTON3_CLICK, nullptr);
+    this->fsm.add_transition(&state_tryPlay1, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay2, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay3, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay1, &state_play, MESSAGE_FOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay2, &state_play, MESSAGE_FOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay3, &state_play, MESSAGE_FOUND, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, MESSAGE_PLAYED, nullptr);
 
     this->ui->onButtonEvent([this](ButtonEvent evt) {
     
@@ -233,36 +234,38 @@ void Application::whileMessageSending()
     }
 }
 
-void Application::playMessageFrom(int buttonId) 
+void Application::tryPlayMessageFrom(int buttonId) 
 {
     int slot = buttonId - 1;
     Contact* c = this->contacts.get(slot);
 
-    String nextAudioMessageFile = inbox.getNextFor((const char*)c->userId);
+    String audioMessageFile = inbox.getAudioMessageFor((const char*)c->userId);
 
-    if (nextAudioMessageFile.isEmpty()) {
+    if (audioMessageFile.isEmpty()) {
         logger.warning(F("No available audio message found from user '%s' on slot %i"), c->name, c->slot);
         this->fsm.trigger(Event::MESSAGE_NOTFOUND);
         return;
     }
 
-    if (!SD.exists(nextAudioMessageFile)) {
-        logger.warning(F("File '%s' cannot be found to be played."), nextAudioMessageFile);
+    if (!SD.exists(audioMessageFile)) {
+        logger.warning(F("File '%s' cannot be found to be played."), audioMessageFile);
         this->fsm.trigger(Event::MESSAGE_NOTFOUND);
         return;
     }
 
-    logger.verbose("Playing file '%s' as message from '%s' (UserId: %s)", nextAudioMessageFile.c_str(), c->name, c->userId);
-
-    this->player->play(nextAudioMessageFile.c_str());
+    logger.verbose("Playing file '%s' as message from '%s' (UserId: %s)", audioMessageFile.c_str(), c->name, c->userId);
+    
+    this->player->play(audioMessageFile.c_str());
+    this->fsm.trigger(Event::MESSAGE_FOUND);
 }
 
 void Application::whileMessagePlaying() 
 {
     if (player->isPlaying()) {
-        this->ui->showWelcome();
+        this->ui->showAudioPlaying();
     }
     else {
+        this->inbox.setPlayed(this->player->getFilename());
         this->fsm.trigger(Event::MESSAGE_PLAYED);
     }
 }

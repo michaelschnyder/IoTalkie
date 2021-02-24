@@ -48,6 +48,9 @@ class MessageDownloadTask {
 
 #define ONNEWMESSAGE_CALLBACK_SIGNATURE std::function<void(Contact*)> 
 
+#define QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1"
+#define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount > 0 ORDER BY timestamp DESC LIMIT 1"
+
 class Inbox {
     log4Esp::Logger logger = log4Esp::Logger("Inbox");
     
@@ -72,8 +75,8 @@ public:
 
     void loop();
     bool hasNewMessages(int slotId);
-    const String getNextFor(const char* userId);
-
+    const String getAudioMessageFor(const char* userId);
+    void setPlayed(const char * filename);
     void onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback);
     // int getNumberOfMessagesFrom(String userId);
 };

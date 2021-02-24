@@ -30,6 +30,7 @@ class Application
         BUTTON3_LONGSTART,
         BUTTON3_LONG_RELEASE,
         RECORDING_LENGTH_EXCEEDED,
+        MESSAGE_FOUND,
         MESSAGE_NOTFOUND,
         MESSAGE_PLAYED,
         SEND_MESSAGE,
@@ -57,9 +58,10 @@ class Application
     FunctionState state_validate;
     FunctionState state_send;
 
-    FunctionState state_play1;
-    FunctionState state_play2;
-    FunctionState state_play3;
+    FunctionState state_tryPlay1;
+    FunctionState state_tryPlay2;
+    FunctionState state_tryPlay3;
+    FunctionState state_play;
 
     FunctionFsm fsm;
 
@@ -74,7 +76,7 @@ class Application
     void sendLastMessage();
     void whileMessageSending();
 
-    void playMessageFrom(int buttonId);
+    void tryPlayMessageFrom(int buttonId);
     void whileMessagePlaying();
     void dispatchCloudCommand(String, JsonObject&);
     void showNewMessageFrom(Contact*);
@@ -90,9 +92,10 @@ class Application
                     state_validate(nullptr, [this]() { validateRecording(); }, nullptr),
                     state_send([this]() { sendLastMessage(); }, [this]() { whileMessageSending(); }, [this]() {}),
 
-                    state_play1([this]() { playMessageFrom(1); }, [this]() { whileMessagePlaying(); }, nullptr),
-                    state_play2([this]() { playMessageFrom(2); }, [this]() { whileMessagePlaying(); }, nullptr),
-                    state_play3([this]() { playMessageFrom(3); }, [this]() { whileMessagePlaying(); }, nullptr),
+                    state_tryPlay1(nullptr, [this]() { tryPlayMessageFrom(1); }, nullptr),
+                    state_tryPlay2(nullptr, [this]() { tryPlayMessageFrom(2); }, nullptr),
+                    state_tryPlay3(nullptr, [this]() { tryPlayMessageFrom(3); }, nullptr),
+                    state_play(nullptr, [this]() { whileMessagePlaying(); }, nullptr),
 
                     fsm(&state_startup)
     {
