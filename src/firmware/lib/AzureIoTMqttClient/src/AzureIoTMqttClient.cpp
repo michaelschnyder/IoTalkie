@@ -98,7 +98,7 @@ boolean AzureIoTMqttClient::connectInternal() {
 
   logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), mqttDeviceId.c_str(), mqttUser.c_str(), this->mqttPassword.c_str());
 
-  if (!mqttClient.connect(mqttDeviceId.c_str(), mqttUser.c_str(), this->mqttPassword.c_str())) {
+  if (!mqttClient.connect(mqttDeviceId.c_str(), mqttUser.c_str(), this->mqttPassword.c_str(), 0, 0, 0, 0, false)) {
     
     char lastSslError[64];
     int errorNo = wifiClient.lastError(lastSslError, 64);

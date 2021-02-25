@@ -2,7 +2,7 @@
   "profiles": {
     "IoTalkie.MessageSenderCmd": {
       "commandName": "Project",
-      "commandLineArgs": "message ..\\..\\..\\test.mp3 Gander-3c71bf4d5668 8274387298"
+      "commandLineArgs": "message ..\\..\\..\\count.mp3 Gander-3c71bf4d5668 8274387298"
     }
   }
 }

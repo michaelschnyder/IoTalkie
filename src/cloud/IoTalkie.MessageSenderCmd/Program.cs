@@ -123,7 +123,7 @@ namespace IoTalkie.MessageSenderCmd
             Console.WriteLine($"Download Url (with sas token): {downloadUrl}");
 
             ServiceClient service = ServiceClient.CreateFromConnectionString(settings.IoTHubConnectionString);
-
+            
             var ms = new MemoryStream();
             var jsonMessage = new NewMessageCmd { SenderId = senderId, RemoteUrl = downloadUrl.ToString(), Size = new FileInfo(localFilePath).Length };
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
@@ -134,7 +134,10 @@ namespace IoTalkie.MessageSenderCmd
             // new Message(Encoding.ASCII.GetBytes(ms.ToArray());
 
 
-            await service.SendAsync(deviceId, new Message(Encoding.ASCII.GetBytes(jsonString)));
+            Message message = new Message(Encoding.ASCII.GetBytes(jsonString));
+            message.ExpiryTimeUtc = DateTime.UtcNow.AddHours(8);
+
+            await service.SendAsync(deviceId, message);
             
             Console.WriteLine("Message sent");
 
