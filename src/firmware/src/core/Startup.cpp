@@ -31,14 +31,15 @@ void Startup::post()
         fsm.trigger(Event::PowerOff);
     }
     else {
-        this->ui->isBusy(true);
+        // this->ui->isBusy(true);
         fsm.trigger(Event::Continue);
     }
 }
 
 void Startup::whilePowerOff() 
 {
-    ESP.deepSleep(1000);
+    sleep(500);
+    yield();
 
     if (!ui->isButtonPowerOff()) {
         ESP.restart();
