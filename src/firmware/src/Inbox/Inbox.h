@@ -48,6 +48,7 @@ class MessageDownloadTask {
 
 #define ONNEWMESSAGE_CALLBACK_SIGNATURE std::function<void(Contact*)> 
 
+#define QUERY_COUNT_PENDING_DOWNLOADS "SELECT COUNT(*) from messages WHERE localFile Is NULL"
 #define QUERY_COUNT_UNPLAYED_MESSAGE_FOR_USERID "SELECT COUNT(*) from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL"
 #define QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1"
 #define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount > 0 ORDER BY timestamp DESC LIMIT 1"
@@ -58,7 +59,7 @@ class Inbox {
     const char* filename = "/sd/inbox.db";
     Contacts* contacts;
     SQLiteDatabase db;
-    bool checkForPendingDownloads = true;
+    bool pendingDownloadsAvailable = true;
     bool hasNewMessage[3];
 
     MessageDownloadTask* getNextDownloadTask();
@@ -74,7 +75,8 @@ public:
     bool load();
     bool handleNotification(JsonObject&);
     // bool handleUpdates(JsonArray&);
-
+    
+    bool hasPendingDownloads(bool);
     void downloadSingleMessage();
     bool hasNewMessages(int slotId);
     const String getAudioMessageFor(const char* userId);

@@ -37,8 +37,8 @@ class Application
         SEND_MESSAGE,
         DISCARD_MESSAGE,
         MESSAGE_SENT,
-        RECIEVING_MESSAGE,
-        MESSAGE_RECEIVED
+        DOWNLOAD_MESSAGE,
+        MESSAGE_DOWNLOADED
     };
 
     DeviceConfig config;
@@ -55,6 +55,7 @@ class Application
     
     FunctionState state_startup;
     void whileStarting();
+    void afterStarting();
 
     FunctionState state_idle;
     void beforeIdling();
@@ -92,7 +93,7 @@ class Application
 
     Application() : inbox(&contacts),
     
-                    state_startup(nullptr, [this]() { whileStarting(); }, nullptr),
+                    state_startup(nullptr, [this]() { whileStarting(); }, [this]() { afterStarting(); }),
                     state_idle([this]() { beforeIdling(); }, [this]() { whileIdling(); }, nullptr),
 
                     state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, nullptr),
@@ -139,8 +140,8 @@ class Application
         this->fsm.add_transition(&state_play, &state_idle, BUTTON2_CLICK, nullptr);
         this->fsm.add_transition(&state_play, &state_idle, BUTTON3_CLICK, nullptr);
 
-        this->fsm.add_transition(&state_idle, &state_receiveMessage, RECIEVING_MESSAGE, nullptr);
-        this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_RECEIVED, nullptr);
+        this->fsm.add_transition(&state_idle, &state_receiveMessage, DOWNLOAD_MESSAGE, nullptr);
+        this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_DOWNLOADED, nullptr);
     }
 
 public:

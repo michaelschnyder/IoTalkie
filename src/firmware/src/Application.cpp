@@ -93,6 +93,11 @@ void Application::whileStarting()
     }
 }
 
+void Application::afterStarting() 
+{
+    this->inbox.hasPendingDownloads(true);
+}
+
 void Application::beforeIdling() 
 {
     this->ui->isBusy(false);
@@ -103,8 +108,11 @@ void Application::beforeIdling()
     }
 }
 
-void Application::whileIdling() {
+void Application::whileIdling() {   
     
+    if (inbox.hasPendingDownloads(false)) {
+        fsm.trigger(Event::DOWNLOAD_MESSAGE);
+    }
 }
 
 char currentRecordingName[64];
@@ -258,15 +266,13 @@ void Application::messagePlayingEnded() {
 void Application::whileReceivingMessage() 
 {
     inbox.downloadSingleMessage();
-    fsm.trigger(Event::MESSAGE_RECEIVED);
+    fsm.trigger(Event::MESSAGE_DOWNLOADED);
 }
 
 void Application::dispatchCloudCommand(String commandName, JsonObject& value) 
 {
     if (commandName == "newMessage") {
-
         inbox.handleNotification(value);
-        fsm.trigger(Event::RECIEVING_MESSAGE);
     }
 }
 

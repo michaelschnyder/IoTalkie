@@ -38,9 +38,21 @@ bool Inbox::handleNotification(JsonObject& notification)
 
     auto insertSql = "INSERT INTO messages (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %i, '%s', %i, '%s')";
     if(conn.execute(insertSql, messageId.c_str(), timestamp, senderId.c_str(), size, remoteUrl.c_str())) {
-        checkForPendingDownloads = true;
+        pendingDownloadsAvailable = true;
         return true;
     }
+
+    return false;
+}
+
+bool Inbox::hasPendingDownloads(bool forceCheck) 
+{
+    if (forceCheck) {
+        SQLiteConnection conn(&db);
+        pendingDownloadsAvailable = conn.queryInt(QUERY_COUNT_PENDING_DOWNLOADS) > 0;
+    }
+
+    return pendingDownloadsAvailable;
 }
 
 void Inbox::downloadSingleMessage() 
@@ -107,15 +119,11 @@ void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback)
 
 MessageDownloadTask* Inbox::getNextDownloadTask() 
 {
-    if (!checkForPendingDownloads) {
-        return nullptr;
-    }
-
     SQLiteConnection conn(&db);
     auto resultSet = conn.query("SELECT messageId, senderId, remoteUrl from messages WHERE localFile Is NULL ORDER BY timestamp ASC LIMIT 1");
 
     if (!resultSet->read()) {
-        checkForPendingDownloads = false;
+        pendingDownloadsAvailable = false;
         return nullptr;
     }
 
@@ -140,17 +148,11 @@ bool Inbox::download(MessageDownloadTask* task)
 
     if (!(httpCode > 0)) {
         logger.error("failed to download file. Error: %s\n", http.errorToString(httpCode).c_str());
-        
-        // TODO record attempt and retry again
-        checkForPendingDownloads = false;
         return false;
     }
 
     if(httpCode != HTTP_CODE_OK) {
         logger.error("failed to download file. Server responded with error: %s\n", http.errorToString(httpCode).c_str());
-
-        // TODO record attempt and retry again
-        checkForPendingDownloads = false;
         return false;
     }
 
@@ -197,11 +199,8 @@ bool Inbox::setAvailable(MessageDownloadTask* task)
 {
     SQLiteConnection conn(&db);
     if (conn.execute("UPDATE messages SET localFile = '%s' WHERE messageId = '%s'", task->getStorageLocation(), task->getMessageId())) {
-        checkForPendingDownloads = false;
         
-        Serial.print("SenderId: ");
-        Serial.print(task->getSenderId());
-        Serial.println();
+        hasPendingDownloads(true);
 
         // Find slot
         Contact* c = contacts->findByUserId(task->getSenderId());
@@ -217,5 +216,6 @@ bool Inbox::setAvailable(MessageDownloadTask* task)
     }
     else {
         // TODO Handle this
+        return false;
     }
 }
