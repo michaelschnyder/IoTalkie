@@ -6,14 +6,14 @@
 
 #include "FunctionFsm.h"
 #include "UserInterface.h"
-#include "AudioRecorder.h"
-#include "AudioPlayer.h"
-#include "DeviceConfig.h"
-#include "Settings.h"
-#include "Inbox/Contacts.h"
-#include "Inbox/Inbox.h"
+#include "audio/AudioRecorder.h"
+#include "audio/AudioPlayer.h"
+#include "core/DeviceConfig.h"
+#include "core/Settings.h"
+#include "inbox/Contacts.h"
+#include "inbox/Inbox.h"
+#include "http/FileUploader.h"
 
-#include "FileUploader.h"
 class Application
 {
     log4Esp::Logger logger = log4Esp::Logger("Application");
