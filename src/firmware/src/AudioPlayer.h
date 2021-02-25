@@ -46,7 +46,7 @@ class AudioPlayer {
         void play(const char* filename);
         void stop();
         void loop();
-
+        void setGain(float gain);
         bool isPlaying();
         const char* getFilename();
 };

@@ -35,6 +35,9 @@ struct ButtonContext {
 
 class UserInterface {
 
+    unsigned long lastAnalogScan;
+    unsigned long analogScanInterval;
+
     ButtonContext btnCtx1;
     ButtonContext btnCtx2;
     ButtonContext btnCtx3;
@@ -47,6 +50,7 @@ class UserInterface {
     GlowAnimation ErrorGlowAnimiation;
 
     bool buttonStatus[3];
+    float volume = 0.25;
 
     public:
 
@@ -64,6 +68,8 @@ class UserInterface {
         void onButtonEvent(BUTTON_PRESS_CALLBACK_TYPE callback) {
             this->buttonActionCallback = callback;    
         }
+
+        float getVolume();
 
         void isBusy(bool);
         void showRecordingProgress(int);

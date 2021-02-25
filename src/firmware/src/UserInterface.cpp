@@ -61,9 +61,6 @@ void UserInterface::setup()
 	ledRing.setup();
 }
 
-unsigned long previousMillis;
-#define interval 50
-
 void UserInterface::loop()
 {
 
@@ -76,6 +73,16 @@ void UserInterface::loop()
 	digitalWrite(BUTTON1_LED, buttonStatus[0] ? HIGH : LOW);
 	digitalWrite(BUTTON2_LED, buttonStatus[1] ? HIGH : LOW);
 	digitalWrite(BUTTON3_LED, buttonStatus[2] ? HIGH : LOW);
+
+	if (millis() - lastAnalogScan >= analogScanInterval) {
+    	lastAnalogScan = millis();
+		volume = analogRead(POT_IN) / 4096.0f;
+	}
+}
+
+float UserInterface::getVolume() 
+{
+	return volume;
 }
 
 void UserInterface::isBusy(bool isBusy)

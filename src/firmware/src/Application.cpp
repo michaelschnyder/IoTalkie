@@ -83,6 +83,9 @@ void Application::run() {
     fsm.run_machine();
 
     client.loop();
+    float maxVolume = 0.5;
+
+    player->setGain(ui->getVolume() * 4.0f * maxVolume);
 }
 
 void Application::start() 

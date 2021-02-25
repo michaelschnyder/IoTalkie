@@ -31,6 +31,13 @@ void AudioPlayer::stop()
 	}
 }
 
+/**
+ * Between 0.0 and 4.0
+ **/
+void AudioPlayer::setGain(float gain) {
+	out->SetGain(gain);
+}
+
 void AudioPlayer::loop()
 {
 	if (!playing)
