@@ -8,7 +8,7 @@
 
 #include "driver/i2s.h"
 
-#define I2S_READ_CHUNK_SIZE (2 * 1024)
+#define I2S_READ_CHUNK_SIZE (2 * 1024) // How much to allocate for the read buffer to copy from DMA
 #define I2S_DMA_BUFFER_COUNT (32) // relates somehow to resolution
 #define I2S_DMA_BUFFER_SIZE (128) // maximum: 1024
 
