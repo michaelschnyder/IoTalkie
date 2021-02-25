@@ -17,6 +17,7 @@ const int AMP_PIN_BCLK = 25; // Orange (Serial Clock)
 const int AMP_PIN_LRC = 33;  // Green (Word / LeftRight / Channel Select)
 const int AMP_PIN_DIN = 32;  // Blue (Serial Data)
 
+const int BUTTON_OFF_IN = 13;
 const int POT_IN = 39;   // Grey 
 const int LDR_PIN = 36;  // Green
 #endif // __PINS_H__

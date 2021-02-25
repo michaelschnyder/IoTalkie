@@ -42,6 +42,8 @@ void UserInterface::setup()
 	pinMode(BUTTON2_LED, OUTPUT);
 	pinMode(BUTTON3_LED, OUTPUT);
 
+	pinMode(BUTTON_OFF_IN, INPUT);
+
 	btnCtx1 = (ButtonContext){1, button1, this};
 	btnCtx2 = (ButtonContext){2, button2, this};
 	btnCtx3 = (ButtonContext){3, button3, this};
@@ -59,6 +61,7 @@ void UserInterface::setup()
 	button3.attachLongPressStop(fLongPressEnd, &btnCtx3);
 
 	ledRing.setup();
+	ledRing.reset();
 }
 
 void UserInterface::loop()
@@ -83,6 +86,12 @@ void UserInterface::loop()
 float UserInterface::getVolume() 
 {
 	return volume;
+}
+
+bool UserInterface::isButtonPowerOff() {
+	int powerOnState = digitalRead(BUTTON_OFF_IN);
+	
+	return !powerOnState;
 }
 
 void UserInterface::isBusy(bool isBusy)

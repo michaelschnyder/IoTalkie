@@ -36,7 +36,7 @@ struct ButtonContext {
 class UserInterface {
 
     unsigned long lastAnalogScan;
-    unsigned long analogScanInterval;
+    unsigned long analogScanInterval = 100;
 
     ButtonContext btnCtx1;
     ButtonContext btnCtx2;
@@ -70,7 +70,7 @@ class UserInterface {
         }
 
         float getVolume();
-
+        bool isButtonPowerOff();
         void isBusy(bool);
         void showRecordingProgress(int);
         void showSuccess();
