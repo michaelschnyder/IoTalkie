@@ -4,15 +4,19 @@
 #include <Log4Esp.h>
 #include <AzureIoTMqttClient.h>
 
-#include "FunctionFsm.h"
-#include "UserInterface.h"
-#include "audio/AudioRecorder.h"
-#include "audio/AudioPlayer.h"
+#include "core/Startup.h"
 #include "core/DeviceConfig.h"
 #include "core/Settings.h"
+
 #include "inbox/Contacts.h"
 #include "inbox/Inbox.h"
 #include "http/FileUploader.h"
+
+#include "UserInterface.h"
+#include "audio/AudioRecorder.h"
+#include "audio/AudioPlayer.h"
+
+#include "FunctionFsm.h"
 
 class Application
 {
@@ -53,6 +57,8 @@ class Application
     Inbox inbox;
     AudioPlayer *player;
     
+    Startup startup;
+
     FunctionState state_startup;
     void whileStarting();
     void afterStarting();
@@ -92,6 +98,8 @@ class Application
     void showNewMessageFrom(Contact*);
 
     Application() : inbox(&contacts),
+
+                    startup(ui, &config, &settings, &contacts, &inbox, &client),
     
                     state_startup(nullptr, [this]() { whileStarting(); }, [this]() { afterStarting(); }),
                     state_idle([this]() { beforeIdling(); }, [this]() { whileIdling(); }, nullptr),
@@ -147,7 +155,7 @@ class Application
 public:
     Application(UserInterface*, AudioRecorder*, AudioPlayer*, FileUploader*);
 
-    void start();
+    void setup();
     void run();
 };
 

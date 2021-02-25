@@ -49,57 +49,39 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
      });
 }
 
+void Application::setup() 
+{
+    client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
+    inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
+    startup.onCompleted([this](long duration) { this->fsm.trigger(Event::SYSTEM_READY); });
+}
+
 void Application::run() {    
+    ui->loop();
+    player->loop();
+    client.loop();
+
     fsm.run_machine();
 
-    client.loop();
     float maxVolume = 0.5;
-
     player->setGain(ui->getVolume() * 4.0f * maxVolume);
 }
 
-void Application::start() 
-{
-    settings.load();
-
-    WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
-    WiFi.persistent(false); // Do not store WIFI information in EEPROM.
-
-    logger.trace(F("Connecting to WLAN with SSID '%s'. This may take some time..."), settings.getWifiSSID().c_str());
-
-    WiFi.begin(settings.getWifiSSID().c_str(), settings.getWifiKey().c_str());
-
-    config.load();
-
-    contacts.load();
-
-    inbox.load();
-
-    client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
-    inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
-}
 
 void Application::whileStarting() 
 {
-    this->ui->isBusy(true);
-
-    if (WiFi.isConnected()) {
-        logger.trace(F("WiFi connection established. IP address: %s, MAC: %s"), WiFi.localIP().toString().c_str(), WiFi.macAddress().c_str());
-
-        this->ui->showWelcome();
-        this->fsm.trigger(Event::SYSTEM_READY);
-
-        client.connect(config.getAzIoTHubName().c_str(), config.getDeviceId().c_str(), config.getAzIoTSASToken().c_str());
-    }
+    // this->ui->isBusy(true);
+    startup.run();
 }
 
 void Application::afterStarting() 
 {
-    this->inbox.hasPendingDownloads(true);
+    this->ui->showWelcome();
 }
 
 void Application::beforeIdling() 
 {
+    logger.trace("Idling");
     this->ui->isBusy(false);
 
     for (size_t i = 0; i < contacts.size(); i++)
@@ -227,6 +209,12 @@ void Application::tryPlayMessageFrom(int buttonId)
 {
     int slot = buttonId - 1;
     Contact* c = this->contacts.get(slot);
+
+    if (c == nullptr) {
+        logger.error(F("Not contact found for slot %i"), slot);
+        this->fsm.trigger(Event::MESSAGE_NOTFOUND);
+        return;
+    }
 
     String audioMessageFile = inbox.getAudioMessageFor((const char*)c->userId);
 
