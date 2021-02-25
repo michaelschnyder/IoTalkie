@@ -142,12 +142,18 @@ boolean AzureIoTMqttClient::connectInternal() {
 
   logger.verbose(F("Welcome message send successful"));
   
+  enableReconnect = true;
+
   return true;
 }
 
 void AzureIoTMqttClient::loop() {
   mqttClient.loop();
-  reconnectIfNecessary();
+  
+  if (enableReconnect) {
+    reconnectIfNecessary();
+  }
+  
 }
 
 bool AzureIoTMqttClient::handleReportedPropertyUpdateResponse(String topic) {

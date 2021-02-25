@@ -42,6 +42,8 @@ private:
     String outboundTopicName;
 
     boolean clientReady = false;
+    boolean enableReconnect = false;
+    
     long lastReconnectAttempt = 0;
     int retryTimoutInMs = 5000;
 
