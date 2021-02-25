@@ -126,7 +126,7 @@ String SQLiteConnection::getSingleRowFirstCellValue(const char *sql)
 
 bool SQLiteConnection::query(const char* sql, row_callback_t callback) 
 {
-    log_v("Free Heap before query(): %d\n", esp_get_free_heap_size());
+    log_v("Free Heap before query(): %d", esp_get_free_heap_size());
 
     if (this->db->isLogQueryToConsole()) {
         Serial.printf("SQLQUERY | %s", sql);
@@ -162,6 +162,6 @@ bool SQLiteConnection::query(const char* sql, row_callback_t callback)
         Serial.println(F(" us"));
     }    
 
-    log_v("Free Heap after query(): %d\n", esp_get_free_heap_size());
+    log_v("Free Heap after query(): %d", esp_get_free_heap_size());
     return rc == SQLITE_OK;
 }
