@@ -8,9 +8,9 @@
 
 #include "driver/i2s.h"
 
-#define I2S_READ_CHUNK_SIZE (16 * 1024)
+#define I2S_READ_CHUNK_SIZE (2 * 1024)
 #define I2S_DMA_BUFFER_COUNT (32) // relates somehow to resolution
-#define I2S_DMA_BUFFER_SIZE (256) // maximum: 1024
+#define I2S_DMA_BUFFER_SIZE (128) // maximum: 1024
 
 #define WAVE_FORMAT_HEADER_SIZE 44
 
