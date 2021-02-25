@@ -43,7 +43,7 @@ bool Inbox::handleNotification(JsonObject& notification)
     }
 }
 
-void Inbox::loop() 
+void Inbox::downloadSingleMessage() 
 {
     auto next = getNextDownloadTask();
 

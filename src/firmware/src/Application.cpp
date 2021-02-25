@@ -12,36 +12,6 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->player = player;
     this->uploader = uploader;
 
-    this->fsm.add_transition(&state_startup, &state_idle, SYSTEM_READY, nullptr);
-
-    this->fsm.add_transition(&state_idle, &state_record1, BUTTON1_LONGSTART, nullptr);
-    this->fsm.add_transition(&state_idle, &state_record2, BUTTON2_LONGSTART, nullptr);
-    this->fsm.add_transition(&state_idle, &state_record3, BUTTON3_LONGSTART, nullptr);
-    this->fsm.add_transition(&state_record1, &state_validate, BUTTON1_LONG_RELEASE, nullptr);
-    this->fsm.add_transition(&state_record2, &state_validate, BUTTON2_LONG_RELEASE, nullptr);
-    this->fsm.add_transition(&state_record3, &state_validate, BUTTON3_LONG_RELEASE, nullptr);
-    this->fsm.add_transition(&state_record1, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
-    this->fsm.add_transition(&state_record2, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
-    this->fsm.add_transition(&state_record3, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
-
-    this->fsm.add_transition(&state_validate, &state_send, SEND_MESSAGE, nullptr);
-    this->fsm.add_transition(&state_send, &state_idle, MESSAGE_SENT, nullptr);
-    this->fsm.add_transition(&state_validate, &state_idle, DISCARD_MESSAGE, nullptr);
-
-    this->fsm.add_transition(&state_idle, &state_tryPlay1, BUTTON1_CLICK, nullptr);
-    this->fsm.add_transition(&state_idle, &state_tryPlay2, BUTTON2_CLICK, nullptr);
-    this->fsm.add_transition(&state_idle, &state_tryPlay3, BUTTON3_CLICK, nullptr);
-    this->fsm.add_transition(&state_tryPlay1, &state_idle, MESSAGE_NOTFOUND, nullptr);
-    this->fsm.add_transition(&state_tryPlay2, &state_idle, MESSAGE_NOTFOUND, nullptr);
-    this->fsm.add_transition(&state_tryPlay3, &state_idle, MESSAGE_NOTFOUND, nullptr);
-    this->fsm.add_transition(&state_tryPlay1, &state_play, MESSAGE_FOUND, nullptr);
-    this->fsm.add_transition(&state_tryPlay2, &state_play, MESSAGE_FOUND, nullptr);
-    this->fsm.add_transition(&state_tryPlay3, &state_play, MESSAGE_FOUND, nullptr);
-    this->fsm.add_transition(&state_play, &state_idle, MESSAGE_PLAYED, nullptr);
-    this->fsm.add_transition(&state_play, &state_idle, BUTTON1_CLICK, nullptr);
-    this->fsm.add_transition(&state_play, &state_idle, BUTTON2_CLICK, nullptr);
-    this->fsm.add_transition(&state_play, &state_idle, BUTTON3_CLICK, nullptr);
-
     this->ui->onButtonEvent([this](ButtonEvent evt) {
     
         if (evt.action == Action::Clicked) {
@@ -123,7 +93,7 @@ void Application::whileStarting()
     }
 }
 
-void Application::whenIdle() 
+void Application::beforeIdling() 
 {
     this->ui->isBusy(false);
 
@@ -134,7 +104,7 @@ void Application::whenIdle()
 }
 
 void Application::whileIdling() {
-    inbox.loop();
+    
 }
 
 char currentRecordingName[64];
@@ -285,10 +255,18 @@ void Application::messagePlayingEnded() {
     this->player->stop();
 }
 
+void Application::whileReceivingMessage() 
+{
+    inbox.downloadSingleMessage();
+    fsm.trigger(Event::MESSAGE_RECEIVED);
+}
+
 void Application::dispatchCloudCommand(String commandName, JsonObject& value) 
 {
     if (commandName == "newMessage") {
+
         inbox.handleNotification(value);
+        fsm.trigger(Event::RECIEVING_MESSAGE);
     }
 }
 

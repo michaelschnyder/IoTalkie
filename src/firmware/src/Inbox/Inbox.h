@@ -75,7 +75,7 @@ public:
     bool handleNotification(JsonObject&);
     // bool handleUpdates(JsonArray&);
 
-    void loop();
+    void downloadSingleMessage();
     bool hasNewMessages(int slotId);
     const String getAudioMessageFor(const char* userId);
     void setPlayed(const char * filename);
