@@ -52,6 +52,11 @@ class MessageDownloadTask {
 #define QUERY_COUNT_UNPLAYED_MESSAGE_FOR_USERID "SELECT COUNT(*) from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL"
 #define QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1"
 #define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount > 0 ORDER BY timestamp DESC LIMIT 1"
+#define QUERY_INSERT_NEW_MESSAGE "INSERT INTO messages (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %i, '%s', %i, '%s')"
+#define QUERY_COUNT_MESSAGES_BY_MESSAGEID "SELECT COUNT(*) FROM messages WHERE messageId = '%s'"
+#define QUERY_INCREASE_PLAYCOUNT_BY_LOCALFILE "UPDATE messages SET playcount = playcount + 1 WHERE localFile = '%s'"
+#define QUERY_NEXT_PENDING_MESSAGE_FOR_DOWNLOAD "SELECT messageId, senderId, remoteUrl from messages WHERE localFile Is NULL ORDER BY timestamp ASC LIMIT 1"
+#define QUERY_UPDATE_LOCALFILE_BY_MESSAGEID "UPDATE messages SET localFile = '%s' WHERE messageId = '%s'"
 
 class Inbox {
     log4Esp::Logger logger = log4Esp::Logger("Inbox");

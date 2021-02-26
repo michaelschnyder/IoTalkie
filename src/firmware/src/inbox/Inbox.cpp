@@ -29,15 +29,14 @@ bool Inbox::handleNotification(JsonObject& notification)
     String remoteUrl = notification.get<String>("remoteUrl");
     
     SQLiteConnection conn(&db);
-    bool exists = conn.queryInt("SELECT COUNT(*) FROM messages WHERE messageId = '%s'", messageId.c_str());
+    bool exists = conn.queryInt(QUERY_COUNT_MESSAGES_BY_MESSAGEID, messageId.c_str());
 
     if (exists) {
         logger.verbose("Message with id '%s' is already present in inbox. Skipping", messageId.c_str());
         return false;
     }
 
-    auto insertSql = "INSERT INTO messages (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %i, '%s', %i, '%s')";
-    if(conn.execute(insertSql, messageId.c_str(), timestamp, senderId.c_str(), size, remoteUrl.c_str())) {
+    if(conn.execute(QUERY_INSERT_NEW_MESSAGE, messageId.c_str(), timestamp, senderId.c_str(), size, remoteUrl.c_str())) {
         pendingDownloadsAvailable = true;
         return true;
     }
@@ -107,7 +106,7 @@ const String Inbox::getAudioMessageFor(const char* userId)
 void Inbox::setPlayed(const char * filename) 
 {
     SQLiteConnection conn(&db);
-    conn.execute("UPDATE messages SET playcount = playcount + 1 WHERE localFile = '%s'", filename);
+    conn.execute(QUERY_INCREASE_PLAYCOUNT_BY_LOCALFILE, filename);
 
     findUnplayedMessagesForEachSlot();
 }
@@ -120,7 +119,7 @@ void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback)
 MessageDownloadTask* Inbox::getNextDownloadTask() 
 {
     SQLiteConnection conn(&db);
-    auto resultSet = conn.query("SELECT messageId, senderId, remoteUrl from messages WHERE localFile Is NULL ORDER BY timestamp ASC LIMIT 1");
+    auto resultSet = conn.query(QUERY_NEXT_PENDING_MESSAGE_FOR_DOWNLOAD);
 
     if (!resultSet->read()) {
         pendingDownloadsAvailable = false;
@@ -198,7 +197,7 @@ bool Inbox::download(MessageDownloadTask* task)
 bool Inbox::setAvailable(MessageDownloadTask* task) 
 {
     SQLiteConnection conn(&db);
-    if (conn.execute("UPDATE messages SET localFile = '%s' WHERE messageId = '%s'", task->getStorageLocation(), task->getMessageId())) {
+    if (conn.execute(QUERY_UPDATE_LOCALFILE_BY_MESSAGEID, task->getStorageLocation(), task->getMessageId())) {
         
         hasPendingDownloads(true);
 
