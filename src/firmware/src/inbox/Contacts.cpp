@@ -82,4 +82,3 @@ int Contacts::size()
 {
     return this->numberOfContacts;
 }
-

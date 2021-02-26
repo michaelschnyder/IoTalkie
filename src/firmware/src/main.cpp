@@ -4,10 +4,6 @@
 
 #include "UserInterface.h"
 #include "Application.h"
-#include "Fsm.h"
-#include "FS.h"
-#include "SD.h"
-#include "SPIFFS.h"
 
 UserInterface ui;
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
