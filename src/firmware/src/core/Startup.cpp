@@ -28,7 +28,8 @@ void Startup::onCompleted(ONCOMPLETED_CALLBACK_SIGNATURE callback)
 void Startup::post() 
 {   
     Serial.begin(115200);
-    Serial.println("");
+    Serial.printf("IoTalkie #%s", Version::gitCommit());
+    Serial.println();
 
     this->ui->isBusy(false);
 
