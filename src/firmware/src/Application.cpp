@@ -5,8 +5,62 @@
 #define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
 #define MAXIMAL_MESSAGE_LENGTH_IN_MS 24000
 
-Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : Application()
-{
+Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : 
+    
+    inbox(&contacts),
+
+    startup(ui, &config, &settings, &contacts, &inbox, &client),
+
+    state_startup(nullptr, [this]() { whileStarting(); }, [this]() { afterStarting(); }),
+    state_idle([this]() { beforeIdling(); }, [this]() { whileIdling(); }, nullptr),
+
+    state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, nullptr),
+    state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, nullptr),
+    state_record3([this]() { recordMessageFor(3); }, [this]() { whileMessageRecording(); }, nullptr),
+    state_validate(nullptr, [this]() { validateRecording(); }, nullptr),
+    state_send([this]() { sendLastMessage(); }, [this]() { whileMessageSending(); }, [this]() {}),
+
+    state_tryPlay1(nullptr, [this]() { tryPlayMessageFrom(1); }, nullptr),
+    state_tryPlay2(nullptr, [this]() { tryPlayMessageFrom(2); }, nullptr),
+    state_tryPlay3(nullptr, [this]() { tryPlayMessageFrom(3); }, nullptr),
+    state_play(nullptr, [this]() { whileMessagePlaying(); }, [this]() { messagePlayingEnded(); }),
+
+    state_receiveMessage(nullptr, [this]() { whileReceivingMessage(); }, nullptr),
+
+    fsm(&state_startup) 
+    {
+    this->fsm.add_transition(&state_startup, &state_idle, SYSTEM_READY, nullptr);
+
+    this->fsm.add_transition(&state_idle, &state_record1, BUTTON1_LONGSTART, nullptr);
+    this->fsm.add_transition(&state_idle, &state_record2, BUTTON2_LONGSTART, nullptr);
+    this->fsm.add_transition(&state_idle, &state_record3, BUTTON3_LONGSTART, nullptr);
+    this->fsm.add_transition(&state_record1, &state_validate, BUTTON1_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record2, &state_validate, BUTTON2_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record3, &state_validate, BUTTON3_LONG_RELEASE, nullptr);
+    this->fsm.add_transition(&state_record1, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+    this->fsm.add_transition(&state_record2, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+    this->fsm.add_transition(&state_record3, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+    this->fsm.add_transition(&state_validate, &state_send, SEND_MESSAGE, nullptr);
+    this->fsm.add_transition(&state_send, &state_idle, MESSAGE_SENT, nullptr);
+    this->fsm.add_transition(&state_validate, &state_idle, DISCARD_MESSAGE, nullptr);
+
+    this->fsm.add_transition(&state_idle, &state_tryPlay1, BUTTON1_CLICK, nullptr);
+    this->fsm.add_transition(&state_idle, &state_tryPlay2, BUTTON2_CLICK, nullptr);
+    this->fsm.add_transition(&state_idle, &state_tryPlay3, BUTTON3_CLICK, nullptr);
+    this->fsm.add_transition(&state_tryPlay1, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay2, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay3, &state_idle, MESSAGE_NOTFOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay1, &state_play, MESSAGE_FOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay2, &state_play, MESSAGE_FOUND, nullptr);
+    this->fsm.add_transition(&state_tryPlay3, &state_play, MESSAGE_FOUND, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, MESSAGE_PLAYED, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, BUTTON1_CLICK, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, BUTTON2_CLICK, nullptr);
+    this->fsm.add_transition(&state_play, &state_idle, BUTTON3_CLICK, nullptr);
+
+    this->fsm.add_transition(&state_idle, &state_receiveMessage, DOWNLOAD_MESSAGE, nullptr);
+    this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_DOWNLOADED, nullptr);
+
     this->ui = ui;
     this->recorder = recorder;
     this->player = player;
@@ -53,24 +107,28 @@ void Application::setup()
 {
     client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
     inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
-    startup.onCompleted([this](long duration) { this->fsm.trigger(Event::SYSTEM_READY); });
+    startup.onCompleted([this](long duration) { 
+        this->isStartupCompleted = true;
+        this->fsm.trigger(Event::SYSTEM_READY); 
+    });
 }
 
 void Application::run() {    
-    ui->loop();
-    player->loop();
-    client.loop();
+    
+    if (isStartupCompleted) {
+        ui->loop();   
+        player->loop();
+        client.loop();
+        float maxVolume = 0.5;
+        player->setGain(ui->getVolume() * 4.0f * maxVolume);
+    }
 
     fsm.run_machine();
-
-    float maxVolume = 0.5;
-    player->setGain(ui->getVolume() * 4.0f * maxVolume);
 }
 
 
 void Application::whileStarting() 
 {
-    // this->ui->isBusy(true);
     startup.run();
 }
 
