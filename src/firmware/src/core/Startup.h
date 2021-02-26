@@ -53,6 +53,11 @@ class Startup {
     FunctionState state_ready;
     void whenReady();
 
+    FunctionState state_error;
+    void whileError();
+
+    void setError(int code, const char* message);
+
     FunctionFsm fsm;
 
     UserInterface* ui;
@@ -65,6 +70,13 @@ class Startup {
     enum Event {
         Continue,
         Halt,
+    };
+
+    enum ErrorCode {
+        INT_STORAGE_ERR = 0b001,
+        SD_STORAGE_ERR  = 0b010,
+        WIFI_TIMEOUT    = 0b011,
+        MQTT_TIMEOUT    = 0b100,
     };
 
 public:
@@ -82,6 +94,7 @@ public:
         state_startInbox(nullptr,                      [this]() { startInbox(); },      nullptr),
 
         state_ready([this]() { whenReady(); },          nullptr,                        nullptr),
+        state_error(nullptr,                           [this]() { whileError(); },      nullptr),
 
         fsm(&state_post)
     {
@@ -94,8 +107,12 @@ public:
         fsm.add_transition(&state_loadContacts, &state_startWifi, Event::Continue, nullptr);
         fsm.add_transition(&state_startWifi, &state_connectToMqtt, Event::Continue, nullptr);
         fsm.add_transition(&state_connectToMqtt, &state_startInbox, Event::Continue, nullptr);
-        
         fsm.add_transition(&state_startInbox, &state_ready, Event::Continue, nullptr);
+
+        fsm.add_timed_transition(&state_checkSPIFFS,    &state_error, 2000l,  [this]() { setError(INT_STORAGE_ERR, "Internal Storage Error"); });
+        fsm.add_timed_transition(&state_checkSDCardFS,  &state_error, 2000l,  [this]() { setError(SD_STORAGE_ERR, "SD Card Missing/Error"); });
+        fsm.add_timed_transition(&state_startWifi,      &state_error, 10000l, [this]() { setError(WIFI_TIMEOUT, "WiFi Connection Issue"); });
+        fsm.add_timed_transition(&state_connectToMqtt,  &state_error, 10000l, [this]() { setError(MQTT_TIMEOUT, "MQTT Connection Issue"); });
 
         this->ui = userInterface;
         this->config = config;

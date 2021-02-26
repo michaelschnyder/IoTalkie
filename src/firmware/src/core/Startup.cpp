@@ -55,6 +55,8 @@ void Startup::checkSPIFFS()
         Serial.println();
         fsm.trigger(Event::Continue);
     }
+
+    delay(50);
 }
 
 void Startup::loadConfig()
@@ -126,3 +128,27 @@ void Startup::whenReady()
         this->onCompletedCallback(0);
     }
 }
+
+void Startup::setError(int code, const char* message) 
+{
+    Serial.printf("ERROR %x: %s", code, message);
+
+    bool firstBit =  ((code & 0b001) >> 0);
+    bool secondBit = ((code & 0b010) >> 1);
+    bool thirdBit =  ((code & 0b100) >> 2);
+
+    // Code is displayed from bottom to top
+    ui->showHasNewMessageAt(0, thirdBit);
+    ui->showHasNewMessageAt(1, secondBit);
+    ui->showHasNewMessageAt(2, firstBit);
+}
+
+void Startup::whileError() 
+{
+    ui->showError();
+
+    if (!ui->isPowerButtonOn()) {
+        ESP.restart();
+    }
+}
+
