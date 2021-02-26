@@ -44,7 +44,7 @@ void LedRing::reset()
 
 void LedRing::show(LedAnimation* animation) 
 {
-	if (currentAnimation == animation) {
+	if (this->currentAnimation == animation) {
 		return;
 	}
 
