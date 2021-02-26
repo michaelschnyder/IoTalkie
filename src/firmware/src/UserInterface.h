@@ -70,7 +70,7 @@ class UserInterface {
         }
 
         float getVolume();
-        bool isButtonPowerOff();
+        bool isPowerButtonOn();
         void isBusy(bool);
         void showRecordingProgress(int);
         void showSuccess();

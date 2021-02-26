@@ -88,10 +88,9 @@ float UserInterface::getVolume()
 	return volume;
 }
 
-bool UserInterface::isButtonPowerOff() {
-	int powerOnState = digitalRead(BUTTON_OFF_IN);
-	
-	return !powerOnState;
+bool UserInterface::isPowerButtonOn() {
+	int isPowerOff = digitalRead(BUTTON_OFF_IN);	
+	return !isPowerOff;
 }
 
 void UserInterface::isBusy(bool isBusy)
