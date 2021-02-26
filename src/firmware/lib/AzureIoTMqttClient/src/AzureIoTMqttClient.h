@@ -43,7 +43,7 @@ private:
 
     boolean clientReady = false;
     boolean enableReconnect = false;
-    
+
     long lastReconnectAttempt = 0;
     int retryTimoutInMs = 5000;
 
@@ -68,10 +68,12 @@ public:
     void callback(char*, uint8_t*, unsigned int);
     
     void connect(const char* hubName, const char* deviceId, const char* token);
-    
+    void disconnect();
+
     void onCommand(ONCOMMAND_CALLBACK_SIGNATURE);
     void onDesiredPropertyChange(DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE);
 	void loop();
+    bool send(const char*);
     void send(JsonObject& data);
     void report(String, int);
     void report(String, float);

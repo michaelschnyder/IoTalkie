@@ -10,8 +10,10 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     inbox(&contacts),
 
     startup(ui, &config, &settings, &contacts, &inbox, &client),
+    shutdown(ui, &client),
 
     state_startup(nullptr, [this]() { whileStarting(); }, [this]() { afterStarting(); }),
+    state_shutdown(nullptr, [this]() { whileShuttingDown(); }, nullptr),
     state_idle([this]() { beforeIdling(); }, [this]() { whileIdling(); }, nullptr),
 
     state_record1([this]() { recordMessageFor(1); }, [this]() { whileMessageRecording(); }, nullptr),
@@ -61,6 +63,20 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_idle, &state_receiveMessage, DOWNLOAD_MESSAGE, nullptr);
     this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_DOWNLOADED, nullptr);
 
+//     this->fsm.add_transition(&state_startup, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_idle, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_record1, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_record2, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_record3, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_validate, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_send, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_tryPlay1, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_tryPlay2, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_tryPlay3, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_play, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_receiveMessage, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    
+
     this->ui = ui;
     this->recorder = recorder;
     this->player = player;
@@ -101,6 +117,11 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
             }
         }
      });
+
+     this->ui->onPowerOff([this]() {
+         this->isAppRunning = false;
+         fsm.trigger(Event::SYSTEM_SHUTDOWN);
+     });
 }
 
 void Application::setup() 
@@ -108,14 +129,13 @@ void Application::setup()
     client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
     inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
     startup.onCompleted([this](long duration) { 
-        this->isStartupCompleted = true;
         this->fsm.trigger(Event::SYSTEM_READY); 
     });
 }
 
 void Application::run() {    
     
-    if (isStartupCompleted) {
+    if (isAppRunning) {
         ui->loop();   
         player->loop();
         client.loop();
@@ -126,7 +146,6 @@ void Application::run() {
     fsm.run_machine();
 }
 
-
 void Application::whileStarting() 
 {
     startup.run();
@@ -134,7 +153,14 @@ void Application::whileStarting()
 
 void Application::afterStarting() 
 {
+    this->isAppRunning = true;
     this->ui->showWelcome();
+}
+
+void Application::whileShuttingDown() 
+{
+    this->isAppRunning = false;
+    shutdown.run();
 }
 
 void Application::beforeIdling() 
@@ -146,12 +172,17 @@ void Application::beforeIdling()
     {
         this->ui->showHasNewMessageAt(i, inbox.hasNewMessages(i));
     }
+
 }
 
 void Application::whileIdling() {   
     
     if (inbox.hasPendingDownloads(false)) {
         fsm.trigger(Event::DOWNLOAD_MESSAGE);
+    }
+
+    if (!this->ui->isPowerButtonOn()) {
+        fsm.trigger(Event::SYSTEM_SHUTDOWN);
     }
 }
 

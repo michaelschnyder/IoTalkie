@@ -9,6 +9,7 @@
 #include "animations/GlowAnimation.h"
 
 #define BUTTON_PRESS_CALLBACK_TYPE std::function<void(ButtonEvent)>
+#define POWEROFF_STATE_CALLBACK_TYPE std::function<void()>
 
 struct RecordingProgressData {
     int progress;
@@ -35,8 +36,8 @@ struct ButtonContext {
 
 class UserInterface {
 
-    unsigned long lastAnalogScan;
-    unsigned long analogScanInterval = 100;
+    unsigned long lastInputScan;
+    unsigned long inputScanInterval = 100;
 
     ButtonContext btnCtx1;
     ButtonContext btnCtx2;
@@ -50,6 +51,7 @@ class UserInterface {
     GlowAnimation ErrorGlowAnimiation;
 
     bool buttonStatus[3];
+    bool isPowerOff = false;
     float volume = 0.25;
 
     public:
@@ -67,6 +69,11 @@ class UserInterface {
         BUTTON_PRESS_CALLBACK_TYPE buttonActionCallback;
         void onButtonEvent(BUTTON_PRESS_CALLBACK_TYPE callback) {
             this->buttonActionCallback = callback;    
+        }
+
+        POWEROFF_STATE_CALLBACK_TYPE powerOffCallback;
+        void onPowerOff(POWEROFF_STATE_CALLBACK_TYPE callback) {
+            this->powerOffCallback = callback;    
         }
 
         float getVolume();

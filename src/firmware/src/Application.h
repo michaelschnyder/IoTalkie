@@ -5,6 +5,7 @@
 #include <AzureIoTMqttClient.h>
 
 #include "core/Startup.h"
+#include "core/Shutdown.h"
 #include "core/DeviceConfig.h"
 #include "core/Settings.h"
 
@@ -24,6 +25,7 @@ class Application
 
     enum Event {
         SYSTEM_READY,
+        SYSTEM_SHUTDOWN,
         BUTTON1_CLICK,
         BUTTON2_CLICK,
         BUTTON3_CLICK,
@@ -58,10 +60,14 @@ class Application
     AudioPlayer *player;
     
     Startup startup;
+    Shutdown shutdown;
 
     FunctionState state_startup;
     void whileStarting();
     void afterStarting();
+
+    FunctionState state_shutdown;
+    void whileShuttingDown();
 
     FunctionState state_idle;
     void beforeIdling();
@@ -94,7 +100,7 @@ class Application
 
     FunctionFsm fsm;
 
-    bool isStartupCompleted = false;
+    bool isAppRunning = false;
 
     void dispatchCloudCommand(String, JsonObject&);
     void showNewMessageFrom(Contact*);

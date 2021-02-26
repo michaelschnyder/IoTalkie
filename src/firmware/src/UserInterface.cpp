@@ -42,7 +42,7 @@ void UserInterface::setup()
 	pinMode(BUTTON2_LED, OUTPUT);
 	pinMode(BUTTON3_LED, OUTPUT);
 
-	pinMode(BUTTON_OFF_IN, INPUT);
+	pinMode(BUTTON_OFF_IN, INPUT_PULLDOWN);
 
 	btnCtx1 = (ButtonContext){1, button1, this};
 	btnCtx2 = (ButtonContext){2, button2, this};
@@ -66,7 +66,6 @@ void UserInterface::setup()
 
 void UserInterface::loop()
 {
-
 	button1.tick();
 	button2.tick();
 	button3.tick();
@@ -77,9 +76,16 @@ void UserInterface::loop()
 	digitalWrite(BUTTON2_LED, buttonStatus[1] ? HIGH : LOW);
 	digitalWrite(BUTTON3_LED, buttonStatus[2] ? HIGH : LOW);
 
-	if (millis() - lastAnalogScan >= analogScanInterval) {
-    	lastAnalogScan = millis();
+	if (millis() - lastInputScan >= inputScanInterval || lastInputScan == 0) {
+    	lastInputScan = millis();
 		volume = analogRead(POT_IN) / 4096.0f;
+
+		bool previousState = isPowerOff;
+		isPowerOff = digitalRead(BUTTON_OFF_IN) && digitalRead(BUTTON_OFF_IN) && digitalRead(BUTTON_OFF_IN);
+
+		if (isPowerOff && !previousState) {
+			powerOffCallback();
+		}
 	}
 }
 
@@ -89,7 +95,6 @@ float UserInterface::getVolume()
 }
 
 bool UserInterface::isPowerButtonOn() {
-	int isPowerOff = digitalRead(BUTTON_OFF_IN);	
 	return !isPowerOff;
 }
 

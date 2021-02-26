@@ -50,6 +50,14 @@ void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, cons
   lastReconnectAttempt = millis();
 }
 
+void AzureIoTMqttClient::disconnect() 
+{
+  enableReconnect = false;
+  clientReady = false;
+
+  this->mqttClient.disconnect();
+}
+
 void AzureIoTMqttClient::callback(char* topic, byte* payload, unsigned int length) {
   
   char* buffer = (char*)payload;
@@ -153,7 +161,11 @@ void AzureIoTMqttClient::loop() {
   if (enableReconnect) {
     reconnectIfNecessary();
   }
-  
+}
+
+bool AzureIoTMqttClient::send(const char* message) 
+{
+  return mqttClient.publish(outboundTopicName.c_str(), message);
 }
 
 bool AzureIoTMqttClient::handleReportedPropertyUpdateResponse(String topic) {
