@@ -11,7 +11,7 @@
 #include "../inbox/Inbox.h"
 #include <AzureIoTMqttClient.h>
 #include "pins.h"
-#include "Version.h"
+#include "BuildInfo.h"
 
 class Startup {
     
