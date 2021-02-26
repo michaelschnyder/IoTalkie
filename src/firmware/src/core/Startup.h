@@ -10,6 +10,7 @@
 #include "../inbox/Contacts.h"
 #include "../inbox/Inbox.h"
 #include <AzureIoTMqttClient.h>
+#include "pins.h"
 
 class Startup {
     
@@ -21,8 +22,8 @@ class Startup {
     FunctionState state_post;
     void post();
 
-    FunctionState state_powerOff;
-    void whilePowerOff();
+    FunctionState state_halt;
+    void whileHalt();
 
     FunctionState state_checkSPIFFS;
     void checkSPIFFS();
@@ -63,13 +64,13 @@ class Startup {
 
     enum Event {
         Continue,
-        PowerOff,
+        Halt,
     };
 
 public:
-    Startup(UserInterface* ui, DeviceConfig* config, Settings* settings, Contacts* contacts, Inbox* inbox, AzureIoTMqttClient* azClient) :
+    Startup(UserInterface* userInterface, DeviceConfig* config, Settings* settings, Contacts* contacts, Inbox* inbox, AzureIoTMqttClient* azClient) :
         state_post(nullptr,                            [this]() { post(); },            nullptr),
-        state_powerOff(nullptr,                        [this]() { whilePowerOff(); },   nullptr),
+        state_halt(nullptr,                            [this]() { whileHalt(); },       nullptr),
 
         state_checkSPIFFS(nullptr,                     [this]() { checkSPIFFS(); },     nullptr),
         state_loadConfig(nullptr,                      [this]() { loadConfig(); },      nullptr),
@@ -85,6 +86,7 @@ public:
         fsm(&state_post)
     {
         fsm.add_transition(&state_post, &state_checkSPIFFS, Event::Continue, nullptr);
+        fsm.add_transition(&state_post, &state_halt, Event::Halt, nullptr);
         fsm.add_transition(&state_checkSPIFFS, &state_loadConfig, Event::Continue, nullptr);
         fsm.add_transition(&state_loadConfig, &state_checkSDCardFS, Event::Continue, nullptr);
         fsm.add_transition(&state_checkSDCardFS, &state_loadSettings, Event::Continue, nullptr);
@@ -95,7 +97,7 @@ public:
         
         fsm.add_transition(&state_startInbox, &state_ready, Event::Continue, nullptr);
 
-        this->ui = ui;
+        this->ui = userInterface;
         this->config = config;
         this->settings = settings;
         this->contacts = contacts;

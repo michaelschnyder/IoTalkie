@@ -11,6 +11,11 @@ String file_size(uint64_t bytes){
 
 void Startup::run() 
 {
+    if (!fsm.is_in_state(state_halt)) {
+        ui->loop();    
+    }
+    
+    this->ui->isBusy(true);
     this->fsm.run_machine();
     yield();
 }
@@ -21,29 +26,26 @@ void Startup::onCompleted(ONCOMPLETED_CALLBACK_SIGNATURE callback)
 }
 
 void Startup::post() 
-{
+{   
     Serial.begin(115200);
     Serial.println("");
-    Serial.println("System started");
 
-    if (ui->isButtonPowerOff()) {
-        // this->ui->isBusy(false);
-        fsm.trigger(Event::PowerOff);
+    this->ui->isBusy(false);
+
+    if (!ui->isPowerButtonOn()) {
+        fsm.trigger(Event::Halt);
     }
     else {
-        // this->ui->isBusy(true);
+        this->ui->isBusy(true);
         fsm.trigger(Event::Continue);
     }
 }
 
-void Startup::whilePowerOff() 
+void Startup::whileHalt() 
 {
-    sleep(500);
-    yield();
-
-    if (!ui->isButtonPowerOff()) {
-        ESP.restart();
-    }
+    Serial.printf("System halt, wait for LOW on pin %i to exit deep sleep", BUTTON_OFF_IN);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_OFF_IN, LOW);
+    esp_deep_sleep_start();
 }
 
 void Startup::checkSPIFFS() 
