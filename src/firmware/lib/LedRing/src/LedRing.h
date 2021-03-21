@@ -7,7 +7,7 @@
 
 // TODO: Move to ctor args
 #define NUM_LEDS 24
-const int LED_RING_PIN = 12; // White
+const int LED_RING_PIN = 00; // White
 
 class LedRing {
 
