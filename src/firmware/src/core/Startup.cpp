@@ -45,7 +45,7 @@ void Startup::post()
 void Startup::whileHalt() 
 {
     Serial.printf("System halt, wait for LOW on pin %i to exit deep sleep", BUTTON_OFF_IN);
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_OFF_IN, LOW);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)MCP23017_IRT, LOW);
     esp_deep_sleep_start();
 }
 

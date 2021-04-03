@@ -1,9 +1,9 @@
 #include "UserInterface.h"
 #include "pins.h"
 
-OneButton button1 = OneButton(BUTTON1_IN, false, false);
-OneButton button2 = OneButton(BUTTON2_IN, false, false);
-OneButton button3 = OneButton(BUTTON3_IN, false, false);
+OneButton button1 = OneButton(-1, false, false);
+OneButton button2 = OneButton(-1, false, false);
+OneButton button3 = OneButton(-1, false, false);
 
 void raiseButtonEvent(ButtonContext *ctx, Action action)
 {
@@ -38,11 +38,20 @@ void UserInterface::setup()
 {
 	pinMode(LED_BUILTIN, OUTPUT);
 
-	pinMode(BUTTON1_LED, OUTPUT);
-	pinMode(BUTTON2_LED, OUTPUT);
-	pinMode(BUTTON3_LED, OUTPUT);
+	mcp.begin();
+	mcp.setupInterrupts(true, false, LOW);
+	mcp.setupInterruptPin(BUTTON_OFF_IN, FALLING); 
 
-	pinMode(BUTTON_OFF_IN, INPUT_PULLDOWN);
+	mcp.pinMode(BUTTON1_LED, OUTPUT);
+	mcp.pinMode(BUTTON2_LED, OUTPUT);
+	mcp.pinMode(BUTTON3_LED, OUTPUT);
+
+
+	mcp.pinMode(BUTTON1_IN, INPUT);
+	mcp.pinMode(BUTTON2_IN, INPUT);
+	mcp.pinMode(BUTTON3_IN, INPUT);
+
+	mcp.pinMode(BUTTON_OFF_IN, INPUT);
 
 	btnCtx1 = (ButtonContext){1, button1, this};
 	btnCtx2 = (ButtonContext){2, button2, this};
@@ -66,22 +75,23 @@ void UserInterface::setup()
 
 void UserInterface::loop()
 {
-	button1.tick();
-	button2.tick();
-	button3.tick();
-
 	ledRing.loop();
 
-	digitalWrite(BUTTON1_LED, buttonStatus[0] ? HIGH : LOW);
-	digitalWrite(BUTTON2_LED, buttonStatus[1] ? HIGH : LOW);
-	digitalWrite(BUTTON3_LED, buttonStatus[2] ? HIGH : LOW);
-
 	if (millis() - lastInputScan >= inputScanInterval || lastInputScan == 0) {
+
+		button1.tick(mcp.digitalRead(BUTTON1_IN));
+		button2.tick(mcp.digitalRead(BUTTON2_IN));
+		button3.tick(mcp.digitalRead(BUTTON3_IN));
+
+		mcp.digitalWrite(BUTTON1_LED, buttonStatus[0] ? HIGH : LOW);
+		mcp.digitalWrite(BUTTON2_LED, buttonStatus[1] ? HIGH : LOW);
+		mcp.digitalWrite(BUTTON3_LED, buttonStatus[2] ? HIGH : LOW);
+
     	lastInputScan = millis();
 		volume = analogRead(POT_IN) / 4096.0f;
 
 		bool previousState = isPowerOff;
-		isPowerOff = digitalRead(BUTTON_OFF_IN) && digitalRead(BUTTON_OFF_IN) && digitalRead(BUTTON_OFF_IN);
+		isPowerOff = mcp.digitalRead(BUTTON_OFF_IN);
 
 		if (isPowerOff && !previousState) {
 			powerOffCallback();

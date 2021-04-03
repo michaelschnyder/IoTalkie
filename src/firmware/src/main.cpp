@@ -29,7 +29,7 @@ void loop() {
     lastPrint = millis();
 
     Serial.println();
-    Serial.printf("Pot: %i, Ldr: %i, PwrOff: %i", analogRead(POT_IN), analogRead(LDR_PIN), digitalRead(BUTTON_OFF_IN));
+    Serial.printf("Pot: %i, Ldr: %i, PwrOn: %i", analogRead(POT_IN), analogRead(LDR_PIN), ui.isPowerButtonOn());
     Serial.printf("\nHeap size: %d\n", ESP.getHeapSize());
     Serial.printf("Free Heap: %d\n", esp_get_free_heap_size());
     Serial.printf("Min Free Heap: %d\n", esp_get_minimum_free_heap_size());

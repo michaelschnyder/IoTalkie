@@ -1,7 +1,9 @@
 #ifndef __USERINTERFACE_H__
 #define __USERINTERFACE_H__
-#include <functional>
+#include <Wire.h>
+#include "Adafruit_MCP23017.h"
 
+#include <functional>
 #include <OneButton.h>
 
 #include "LedRing.h"
@@ -38,6 +40,7 @@ class UserInterface {
 
     unsigned long lastInputScan;
     unsigned long inputScanInterval = 100;
+    Adafruit_MCP23017 mcp;
 
     ButtonContext btnCtx1;
     ButtonContext btnCtx2;
