@@ -4,6 +4,8 @@
     "recommendations": [
         "amiralizadeh9480.cpp-helper",
         "platformio.platformio-ide",
-        "vsciot-vscode.azure-iot-toolkit"
+        "vsciot-vscode.azure-iot-toolkit",
+        "hars.cppsnippets",
+        "jbenden.c-cpp-flylint"
     ]
 }
