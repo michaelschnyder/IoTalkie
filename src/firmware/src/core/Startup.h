@@ -4,9 +4,9 @@
 #include "FunctionFsm.h"
 #include <Log4Esp.h>
 
-#include "../UserInterface.h"
 #include "DeviceConfig.h"
 #include "Settings.h"
+#include "../ui/UserInterface.h"
 #include "../inbox/Contacts.h"
 #include "../inbox/Inbox.h"
 #include <AzureIoTMqttClient.h>

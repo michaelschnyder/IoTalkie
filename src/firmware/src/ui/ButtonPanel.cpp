@@ -1,4 +1,4 @@
-#include "UserInterface.h"
+#include "ButtonPanel.h"
 #include "pins.h"
 
 OneButton button1 = OneButton(-1, false, false);
@@ -9,13 +9,14 @@ void raiseButtonEvent(ButtonContext *ctx, Action action)
 {
 	ButtonEvent evt = {ctx->buttonId, action, ctx->button.getPressedTicks()};
 
-	UserInterface *uiCast = (UserInterface *)ctx->ui;
+	ButtonPanel *panelCast = (ButtonPanel *)ctx->ui;
 
-	if (uiCast->buttonActionCallback != NULL)
+	if (panelCast->buttonActionCallback != NULL)
 	{
-		uiCast->buttonActionCallback(evt);
+		panelCast->buttonActionCallback(evt);
 	}
 }
+
 void fClicked(void *s)
 {
 	ButtonContext *ctx = (ButtonContext *)s;
@@ -34,11 +35,9 @@ void fLongPressEnd(void *s)
 	raiseButtonEvent(ctx, LongPressEnd);
 }
 
-void UserInterface::setup()
+void ButtonPanel::setup() 
 {
-	pinMode(LED_BUILTIN, OUTPUT);
-
-	mcp.begin();
+    mcp.begin();
 	mcp.setupInterrupts(true, false, LOW);
 	mcp.setupInterruptPin(BUTTON_OFF_IN, FALLING); 
 
@@ -68,15 +67,10 @@ void UserInterface::setup()
 	button3.attachClick(fClicked, &btnCtx3);
 	button3.attachLongPressStart(fLongPressStart, &btnCtx3);
 	button3.attachLongPressStop(fLongPressEnd, &btnCtx3);
-
-	ledRing.setup();
-	ledRing.reset();
 }
 
-void UserInterface::loop()
+void ButtonPanel::loop() 
 {
-	ledRing.loop();
-
 	if (millis() - lastInputScan >= inputScanInterval || lastInputScan == 0) {
 
 		button1.tick(mcp.digitalRead(BUTTON1_IN));
@@ -88,7 +82,6 @@ void UserInterface::loop()
 		mcp.digitalWrite(BUTTON3_LED, buttonStatus[2] ? HIGH : LOW);
 
     	lastInputScan = millis();
-		volume = analogRead(POT_IN) / 4096.0f;
 
 		bool previousState = isPowerOff;
 		isPowerOff = mcp.digitalRead(BUTTON_OFF_IN);
@@ -96,61 +89,15 @@ void UserInterface::loop()
 		if (isPowerOff && !previousState) {
 			powerOffCallback();
 		}
-	}
+	}    
 }
 
-float UserInterface::getVolume() 
+bool ButtonPanel::isPowerButtonOn() 
 {
-	return volume;
+    return !isPowerOff;
 }
 
-bool UserInterface::isPowerButtonOn() {
-	return !isPowerOff;
-}
-
-void UserInterface::isBusy(bool isBusy)
+void ButtonPanel::showHasNewMessageAt(int buttonIdx, bool hasMessages) 
 {
-	if (isBusy)
-	{
-		ledRing.show(&BlueProgressAnimation);
-	}
-	else
-	{
-		ledRing.hide(&BlueProgressAnimation);
-	}
-}
-
-void UserInterface::showRecordingProgress(int value)
-{
-	ledRing.progress(value);
-}
-
-void UserInterface::showSuccess()
-{
-	ledRing.show(&SucessGlowAnimiation);
-}
-
-void UserInterface::showWarning()
-{
-	ledRing.show(&WarningGlowAnimiation);
-}
-
-void UserInterface::showError()
-{
-	ledRing.show(&ErrorGlowAnimiation);
-}
-
-void UserInterface::showWelcome()
-{
-	ledRing.show(&WarmGlowAnimiation);
-}
-
-void UserInterface::showHasNewMessageAt(int buttonIdx, bool hasMessages)
-{
-	this->buttonStatus[buttonIdx] = hasMessages;
-}
-
-void UserInterface::showAudioPlaying()
-{
-	ledRing.show(&WarmGlowAnimiation);
+    	this->buttonStatus[buttonIdx] = hasMessages;
 }

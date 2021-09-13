@@ -82,7 +82,7 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->player = player;
     this->uploader = uploader;
 
-    this->ui->onButtonEvent([this](ButtonEvent evt) {
+    this->ui->buttonPanel()->onButtonEvent([this](ButtonEvent evt) {
     
         if (evt.action == Action::Clicked) {
             switch (evt.buttonId)
@@ -118,7 +118,7 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
         }
      });
 
-     this->ui->onPowerOff([this]() {
+     this->ui->buttonPanel()->onPowerOff([this]() {
          this->isAppRunning = false;
          fsm.trigger(Event::SYSTEM_SHUTDOWN);
      });

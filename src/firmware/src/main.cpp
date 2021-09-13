@@ -1,20 +1,13 @@
 #include <Arduino.h>
 
 #include "pins.h"
-
-#define MOCK_UI 1
-
-#ifndef MOCK_UI
-#include "UserInterface.h"
-UserInterface ui;
-#else
-#include "MockUserInterface.h"
-MockUserInterface ui;
-#endif
-
 #include "Application.h"
 
+#include "ui/NoOpsButtonPanel.h"
 
+NoOpsButtonPanel panel;
+
+UserInterface ui(&panel);
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
 AudioPlayer player;
 FileUploader uploader;
@@ -38,7 +31,7 @@ void loop() {
     lastPrint = millis();
 
     Serial.println();
-    Serial.printf("Pot: %i, Ldr: %i, PwrOn: %i", analogRead(POT_IN), analogRead(LDR_PIN), ui.isPowerButtonOn());
+    Serial.printf("Pot: %i, Ldr: %i, PwrOn: %i", analogRead(POT_IN), analogRead(LDR_PIN), ui.buttonPanel()->isPowerButtonOn());
     Serial.printf("\nHeap size: %d\n", ESP.getHeapSize());
     Serial.printf("Free Heap: %d\n", esp_get_free_heap_size());
     Serial.printf("Min Free Heap: %d\n", esp_get_minimum_free_heap_size());

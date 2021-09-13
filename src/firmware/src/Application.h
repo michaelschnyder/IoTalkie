@@ -9,6 +9,8 @@
 #include "core/DeviceConfig.h"
 #include "core/Settings.h"
 
+#include "ui/UserInterface.h"
+
 #include "inbox/Contacts.h"
 #include "inbox/Inbox.h"
 #include "http/FileUploader.h"
