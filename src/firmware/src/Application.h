@@ -13,7 +13,6 @@
 #include "inbox/Inbox.h"
 #include "http/FileUploader.h"
 
-#include "UserInterface.h"
 #include "audio/AudioRecorder.h"
 #include "audio/AudioPlayer.h"
 

@@ -2,10 +2,19 @@
 
 #include "pins.h"
 
+#define MOCK_UI 1
+
+#ifndef MOCK_UI
 #include "UserInterface.h"
+UserInterface ui;
+#else
+#include "MockUserInterface.h"
+MockUserInterface ui;
+#endif
+
 #include "Application.h"
 
-UserInterface ui;
+
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
 AudioPlayer player;
 FileUploader uploader;

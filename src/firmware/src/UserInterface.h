@@ -80,7 +80,7 @@ class UserInterface {
         }
 
         float getVolume();
-        bool isPowerButtonOn();
+        virtual bool isPowerButtonOn();
         void isBusy(bool);
         void showRecordingProgress(int);
         void showSuccess();
