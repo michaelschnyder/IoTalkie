@@ -96,7 +96,7 @@ void Startup::startWifi()
     WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
     WiFi.persistent(false); // Do not store WIFI information in EEPROM.
 
-    logger.trace(F("Connecting to WLAN with SSID '%s'. This may take some time..."), settings->getWifiSSID().c_str());
+    logger.trace(F("Connecting to WLAN with SSID '%s' phy: %s. This may take some time..."), settings->getWifiSSID().c_str(), WiFi.macAddress().c_str());
     WiFi.begin(settings->getWifiSSID().c_str(), settings->getWifiKey().c_str());
 }
 
