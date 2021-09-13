@@ -6,7 +6,7 @@ const int BUTTON2_IN = 4;       // A4 on MCP23017 (via I2C)
 const int BUTTON3_IN = 5;       // A5 on MCP23017 (via I2C)
 const int BUTTON_OFF_IN = 7;    // A7 on MCP23017 (via I2C)
 
-const int BUTTON1_LED = 0; // A0 on MCP23017 (via I2C)
+const int BUTTON1_LED = 6; // A0 on MCP23017 (via I2C)
 const int BUTTON2_LED = 1; // A1 on MCP23017 (via I2C)
 const int BUTTON3_LED = 2; // A2 on MCP23017 (via I2C)
 
