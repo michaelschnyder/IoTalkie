@@ -1,5 +1,5 @@
 #include "UserInterface.h"
-#include "pins.h"
+#include "hardware.h"
 
 void UserInterface::setup()
 {

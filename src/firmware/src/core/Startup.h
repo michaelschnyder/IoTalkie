@@ -10,7 +10,7 @@
 #include "../inbox/Contacts.h"
 #include "../inbox/Inbox.h"
 #include <AzureIoTMqttClient.h>
-#include "pins.h"
+#include "hardware.h"
 #include "BuildInfo.h"
 
 class Startup {

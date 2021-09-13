@@ -1,11 +1,9 @@
 #include <Arduino.h>
+#include "hardware.h"
 
-#include "pins.h"
 #include "Application.h"
 
-#include "ui/NoOpsButtonPanel.h"
-
-NoOpsButtonPanel panel;
+BUTTON_PANEL_TYPE panel;
 
 UserInterface ui(&panel);
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);

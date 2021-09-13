@@ -6,7 +6,7 @@
 
 #include "../ui/UserInterface.h"
 #include <AzureIoTMqttClient.h>
-#include "pins.h"
+#include "hardware.h"
 #include "SD.h"
 #include "SPIFFS.h"
 

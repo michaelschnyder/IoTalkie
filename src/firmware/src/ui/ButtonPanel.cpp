@@ -1,5 +1,6 @@
+#include "hardware.h"
+
 #include "ButtonPanel.h"
-#include "pins.h"
 
 OneButton button1 = OneButton(-1, false, false);
 OneButton button2 = OneButton(-1, false, false);
