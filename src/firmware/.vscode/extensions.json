@@ -3,6 +3,8 @@
     // for the documentation about the extensions.json format
     "recommendations": [
         "amiralizadeh9480.cpp-helper",
+        "hars.cppsnippets",
+        "jbenden.c-cpp-flylint",
         "platformio.platformio-ide",
         "vsciot-vscode.azure-iot-toolkit"
     ]

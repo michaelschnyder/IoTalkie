@@ -5,6 +5,8 @@ AzureIoTMqttClient::AzureIoTMqttClient() {
   mqttClient.setClient(AzureIoTMqttClient::wifiClient);
   mqttClient.setBufferSize(512);
 
+  AzureIoTMqttClient::wifiClient.setInsecure();
+
   // Required to make signature of member function (that comes with a implict *this) match
   // with expected signature. See: https://stackoverflow.com/a/46489820
   mqttClient.setCallback([this](char* a, uint8_t* b, unsigned int c) { this->callback(a, b, c); });
@@ -102,6 +104,7 @@ boolean AzureIoTMqttClient::connectInternal() {
   logger.trace(F("Attempting to connect to MQTT server..."));
   logger.verbose(F("URL: %s:%d, BufferSize: %d"), mqttHostname.c_str(), port, mqttClient.getBufferSize());  
 
+  
   mqttClient.setServer(mqttHostname.c_str(), port);
 
   logger.verbose(F("Credentials: DeviceId: %s, User: %s, Pass: %s"), mqttDeviceId.c_str(), mqttUser.c_str(), this->mqttPassword.c_str());

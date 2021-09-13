@@ -1,13 +1,13 @@
 #include <Arduino.h>
+#include "hardware.h"
 
-#include "pins.h"
-
-#include "UserInterface.h"
 #include "Application.h"
 
-UserInterface ui;
+BUTTON_PANEL_TYPE panel;
+
+UserInterface ui(&panel, POT_IN, LDR_PIN);
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
-AudioPlayer player;
+AudioPlayer player(AMP_PIN_BCLK, AMP_PIN_LRC, AMP_PIN_DIN);
 FileUploader uploader;
 
 Application app(&ui, &recorder, &player, &uploader);
@@ -29,7 +29,7 @@ void loop() {
     lastPrint = millis();
 
     Serial.println();
-    Serial.printf("Pot: %i, Ldr: %i, PwrOn: %i", analogRead(POT_IN), analogRead(LDR_PIN), ui.isPowerButtonOn());
+    Serial.printf("Pot: %i, Ldr: %i, PwrOn: %i", analogRead(POT_IN), analogRead(LDR_PIN), ui.buttonPanel()->isPowerButtonOn());
     Serial.printf("\nHeap size: %d\n", ESP.getHeapSize());
     Serial.printf("Free Heap: %d\n", esp_get_free_heap_size());
     Serial.printf("Min Free Heap: %d\n", esp_get_minimum_free_heap_size());

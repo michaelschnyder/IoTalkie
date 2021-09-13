@@ -28,7 +28,7 @@ void Startup::onCompleted(ONCOMPLETED_CALLBACK_SIGNATURE callback)
 void Startup::post() 
 {   
     Serial.begin(115200);
-    Serial.printf("IoTalkie ref #%s at %s, by %s@%s", BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
+    Serial.printf("IoTalkie %s (%s), %s@%s", BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
     this->ui->isBusy(false);
@@ -44,7 +44,7 @@ void Startup::post()
 
 void Startup::whileHalt() 
 {
-    Serial.printf("System halt, wait for LOW on pin %i to exit deep sleep", BUTTON_OFF_IN);
+    Serial.printf("System halt, wait for LOW on pin to exit deep sleep");
     esp_sleep_enable_ext0_wakeup((gpio_num_t)MCP23017_IRT, LOW);
     esp_deep_sleep_start();
 }
@@ -96,7 +96,7 @@ void Startup::startWifi()
     WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
     WiFi.persistent(false); // Do not store WIFI information in EEPROM.
 
-    logger.trace(F("Connecting to WLAN with SSID '%s'. This may take some time..."), settings->getWifiSSID().c_str());
+    logger.trace(F("Connecting to WLAN with SSID '%s' phy: %s. This may take some time..."), settings->getWifiSSID().c_str(), WiFi.macAddress().c_str());
     WiFi.begin(settings->getWifiSSID().c_str(), settings->getWifiKey().c_str());
 }
 
