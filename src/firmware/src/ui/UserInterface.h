@@ -24,16 +24,20 @@ class UserInterface {
     GlowAnimation ErrorGlowAnimiation;
 
     float volume = 0.25;
+    int volumePin;
+    int ambiencePin;
 
     public:
 
-        UserInterface(ButtonPanel* buttonPanel) : 
+        UserInterface(ButtonPanel* buttonPanel, int volumePin, int ambiencePin) : 
             WarmGlowAnimiation(HUE_YELLOW, ANI_SPEED_FAST, 1),
             SucessGlowAnimiation(HUE_GREEN, ANI_SPEED_FAST, 1),
             WarningGlowAnimiation(HUE_ORANGE, ANI_SPEED_FAST, 1),
             ErrorGlowAnimiation(HUE_RED, ANI_SPEED_FAST, 1)
             {
                 this->buttonPanelPtr = buttonPanel;
+                this->volumePin = volumePin;
+                this->ambiencePin = ambiencePin;
             };
 
         void setup();

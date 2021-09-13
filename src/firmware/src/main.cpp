@@ -5,9 +5,9 @@
 
 BUTTON_PANEL_TYPE panel;
 
-UserInterface ui(&panel);
+UserInterface ui(&panel, POT_IN, LDR_PIN);
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
-AudioPlayer player;
+AudioPlayer player(AMP_PIN_BCLK, AMP_PIN_LRC, AMP_PIN_DIN);
 FileUploader uploader;
 
 Application app(&ui, &recorder, &player, &uploader);

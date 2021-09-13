@@ -1,11 +1,17 @@
 #include "AudioPlayer.h"
 
+AudioPlayer::AudioPlayer(int clockPin, int lrcPin, int dataPin) {
+	this->clockPin = clockPin;
+	this->lrcPin = lrcPin;
+	this->dataPin = dataPin;	
+}
+
 void AudioPlayer::setup()
 {
 	audioLogger = &Serial;
 	out = new AudioOutputI2S();
 	out->SetGain(0.128);
-	out->SetPinout(AMP_PIN_BCLK, AMP_PIN_LRC, AMP_PIN_DIN);
+	out->SetPinout(clockPin, lrcPin, dataPin);
 
 	progmemSoundSource = new AudioFileSourcePROGMEM(emptyMp3, sizeof(emptyMp3));
 	sdCardSoundSource = new AudioFileSourceSD();

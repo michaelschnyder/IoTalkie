@@ -1,5 +1,4 @@
 #include "UserInterface.h"
-#include "hardware.h"
 
 void UserInterface::setup()
 {
@@ -19,7 +18,7 @@ void UserInterface::loop()
 
 	if (millis() - lastInputScan >= inputScanInterval || lastInputScan == 0) {
     	lastInputScan = millis();
-		volume = analogRead(POT_IN) / 4096.0f;
+		volume = analogRead(volumePin) / 4096.0f;
 	}
 }
 
