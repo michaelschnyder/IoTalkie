@@ -9,6 +9,9 @@ String file_size(uint64_t bytes){
   return fsize;
 }
 
+// TODO Move to Header
+SPIClass sdSPI(VSPI);
+
 void Startup::run() 
 {
     if (!fsm.is_in_state(state_halt)) {
@@ -69,12 +72,14 @@ void Startup::loadConfig()
 
 void Startup::checkSDCardFS() 
 {
-    if(SD.begin(SS)) {
+    if(SD.begin(SS, sdSPI)) {
         Serial.printf("External SD card:  %s of %s used", file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
         Serial.println();    
     
         fsm.trigger(Event::Continue);
-    };    
+    }
+
+    delay(50);
 }
 
 void Startup::loadSettings() 

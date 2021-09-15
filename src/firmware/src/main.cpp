@@ -12,7 +12,39 @@ FileUploader uploader;
 
 Application app(&ui, &recorder, &player, &uploader);
 
+#include <Adafruit_GFX.h>
+#include <GxEPD2_BW.h> // including both doesn't use more code or ram
+#include <GxEPD2_3C.h> // including both doesn't use more code or ram
+#include "display_selection.h"
+
+SPIClass otherSPI(HSPI);
+
 void setup() {
+
+  // Separate SPI Bus
+  // SPIClass spi2(HSPI);
+
+  //same bus and Pins than SD
+  // display.init(115200, spi2);
+
+  // (swapped MISO/MOSI)
+  // otherSPI.begin(14, 13, 12, 15);
+  
+  // different bus and Pins (swapped MISO/MOSI)
+  display.init(115200, 14, 13, 12, 15, otherSPI);
+
+  // comment out next line to have no or minimal Adafruit_GFX code
+  display.setTextColor(GxEPD_BLACK);
+  display.firstPage();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+    // comment out next line to have no or minimal Adafruit_GFX code
+    display.print("Hello World!");
+  }
+  while (display.nextPage());
+  
+  display.hibernate();
 
   ui.setup();
   player.setup();
