@@ -3,6 +3,7 @@
 
 #include "LedRing.h"
 #include "ButtonPanel.h"
+#include "Screen.h"
 
 #include "animations/WaveAnimation.h"
 #include "animations/GlowAnimation.h"

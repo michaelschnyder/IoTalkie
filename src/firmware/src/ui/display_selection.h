@@ -132,7 +132,7 @@ GxEPD2_DISPLAY_CLASS<GxEPD2_DRIVER_CLASS, MAX_HEIGHT(GxEPD2_DRIVER_CLASS)> displ
 // Normal (MISO, MOSI not swapped, but fails sometimes to update)
 // GxEPD2_DISPLAY_CLASS<GxEPD2_DRIVER_CLASS, MAX_HEIGHT(GxEPD2_DRIVER_CLASS)> display(GxEPD2_DRIVER_CLASS(/*CS=5*/ 15, /*DC=*/ 27, /*RST=*/ 26, /*BUSY=*/ 12));
 
-// Normal (MISO, MOSI swapped, means BUSY is not MOSI instead of MISO)
+// MISO and MOSI remapped to other pins, DC and RST on previously MOSI/MISO pins
 GxEPD2_DISPLAY_CLASS<GxEPD2_DRIVER_CLASS, MAX_HEIGHT(GxEPD2_DRIVER_CLASS)> display(GxEPD2_DRIVER_CLASS(/*CS=5*/ 15, /*DC=*/ 12, /*RST=*/ 13, /*BUSY=*/ 26));
 
 #endif
