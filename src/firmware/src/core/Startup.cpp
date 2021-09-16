@@ -28,10 +28,10 @@ void Startup::onCompleted(ONCOMPLETED_CALLBACK_SIGNATURE callback)
     this->onCompletedCallback = callback;
 }
 
-void Startup::post() 
+void Startup::post()
 {   
     Serial.begin(115200);
-    Serial.printf("IoTalkie %s (%s), %s@%s", BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
+    Serial.printf("IoTalkie Version: %s-%s build at: %s by %s@%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
     this->ui->isBusy(false);
