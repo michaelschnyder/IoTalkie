@@ -30,8 +30,7 @@ void setup() {
   // (swapped MISO/MOSI)
   // otherSPI.begin(14, 13, 12, 15);
   
-  // different bus and Pins (swapped MISO/MOSI)
-  display.init(115200, 14, 13, 12, 15, otherSPI);
+  display.init(115200, 14, 26, 27, 15, otherSPI);
 
   // comment out next line to have no or minimal Adafruit_GFX code
   display.setTextColor(GxEPD_BLACK);
@@ -44,7 +43,7 @@ void setup() {
   }
   while (display.nextPage());
   
-  display.hibernate();
+  // display.hibernate();
 
   ui.setup();
   player.setup();
