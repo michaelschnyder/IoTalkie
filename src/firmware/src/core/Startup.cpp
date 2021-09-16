@@ -34,7 +34,7 @@ void Startup::post()
     Serial.printf("IoTalkie Version: %s-%s build at: %s by %s@%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
-    ui->getScreen().post();
+    ui->getScreen()->post();
 
     this->ui->isBusy(false);
 
@@ -94,6 +94,8 @@ void Startup::loadSettings()
 void Startup::loadContacts() 
 {
     if(contacts->load()) {
+
+        ui->getScreen()->setContacts(contacts);
         fsm.trigger(Event::Continue);
     }    
 }
@@ -110,13 +112,16 @@ void Startup::startWifi()
 void Startup::waitForWifi() 
 {
     if (WiFi.isConnected()) {
-        fsm.trigger(Event::Continue);
+        ui->getScreen()->setWifiSSID(settings->getWifiSSID().c_str());
+        fsm.trigger(Event::Continue);        
     }
 }
 
 void Startup::connectToMqtt() 
 {
     client->connect(config->getAzIoTHubName().c_str(), config->getDeviceId().c_str(), config->getAzIoTSASToken().c_str());   
+    ui->getScreen()->setConnected(true);
+
     fsm.trigger(Event::Continue);
 }
 

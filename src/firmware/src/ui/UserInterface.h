@@ -49,8 +49,8 @@ class UserInterface {
             return this->buttonPanelPtr;
         }
 
-        Screen getScreen() {
-            return this->screen;
+        Screen* getScreen() {
+            return &this->screen;
         }
 
         bool isPowerButtonOn();

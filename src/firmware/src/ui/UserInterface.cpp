@@ -68,6 +68,7 @@ void UserInterface::showError()
 void UserInterface::showWelcome()
 {
 	ledRing.show(&WarmGlowAnimiation);
+	screen.showHomeScreen();
 }
 
 void UserInterface::showHasNewMessageAt(int buttonIdx, bool hasMessages)
