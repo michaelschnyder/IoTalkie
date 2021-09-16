@@ -5,7 +5,7 @@
 #define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
 #define MAXIMAL_MESSAGE_LENGTH_IN_MS 24000
 
-Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer* player, FileUploader* uploader) : 
+Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player, FileUploader* uploader) : 
     
     inbox(&contacts),
 
@@ -155,6 +155,7 @@ void Application::afterStarting()
 {
     this->isAppRunning = true;
     this->ui->showWelcome();
+    
 }
 
 void Application::whileShuttingDown() 

@@ -5,6 +5,7 @@
 #include <FS.h>
 #include <Log4Esp.h>
 
+#include "AudioPlayerBase.h"
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioFileSourceSD.h"
 
@@ -27,7 +28,7 @@ const unsigned char emptyMp3[] PROGMEM = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x58, 0x69,
     0x6E, 0x67, 0x00, 0x00, 0x00, 0x0F};
 
-class AudioPlayer {
+class AudioPlayer : public AudioPlayerBase {
 
     AudioFileSourcePROGMEM *progmemSoundSource;
     AudioFileSourceSD *sdCardSoundSource;

@@ -6,7 +6,7 @@
 // ++++++++++++++++++++++++++++++++++
 
 //#define HAS_BUTTON_PANEL
-
+//#define HAS_SPEAKER
 
 // ++++++++++++++++++++++++++++++++++
 // +    HARDWARE CONFIGURATION      +
@@ -69,5 +69,14 @@ const int LDR_PIN = 36;  // Green
 #include "ui/NoOpsButtonPanel.h"
 #define BUTTON_PANEL_TYPE NoOpsButtonPanel
 #endif // HAS_BUTTON_PANEL
+
+#ifdef HAS_SPEAKER
+#include "audio/AudioPlayer.h"
+#define AUDIO_PLAYER_TYPE AudioPlayer
+#else
+#include "audio/NoOpsAudioPlayer.h"
+#define AUDIO_PLAYER_TYPE NoOpsAudioPlayer
+#endif // HAS_BUTTON_PANEL
+
 
 #endif // __HARDWARE_H__

@@ -16,7 +16,7 @@
 #include "http/FileUploader.h"
 
 #include "audio/AudioRecorder.h"
-#include "audio/AudioPlayer.h"
+#include "audio/AudioPlayerBase.h"
 
 #include "FunctionFsm.h"
 
@@ -58,7 +58,7 @@ class Application
 
     Contacts contacts;
     Inbox inbox;
-    AudioPlayer *player;
+    AudioPlayerBase *player;
     
     Startup startup;
     Shutdown shutdown;
@@ -107,7 +107,7 @@ class Application
     void showNewMessageFrom(Contact*);
     
 public:
-    Application(UserInterface*, AudioRecorder*, AudioPlayer*, FileUploader*);
+    Application(UserInterface*, AudioRecorder*, AudioPlayerBase*, FileUploader*);
 
     void setup();
     void run();
