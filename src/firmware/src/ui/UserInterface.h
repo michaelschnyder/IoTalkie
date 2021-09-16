@@ -3,7 +3,7 @@
 
 #include "LedRing.h"
 #include "ButtonPanel.h"
-#include "Screen.h"
+#include "graphical/Screen.h"
 
 #include "animations/WaveAnimation.h"
 #include "animations/GlowAnimation.h"
@@ -16,6 +16,7 @@ class UserInterface {
     unsigned long lastInputScan;
     unsigned long inputScanInterval = 100;
 
+    Screen screen;
     ButtonPanel* buttonPanelPtr;
     LedRing ledRing;
     WaveAnimation BlueProgressAnimation;
@@ -46,6 +47,10 @@ class UserInterface {
 
         ButtonPanel* buttonPanel() {
             return this->buttonPanelPtr;
+        }
+
+        Screen getScreen() {
+            return this->screen;
         }
 
         bool isPowerButtonOn();

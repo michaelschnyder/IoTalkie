@@ -5,7 +5,6 @@
 
 BUTTON_PANEL_TYPE panel;
 
-Screen screen;
 UserInterface ui(&panel, POT_IN, LDR_PIN);
 AudioRecorder recorder(MIC_PIN_BCLK, MIC_PIN_LRCL, MIC_PIN_SD);
 AudioPlayer player(AMP_PIN_BCLK, AMP_PIN_LRC, AMP_PIN_DIN);
@@ -24,7 +23,6 @@ void stats() {
 
 void setup() {
   
-  screen.setup();
   ui.setup();
   player.setup();
   recorder.setup();

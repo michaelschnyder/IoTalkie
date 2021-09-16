@@ -4,6 +4,8 @@ void UserInterface::setup()
 {
 	pinMode(LED_BUILTIN, OUTPUT);
 
+	screen.setup();
+	
 	ledRing.setup();
 	ledRing.reset();
 

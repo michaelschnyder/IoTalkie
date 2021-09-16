@@ -34,6 +34,8 @@ void Startup::post()
     Serial.printf("IoTalkie Version: %s-%s build at: %s by %s@%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
+    ui->getScreen().post();
+
     this->ui->isBusy(false);
 
     if (!ui->isPowerButtonOn()) {

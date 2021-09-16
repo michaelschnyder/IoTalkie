@@ -4,13 +4,17 @@
 #include <Adafruit_GFX.h>
 #include <GxEPD2_BW.h> // including both doesn't use more code or ram
 #include <GxEPD2_3C.h> // including both doesn't use more code or ram
-#include "../hardware.h"
+#include "../../hardware.h"
+#include <Fonts/FreeSansBold12pt7b.h>
+#include <Fonts/FreeSans9pt7b.h>
 
 class Screen {
 
 public:
     Screen() : otherSPI(SCRN_SPI_CHAN) {};
     void setup();
+
+    void post();
 
 private: 
     SPIClass otherSPI;
