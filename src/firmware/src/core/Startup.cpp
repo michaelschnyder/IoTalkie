@@ -9,6 +9,9 @@ String file_size(uint64_t bytes){
   return fsize;
 }
 
+// TODO Move to Header
+SPIClass sdSPI(VSPI);
+
 void Startup::run() 
 {
     if (!fsm.is_in_state(state_halt)) {
@@ -25,11 +28,13 @@ void Startup::onCompleted(ONCOMPLETED_CALLBACK_SIGNATURE callback)
     this->onCompletedCallback = callback;
 }
 
-void Startup::post() 
+void Startup::post()
 {   
     Serial.begin(115200);
-    Serial.printf("IoTalkie %s (%s), %s@%s", BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
+    Serial.printf("IoTalkie Version: %s-%s build at: %s by %s@%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
+
+    ui->getScreen()->post();
 
     this->ui->isBusy(false);
 
@@ -69,12 +74,14 @@ void Startup::loadConfig()
 
 void Startup::checkSDCardFS() 
 {
-    if(SD.begin(SS)) {
+    if(SD.begin(SS, sdSPI)) {
         Serial.printf("External SD card:  %s of %s used", file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
         Serial.println();    
     
         fsm.trigger(Event::Continue);
-    };    
+    }
+
+    delay(50);
 }
 
 void Startup::loadSettings() 
@@ -87,6 +94,8 @@ void Startup::loadSettings()
 void Startup::loadContacts() 
 {
     if(contacts->load()) {
+
+        ui->getScreen()->setContacts(contacts);
         fsm.trigger(Event::Continue);
     }    
 }
@@ -103,13 +112,16 @@ void Startup::startWifi()
 void Startup::waitForWifi() 
 {
     if (WiFi.isConnected()) {
-        fsm.trigger(Event::Continue);
+        ui->getScreen()->setWifiSSID(settings->getWifiSSID().c_str());
+        fsm.trigger(Event::Continue);        
     }
 }
 
 void Startup::connectToMqtt() 
 {
     client->connect(config->getAzIoTHubName().c_str(), config->getDeviceId().c_str(), config->getAzIoTSASToken().c_str());   
+    ui->getScreen()->setConnected(true);
+
     fsm.trigger(Event::Continue);
 }
 

@@ -4,6 +4,8 @@ void UserInterface::setup()
 {
 	pinMode(LED_BUILTIN, OUTPUT);
 
+	screen.setup();
+	
 	ledRing.setup();
 	ledRing.reset();
 
@@ -66,6 +68,7 @@ void UserInterface::showError()
 void UserInterface::showWelcome()
 {
 	ledRing.show(&WarmGlowAnimiation);
+	screen.showHomeScreen();
 }
 
 void UserInterface::showHasNewMessageAt(int buttonIdx, bool hasMessages)
