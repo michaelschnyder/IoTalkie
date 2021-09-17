@@ -25,39 +25,29 @@ void HealthReporter::printStats() {
 }
 
 void HealthReporter::sendStats() {
-    
+
+    char buffer[512];  
+    sprintf_P(buffer, STATS_TEMPLATE, 
+        Diag.getFreeHeapSize(),
+        Diag.getLargestFreeHeapBlockSize(),
+
+        Diag.getSPIFFSUsedBytes(),
+        Diag.getSPIFFSTotalBytes() - Diag.getSPIFFSUsedBytes(),
+
+        Diag.getSDUsedBytes(),
+        Diag.getSDTotalBytes() - Diag.getSDUsedBytes(),
+
+        Diag.getWiFiRSSI()
+    );
+
+    client->send(buffer);
+    lastSent = millis();
 }
 
 void HealthReporter::sayHello() {
-    lastSent = millis();
-
-        auto msg = PSTR("{"
-                        "\"type\": \"ClientHello\","
-                        "\"fwVersion\": \"%s\","
-                        
-                        "\"chipModel\": \"%s\","
-                        "\"chipRevision\": %i,"
-                        "\"cpuFreqMhz\": %i,"
-                        
-                        "\"heapSize\": %u,"
-                        "\"heapFreeSize\": %u,"
-                        "\"heapLargestFreeBlockSize\": %u,"
-
-                        "\"spiffsTotal\": %llu,"
-                        "\"spiffsUsed\": %llu,"
-
-                        "\"sdSize\": %llu,"
-                        "\"sdTotal\": %llu,"
-                        "\"sdUsed\": %llu,"
-
-                        "\"wifiSSID\": \"%s\","
-                        "\"wifiRSSI\": %i,"
-                        "\"wifiIP\": \"%s\""
-                    "}");
-
-    char buffer[1024];
-    
-    sprintf_P(buffer, msg, 
+    char buffer[512];
+   
+    sprintf_P(buffer, HELLO_TEMPLATE, 
         BuildInfo::getVersion(), 
         Diag.getChipModel(), 
         Diag.getChipRevision(), 
@@ -69,10 +59,13 @@ void HealthReporter::sayHello() {
 
         Diag.getSPIFFSTotalBytes(),
         Diag.getSPIFFSUsedBytes(),
+        Diag.getSPIFFSTotalBytes() - Diag.getSPIFFSUsedBytes(),
+
 
         Diag.getSDCardSize(),
         Diag.getSDTotalBytes(),
         Diag.getSDUsedBytes(),
+        Diag.getSDTotalBytes() - Diag.getSDUsedBytes(),
 
         Diag.getWiFiSSID(),
         Diag.getWiFiRSSI(),
@@ -80,4 +73,6 @@ void HealthReporter::sayHello() {
     );
 
     client->send(buffer);
+
+    lastSent = millis();
 }
