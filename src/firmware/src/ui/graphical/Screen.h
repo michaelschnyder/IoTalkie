@@ -19,9 +19,10 @@ public:
     Screen() : otherSPI(SCRN_SPI_CHAN) {};
     void setup();
 
-    void post();
-
+    void showPostScreen();
     void showHomeScreen();
+    void showUpdateScreen();
+
     void setWifiSSID(const char * name);
     void setConnected(bool status);
     void setContacts(Contacts*);

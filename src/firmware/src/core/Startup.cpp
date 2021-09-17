@@ -34,7 +34,7 @@ void Startup::post()
     Serial.printf("IoTalkie Version: %s build at: %s by %s@%s", BuildInfo::getVersion(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
-    ui->getScreen()->post();
+    ui->getScreen()->showPostScreen();
 
     this->ui->isBusy(false);
 
@@ -90,10 +90,13 @@ void Startup::checkSDCardFS()
 }
 
 void Startup::updateSystem() {
-    logger.trace("Update found. Starting update process...");
+
+    ui->getScreen()->showPostScreen();
+
+    logger.verbose("Update found. Starting update process...");
 
     File file = SD.open("/update.bin", "r");
-    bool canBegin = Update.begin(file.size(), U_FLASH);
+    bool canBegin = Update.begin(file.size(), U_FLASH, LED_BUILTIN);
 
     if (!canBegin) {
         Update.printError(Serial);
@@ -106,7 +109,7 @@ void Startup::updateSystem() {
     }
 
     if(Update.end(true)) {
-        logger.trace("Update successful.");
+        logger.trace("Update successful. Restarting system.");
     }
 
     file.close();

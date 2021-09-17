@@ -31,7 +31,7 @@ void Screen::setup() {
     while (display.nextPage());
 }
 
-void Screen::post() {
+void Screen::showPostScreen() {
 
     char info[20];
     sprintf(info, "%s-%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit());
@@ -65,6 +65,32 @@ void Screen::post() {
         display.drawFastHLine(0, topRowHeight - 1, display.width(), GxEPD_BLACK);
     }
     while (display.nextPage());
+}
+
+void Screen::showUpdateScreen() {
+
+    const char Message[] = "Updating...";
+
+    int16_t tbx, tby; uint16_t tbw, tbh;
+
+    display.getTextBounds(Message, 0, 0, &tbx, &tby, &tbw, &tbh);
+    uint16_t x = (display.width() - tbw) / 2;
+    uint16_t y = (display.height() - tbh) / 2;
+
+    display.setPartialWindow(0, 0, display.width(), display.height());
+    display.firstPage();
+    
+    do
+    {
+        display.writeFillRect(0, 0, display.width(), display.height(), GxEPD_BLACK);
+        display.setTextColor(GxEPD_WHITE);
+        display.setFont(&FreeSansBold9pt7b);      
+        display.setCursor(x, y);
+        display.print(Message);
+    }
+
+    while (display.nextPage());
+
 }
 
 void Screen::showHomeScreen() {
