@@ -196,7 +196,7 @@ void Application::whileIdling() {
         fsm.trigger(Event::SYSTEM_SHUTDOWN);
     }
 
-    if (this->pendingFirmwareDownloadUrl) {
+    if (this->pendingFirmwareDownloadUrl != "") {
         fsm.trigger(Event::DOWNLOAD_FIRMWARE);
     }
 
@@ -427,11 +427,12 @@ void Application::whileDownloadingFirmware() {
 
             long bytesStored = f.position();
             int percent = (int)((bytesStored * 100.0f) / totalSize);
-            logger.verbose("Download progress: %i/%i, %i%%", bytesStored, totalSize, percent);
 
             int newTotalUpdateProgress = percent / 2;
 
             if (newTotalUpdateProgress > totalUpdateProgress) {
+                logger.verbose("Download progress: %i/%i, %i%%", bytesStored, totalSize, percent);
+    
                 totalUpdateProgress = newTotalUpdateProgress;
                 this->ui->getScreen()->setUpdateProgress(newTotalUpdateProgress);
             }
