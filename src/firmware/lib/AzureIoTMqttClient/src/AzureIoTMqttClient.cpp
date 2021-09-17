@@ -14,6 +14,8 @@ AzureIoTMqttClient::AzureIoTMqttClient() {
 
 void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, const char* token) {
   
+  setStatus(INITIALIZING);
+
   char buff[256];
 
   // Host
@@ -99,11 +101,22 @@ String AzureIoTMqttClient::describeConnectionState(int state) {
     }
 }
 
-boolean AzureIoTMqttClient::connectInternal() {
+void AzureIoTMqttClient::setStatus(AzIoTConnStatus newStatus) {
+
+  if (this->status != newStatus) {
+    this->status = newStatus;
+    if (onConnectionStatusChangeCallback != NULL) {
+      onConnectionStatusChangeCallback(newStatus);
+    }
+  };  
+}
+
+bool AzureIoTMqttClient::connectInternal() {
+
+  setStatus(INITIALIZING);
 
   logger.trace(F("Attempting to connect to MQTT server..."));
   logger.verbose(F("URL: %s:%d, BufferSize: %d"), mqttHostname.c_str(), port, mqttClient.getBufferSize());  
-
   
   mqttClient.setServer(mqttHostname.c_str(), port);
 
@@ -115,6 +128,7 @@ boolean AzureIoTMqttClient::connectInternal() {
     int errorNo = wifiClient.lastError(lastSslError, 64);
     
     logger.fatal(F("Connection to MQTT failed!. Client state: %s (%d). Maybe SSL Error?: %d '%s'. Next try in 5s"), describeConnectionState(mqttClient.state()).c_str(), mqttClient.state(), errorNo, lastSslError);  
+    setStatus(ERROR);
 
     return false;    
   }
@@ -128,6 +142,7 @@ boolean AzureIoTMqttClient::connectInternal() {
   outboundTopicName = outboundMessagesTopicName;
 
   logger.trace(F("Connection established to '%s:%d'. Subscribing to topics: '%s', '%s', '%s'"), mqttHostname.c_str(), port, inboundMessagesTopicName, AZIOT_REPORT_PROPERTY_CONFIRM_TOPIC_SUBSCRIBE, AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE);      
+  setStatus(REGISTERING);
     
   if(!mqttClient.subscribe(inboundMessagesTopicName)) {
     logger.fatal(F("Subscribe to event topic failed"));
@@ -144,17 +159,13 @@ boolean AzureIoTMqttClient::connectInternal() {
     return false;
   }
 
-  logger.verbose(F("Subscribe to topic successful. Sending welcome message to '%s'"), outboundTopicName.c_str());  
-  
-  if (!mqttClient.publish(outboundTopicName.c_str(), "hello world")) {
-    logger.fatal(F("Unable to send welcome message!"));
-    return false;
+  if (onConnectionStatusChangeCallback != NULL) {
+      onConnectionStatusChangeCallback(CONNECTED);
   }
 
-  logger.verbose(F("Welcome message send successful"));
-  
   enableReconnect = true;
 
+  setStatus(CONNECTED);
   return true;
 }
 
@@ -266,6 +277,8 @@ void AzureIoTMqttClient::reconnectIfNecessary() {
 
   if(clientReady && !mqttClient.connected()) {
     // The initial state was valid, means the connection did reset
+    setStatus(RECONNECTING);
+    
     clientReady = false;
     logger.warning(F("MQTT client got disconnected. Trying to reconnect."));
   }
@@ -319,6 +332,10 @@ void AzureIoTMqttClient::report(PubSubClient &client, log4Esp::Logger &logger, S
   if (!client.publish(topic, patch.c_str())) {
     logger.error(F("Unable to publish Reported Property update to '%s'. Update was: '%s'"), topic, patch.c_str());
   }
+}
+
+void AzureIoTMqttClient::onConnectionStatusChange(ONCONNECTIONSTATUSCHANGED_CALLBACK_SIGNATURE callback) {
+    this->onConnectionStatusChangeCallback = callback;
 }
 
 void AzureIoTMqttClient::onCommand(ONCOMMAND_CALLBACK_SIGNATURE callback) {
