@@ -29,6 +29,8 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
 
     state_receiveMessage(nullptr, [this]() { whileReceivingMessage(); }, nullptr),
 
+    state_downloadFirmware(nullptr, [this]() { whileDownloadingFirmware(); }, nullptr),
+
     fsm(&state_startup) 
     {
     this->fsm.add_transition(&state_startup, &state_idle, SYSTEM_READY, nullptr);
@@ -62,6 +64,8 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
 
     this->fsm.add_transition(&state_idle, &state_receiveMessage, DOWNLOAD_MESSAGE, nullptr);
     this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_DOWNLOADED, nullptr);
+
+    this->fsm.add_transition(&state_idle, &state_downloadFirmware, DOWNLOAD_FIRMWARE, nullptr);
 
 //     this->fsm.add_transition(&state_startup, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
     this->fsm.add_transition(&state_idle, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
@@ -191,6 +195,11 @@ void Application::whileIdling() {
     if (!this->ui->isPowerButtonOn()) {
         fsm.trigger(Event::SYSTEM_SHUTDOWN);
     }
+
+    if (this->pendingFirmwareDownloadUrl) {
+        fsm.trigger(Event::DOWNLOAD_FIRMWARE);
+    }
+
 }
 
 char currentRecordingName[64];
@@ -358,6 +367,85 @@ void Application::dispatchCloudCommand(String commandName, JsonObject& value)
     if (commandName == "newMessage") {
         inbox.handleNotification(value);
     }
+    if (commandName == "updateFirmware") {
+        
+        if (!value.containsKey("remoteUrl")) {
+            return;
+        }
+
+        String remoteUrl = value.get<String>("remoteUrl");
+        this->pendingFirmwareDownloadUrl = remoteUrl;
+    }
+}
+
+void Application::whileDownloadingFirmware() {
+
+    this->ui->getScreen()->showUpdateScreen();
+
+    logger.trace("Starting to download firmware update from '%s'", this->pendingFirmwareDownloadUrl);
+
+    HTTPClient http;
+    http.begin(this->pendingFirmwareDownloadUrl);
+
+    int httpCode = http.GET();
+
+    if (!(httpCode > 0)) {
+        logger.error("failed to download file. Error: %s\n", http.errorToString(httpCode).c_str());
+        return;
+    }
+
+    if(httpCode != HTTP_CODE_OK) {
+        logger.error("failed to download file. Server responded with error: %s\n", http.errorToString(httpCode).c_str());
+        return;
+    }
+
+    int totalSize = http.getSize();
+
+    WiFiClient * stream = http.getStreamPtr();
+
+    File f = SD.open("/update.bin", FILE_WRITE);
+    uint8_t buff[1024] = { 0 };
+
+    int remaining = totalSize;
+    int totalUpdateProgress = 0;
+
+    while(http.connected() && (remaining > 0 || remaining == -1)) {
+        // get available data size
+        size_t size = stream->available();
+
+        if(size) {
+
+            int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+            f.write(buff, c);
+
+            if(remaining > 0) {
+                remaining -= c;
+            }
+        }
+
+        if (remaining) {
+
+            long bytesStored = f.position();
+            int percent = (int)((bytesStored * 100.0f) / totalSize);
+            logger.verbose("Download progress: %i/%i, %i%%", bytesStored, totalSize, percent);
+
+            int newTotalUpdateProgress = percent / 2;
+
+            if (newTotalUpdateProgress > totalUpdateProgress) {
+                totalUpdateProgress = newTotalUpdateProgress;
+                this->ui->getScreen()->setUpdateProgress(newTotalUpdateProgress);
+            }
+
+        }
+        else {
+            logger.verbose("Download progress: %i");
+        }
+    }
+
+    http.end();
+    f.close();
+    
+    ESP.restart();
 }
 
 void Application::connectionStatusChangeHandler(AzIoTConnStatus newStatus) {

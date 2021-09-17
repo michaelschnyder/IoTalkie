@@ -28,6 +28,8 @@ class Application
     enum Event {
         SYSTEM_READY,
         SYSTEM_SHUTDOWN,
+        DOWNLOAD_FIRMWARE,
+        
         BUTTON1_CLICK,
         BUTTON2_CLICK,
         BUTTON3_CLICK,
@@ -100,6 +102,10 @@ class Application
 
     FunctionState state_receiveMessage;
     void whileReceivingMessage();
+
+    FunctionState state_downloadFirmware;
+    void whileDownloadingFirmware();
+    String pendingFirmwareDownloadUrl;
 
     FunctionFsm fsm;
 

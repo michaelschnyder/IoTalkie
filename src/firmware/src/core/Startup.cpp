@@ -91,7 +91,8 @@ void Startup::checkSDCardFS()
 void Startup::updateSystem() {
 
     ui->getScreen()->showUpdateScreen();
-
+    ui->getScreen()->setUpdateProgress(50);
+    
     logger.verbose("Update found. Starting update process...");
 
     File file = SD.open("/update.bin", "r");
@@ -117,7 +118,7 @@ void Startup::updateSystem() {
         if (newProgress > progressInPercent) {
             progressInPercent = newProgress;
 
-            ui->getScreen()->setUpdateProgress(progressInPercent);
+            ui->getScreen()->setUpdateProgress(50 + progressInPercent / 2);
             logger.verbose("Flash progress: %i%% (%i/%i)", progressInPercent, file.position(), file.size());
         }
     }
