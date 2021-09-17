@@ -73,6 +73,7 @@ void Screen::showUpdateScreen() {
 
     int16_t tbx, tby; uint16_t tbw, tbh;
 
+    display.setFont(&FreeSansBold9pt7b);      
     display.getTextBounds(Message, 0, 0, &tbx, &tby, &tbw, &tbh);
     uint16_t x = (display.width() - tbw) / 2;
     uint16_t y = (display.height() - tbh) / 2;
