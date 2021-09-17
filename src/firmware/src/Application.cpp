@@ -439,7 +439,7 @@ void Application::whileDownloadingFirmware() {
 
         }
         else {
-            logger.verbose("Download progress: %i");
+            logger.verbose("Download completed.");
         }
     }
 
