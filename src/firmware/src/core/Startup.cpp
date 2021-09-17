@@ -35,7 +35,6 @@ void Startup::post()
     Serial.println();
 
     ui->getScreen()->showPostScreen();
-
     this->ui->isBusy(false);
 
     if (!ui->isPowerButtonOn()) {
@@ -91,7 +90,7 @@ void Startup::checkSDCardFS()
 
 void Startup::updateSystem() {
 
-    ui->getScreen()->showPostScreen();
+    ui->getScreen()->showUpdateScreen();
 
     logger.verbose("Update found. Starting update process...");
 
@@ -102,14 +101,31 @@ void Startup::updateSystem() {
         Update.printError(Serial);
     }
 
+    int progressInPercent = 0;
+
+    int buffSize = 256;
+    uint8_t ibuffer[buffSize];
+    long start = millis();
+
     while (file.available()) {
-        uint8_t ibuffer[128];
-        file.read((uint8_t *)ibuffer, 128);
+        
+        file.read((uint8_t *)ibuffer, buffSize);
         Update.write(ibuffer, sizeof(ibuffer));    
+
+        int newProgress = file.position() * 100 / file.size();
+        
+        if (newProgress > progressInPercent) {
+            progressInPercent = newProgress;
+
+            ui->getScreen()->setUpdateProgress(progressInPercent);
+            logger.verbose("Flash progress: %i%% (%i/%i)", progressInPercent, file.position(), file.size());
+        }
     }
 
+    long duration = millis() - start;
+
     if(Update.end(true)) {
-        logger.trace("Update successful. Restarting system.");
+        logger.trace(F("Update successful. Time taken: %lims, buffer size: %i. Restarting system."), duration, buffSize);
     }
 
     file.close();

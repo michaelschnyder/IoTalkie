@@ -75,7 +75,7 @@ void Screen::showUpdateScreen() {
 
     display.setFont(&FreeSansBold9pt7b);      
     display.getTextBounds(Message, 0, 0, &tbx, &tby, &tbw, &tbh);
-    uint16_t x = (display.width() - tbw) / 2;
+    uint16_t x = (display.width()- 6 - tbw) / 2;
     uint16_t y = (display.height() - tbh) / 2;
 
     display.setPartialWindow(0, 0, display.width(), display.height());
@@ -90,6 +90,38 @@ void Screen::showUpdateScreen() {
         display.print(Message);
     }
 
+    while (display.nextPage());
+
+}
+
+void Screen::setUpdateProgress(int percentage) {
+
+    uint16_t y = 130;
+    uint16_t h = 10;
+    
+    display.setPartialWindow(0, y, display.width(), h);
+    display.firstPage();
+    
+    uint16_t barOuterMargin = 10;
+    uint16_t barInnerMargin = 2;
+
+    uint16_t barY = y + barInnerMargin;
+    uint16_t barMaxWidth = display.width() - 6 - 2 * (barOuterMargin + barInnerMargin);
+
+    uint16_t barActualWidth = barMaxWidth * percentage / 100;
+
+    do
+    {
+        // Black background
+        display.writeFillRect(0, y, display.width(), 10, GxEPD_BLACK);
+
+        // Area for progress
+        display.writeFillRect(barOuterMargin, y, display.width() - 6 - 2 * barOuterMargin, 10, GxEPD_WHITE);
+
+        // Actual progress
+        display.writeFillRect(barOuterMargin + barInnerMargin, barY, barActualWidth, 6, GxEPD_BLACK);
+
+    }
     while (display.nextPage());
 
 }

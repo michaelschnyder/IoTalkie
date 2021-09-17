@@ -22,6 +22,7 @@ public:
     void showPostScreen();
     void showHomeScreen();
     void showUpdateScreen();
+    void setUpdateProgress(int);
 
     void setWifiSSID(const char * name);
     void setConnected(bool status);
