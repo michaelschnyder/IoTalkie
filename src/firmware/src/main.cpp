@@ -13,12 +13,7 @@ FileUploader uploader;
 Application app(&ui, &recorder, &player, &uploader);
 
 void stats() {
-    Serial.println();
-    Serial.printf("Pot: %i, Ldr: %i, PwrOn: %i", analogRead(POT_IN), analogRead(LDR_PIN), ui.buttonPanel()->isPowerButtonOn());
-    Serial.printf("\nHeap size: %d\n", ESP.getHeapSize());
-    Serial.printf("Free Heap: %d\n", esp_get_free_heap_size());
-    Serial.printf("Min Free Heap: %d\n", esp_get_minimum_free_heap_size());
-    Serial.printf("Largest Free block: %d\n", heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+    Serial.printf("\nPot: %i, Ldr: %i, PwrOn: %i\n", analogRead(POT_IN), analogRead(LDR_PIN), ui.buttonPanel()->isPowerButtonOn());
 }
 
 void setup() {

@@ -12,6 +12,7 @@
 #include <AzureIoTMqttClient.h>
 #include "hardware.h"
 #include "BuildInfo.h"
+#include "core/Diagnostics.h"
 
 class Startup {
     

@@ -21,6 +21,7 @@
 #define BUILDVAR_USER "Anonynous"
 #endif
 
+#define VERSION BUILDVAR_DATEVERSION "-" BUILDVAR_GIT_SHORTREV
 
 class BuildInfo {
 
@@ -30,5 +31,7 @@ public:
     static const char* buildTimeGmt() { return BUILDVAR_GMT; }
     static const char* buildHost() { return BUILDVAR_HOST; }
     static const char* buildUser() { return BUILDVAR_USER; }
+
+    static const char* getVersion() { return VERSION; }
 };
 #endif // __VERSION_H__

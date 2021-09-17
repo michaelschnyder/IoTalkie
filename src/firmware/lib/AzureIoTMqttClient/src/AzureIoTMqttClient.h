@@ -26,8 +26,20 @@
 #define AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_SUBSCROBE "$iothub/twin/PATCH/properties/desired/#"
 #define AZIOT_DESIRED_PROPERY_INBOUND_TOPIC_PREFIX    "$iothub/twin/PATCH/properties/desired"
 
+#define ONCONNECTIONSTATUSCHANGED_CALLBACK_SIGNATURE std::function<void(AzIoTConnStatus)> 
 #define ONCOMMAND_CALLBACK_SIGNATURE std::function<void(String, JsonObject&)> 
 #define DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE std::function<void(JsonObject&, int)>
+
+enum AzIoTConnStatus {
+    UNKNOWN,
+    INITIALIZING,
+    CONNECTING,
+    REGISTERING,
+    CONNECTED,
+    DISCONNECTED,
+    RECONNECTING,
+    ERROR
+};
 
 class AzureIoTMqttClient {
 private:
@@ -43,6 +55,10 @@ private:
 
     boolean clientReady = false;
     boolean enableReconnect = false;
+    
+    AzIoTConnStatus status;
+    void setStatus(AzIoTConnStatus);
+    AzIoTConnStatus getStatus() { return this->status; }
 
     long lastReconnectAttempt = 0;
     int retryTimoutInMs = 5000;
@@ -50,9 +66,11 @@ private:
     WiFiClientSecure wifiClient;
     PubSubClient mqttClient;
     
+    ONCONNECTIONSTATUSCHANGED_CALLBACK_SIGNATURE onConnectionStatusChangeCallback;
     ONCOMMAND_CALLBACK_SIGNATURE onCommandCallback;
     DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE onDesiredPropertyChangeCallback;
     
+
     log4Esp::Logger logger = log4Esp::Logger("AzureIoTMqttClient");
 
     String describeConnectionState(int);
@@ -72,6 +90,7 @@ public:
 
     void onCommand(ONCOMMAND_CALLBACK_SIGNATURE);
     void onDesiredPropertyChange(DESIREDPROPERTYCHANGE_CALLBACK_SIGNATURE);
+    void onConnectionStatusChange(ONCONNECTIONSTATUSCHANGED_CALLBACK_SIGNATURE);
 	void loop();
     bool send(const char*);
     void send(JsonObject& data);

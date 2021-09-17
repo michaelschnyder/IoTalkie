@@ -31,7 +31,7 @@ void Startup::onCompleted(ONCOMPLETED_CALLBACK_SIGNATURE callback)
 void Startup::post()
 {   
     Serial.begin(115200);
-    Serial.printf("IoTalkie Version: %s-%s build at: %s by %s@%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
+    Serial.printf("IoTalkie Version: %s build at: %s by %s@%s", BuildInfo::getVersion(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
     ui->getScreen()->post();
@@ -75,7 +75,7 @@ void Startup::loadConfig()
 void Startup::checkSDCardFS() 
 {
     if(SD.begin(SS, sdSPI)) {
-        Serial.printf("External SD card:  %s of %s used", file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
+        Serial.printf("External SD card: %s of %s used", file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
         Serial.println();    
     
         fsm.trigger(Event::Continue);
@@ -105,7 +105,7 @@ void Startup::startWifi()
     WiFi.mode(WIFI_STA);    // Station Mode, i.e. connect to a WIFI and don't serve as AP
     WiFi.persistent(false); // Do not store WIFI information in EEPROM.
 
-    logger.trace(F("Connecting to WLAN with SSID '%s' phy: %s. This may take some time..."), settings->getWifiSSID().c_str(), WiFi.macAddress().c_str());
+    logger.trace(F("Connecting to WLAN with SSID '%s' with MAC '%s'. This may take some time..."), settings->getWifiSSID().c_str(), WiFi.macAddress().c_str());
     WiFi.begin(settings->getWifiSSID().c_str(), settings->getWifiKey().c_str());
 }
 
@@ -120,8 +120,6 @@ void Startup::waitForWifi()
 void Startup::connectToMqtt() 
 {
     client->connect(config->getAzIoTHubName().c_str(), config->getDeviceId().c_str(), config->getAzIoTSASToken().c_str());   
-    ui->getScreen()->setConnected(true);
-
     fsm.trigger(Event::Continue);
 }
 

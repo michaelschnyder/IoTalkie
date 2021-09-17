@@ -8,6 +8,7 @@
 #include "core/Shutdown.h"
 #include "core/DeviceConfig.h"
 #include "core/Settings.h"
+#include "core/HealthReporter.h"
 
 #include "ui/UserInterface.h"
 
@@ -51,6 +52,7 @@ class Application
     DeviceConfig config;
     Settings settings;
 
+    HealthReporter healthReporter;
     AzureIoTMqttClient client;
     UserInterface *ui;
     AudioRecorder *recorder;
@@ -104,6 +106,7 @@ class Application
     bool isAppRunning = false;
 
     void dispatchCloudCommand(String, JsonObject&);
+    void connectionStatusChangeHandler(AzIoTConnStatus);
     void showNewMessageFrom(Contact*);
     
 public:

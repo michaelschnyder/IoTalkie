@@ -127,10 +127,14 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
 void Application::setup() 
 {
     client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
+    client.onConnectionStatusChange(std::bind(&Application::connectionStatusChangeHandler, this, std::placeholders::_1));
+
     inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
     startup.onCompleted([this](long duration) { 
         this->fsm.trigger(Event::SYSTEM_READY); 
     });
+
+    healthReporter.setup(&client);
 }
 
 void Application::run() {    
@@ -144,6 +148,8 @@ void Application::run() {
     }
 
     fsm.run_machine();
+
+    healthReporter.loop();
 }
 
 void Application::whileStarting() 
@@ -351,6 +357,17 @@ void Application::dispatchCloudCommand(String commandName, JsonObject& value)
 {
     if (commandName == "newMessage") {
         inbox.handleNotification(value);
+    }
+}
+
+void Application::connectionStatusChangeHandler(AzIoTConnStatus newStatus) {
+    
+    if (newStatus == AzIoTConnStatus::CONNECTED) {
+        this->healthReporter.sayHello();
+        this->ui->getScreen()->setConnected(true);
+    }
+    else if(newStatus == AzIoTConnStatus::DISCONNECTED) {
+        this->ui->getScreen()->setConnected(false);
     }
 }
 
