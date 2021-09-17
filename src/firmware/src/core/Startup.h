@@ -13,6 +13,7 @@
 #include "hardware.h"
 #include "BuildInfo.h"
 #include "core/Diagnostics.h"
+#include <Update.h>
 
 class Startup {
     
@@ -35,6 +36,9 @@ class Startup {
 
     FunctionState state_checkSDCardFS;
     void checkSDCardFS();
+
+    FunctionState state_updateSystem;
+    void updateSystem();
 
     FunctionState state_loadSettings;
     void loadSettings();
@@ -71,6 +75,7 @@ class Startup {
 
     enum Event {
         Continue,
+        FirmwareFileFound,
         Halt,
     };
 
@@ -89,6 +94,7 @@ public:
         state_checkSPIFFS(nullptr,                     [this]() { checkSPIFFS(); },     nullptr),
         state_loadConfig(nullptr,                      [this]() { loadConfig(); },      nullptr),
         state_checkSDCardFS(nullptr,                   [this]() { checkSDCardFS(); },   nullptr),
+        state_updateSystem(nullptr,                    [this]() { updateSystem(); },    nullptr),
         state_loadSettings(nullptr,                    [this]() { loadSettings(); },    nullptr),
         state_loadContacts(nullptr,                    [this]() { loadContacts(); },    nullptr),
         state_startWifi([this]() { startWifi(); },     [this]() { waitForWifi(); },     nullptr),
@@ -105,6 +111,7 @@ public:
         fsm.add_transition(&state_checkSPIFFS, &state_loadConfig, Event::Continue, nullptr);
         fsm.add_transition(&state_loadConfig, &state_checkSDCardFS, Event::Continue, nullptr);
         fsm.add_transition(&state_checkSDCardFS, &state_loadSettings, Event::Continue, nullptr);
+        fsm.add_transition(&state_checkSDCardFS, &state_updateSystem, Event::FirmwareFileFound, nullptr);
         fsm.add_transition(&state_loadSettings, &state_loadContacts, Event::Continue, nullptr);
         fsm.add_transition(&state_loadContacts, &state_startWifi, Event::Continue, nullptr);
         fsm.add_transition(&state_startWifi, &state_connectToMqtt, Event::Continue, nullptr);

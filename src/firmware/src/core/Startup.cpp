@@ -75,13 +75,44 @@ void Startup::loadConfig()
 void Startup::checkSDCardFS() 
 {
     if(SD.begin(SS, sdSPI)) {
-        Serial.printf("External SD card: %s of %s used", file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
-        Serial.println();    
+        logger.trace(F("External SD card: %s of %s used"), file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
     
-        fsm.trigger(Event::Continue);
+        if (SD.exists("/update.bin")) {
+            fsm.trigger(Event::FirmwareFileFound);
+        }
+        else {
+            fsm.trigger(Event::Continue);
+        }
+    }
+    else {
+        delay(50);
+    }
+}
+
+void Startup::updateSystem() {
+    logger.trace("Update found. Starting update process...");
+
+    File file = SD.open("/update.bin", "r");
+    bool canBegin = Update.begin(file.size(), U_FLASH);
+
+    if (!canBegin) {
+        Update.printError(Serial);
     }
 
-    delay(50);
+    while (file.available()) {
+        uint8_t ibuffer[128];
+        file.read((uint8_t *)ibuffer, 128);
+        Update.write(ibuffer, sizeof(ibuffer));    
+    }
+
+    if(Update.end(true)) {
+        logger.trace("Update successful.");
+    }
+
+    file.close();
+    
+    SD.remove("/update.bin");
+    ESP.restart();
 }
 
 void Startup::loadSettings() 
