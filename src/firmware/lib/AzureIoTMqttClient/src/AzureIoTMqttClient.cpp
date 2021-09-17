@@ -14,7 +14,7 @@ AzureIoTMqttClient::AzureIoTMqttClient() {
 
 void AzureIoTMqttClient::connect(const char* hubName, const char* deviceId, const char* token) {
   
-  setStatus(INITIALIZING);
+setStatus(INITIALIZING);
 
   char buff[256];
 
