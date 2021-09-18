@@ -55,3 +55,11 @@ jobs:
       - name: Run PlatformIO
         run: pio run -e release
         working-directory: src/firmware
+
+      # Upload firmware
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          # Artifact name
+          name: firmware
+          path: src/firmware/.pio?build/release/firmware.bin
