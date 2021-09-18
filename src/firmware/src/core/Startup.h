@@ -1,7 +1,7 @@
 #ifndef __STARTUP_H__
 #define __STARTUP_H__
 
-#include "FunctionFsm.h"
+#include <FunctionFSM.h>
 #include <Log4Esp.h>
 
 #include "DeviceConfig.h"

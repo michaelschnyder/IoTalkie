@@ -55,5 +55,3 @@ jobs:
       - name: Run PlatformIO
         run: pio run -e release
         working-directory: src/firmware
-        env:
-          CI: yes
