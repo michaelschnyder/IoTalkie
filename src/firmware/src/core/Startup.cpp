@@ -75,9 +75,9 @@ void Startup::checkSDCardFS()
 {
     if(SD.begin(SS, sdSPI)) {
         logger.trace(F("External SD card: %s of %s used"), file_size(SD.usedBytes()).c_str(), file_size(SD.totalBytes()).c_str());
-    
-        if (SD.exists("/update.bin")) {
-            fsm.trigger(Event::FirmwareFileFound);
+
+        if (updater.hasPendingUpdate()) {
+            fsm.trigger(Event::FirmwareFileFound);            
         }
         else {
             fsm.trigger(Event::Continue);
@@ -91,47 +91,13 @@ void Startup::checkSDCardFS()
 void Startup::updateSystem() {
 
     ui->getScreen()->showUpdateScreen();
-    ui->getScreen()->setUpdateProgress(50);
     
-    logger.verbose("Update found. Starting update process...");
+    updater.flashPendingUpdate([this](int updateProgress) {
+        ui->getScreen()->setUpdateProgress(updateProgress);
+    });
 
-    File file = SD.open("/update.bin", "r");
-    bool canBegin = Update.begin(file.size(), U_FLASH, LED_BUILTIN);
-
-    if (!canBegin) {
-        Update.printError(Serial);
-    }
-
-    int progressInPercent = 0;
-
-    int buffSize = 256;
-    uint8_t ibuffer[buffSize];
-    long start = millis();
-
-    while (file.available()) {
-        
-        file.read((uint8_t *)ibuffer, buffSize);
-        Update.write(ibuffer, sizeof(ibuffer));    
-
-        int newProgress = file.position() * 100 / file.size();
-        
-        if (newProgress > progressInPercent) {
-            progressInPercent = newProgress;
-
-            ui->getScreen()->setUpdateProgress(50 + progressInPercent / 2);
-            logger.verbose("Flash progress: %i%% (%i/%i)", progressInPercent, file.position(), file.size());
-        }
-    }
-
-    long duration = millis() - start;
-
-    if(Update.end(true)) {
-        logger.trace(F("Update successful. Time taken: %lims, buffer size: %i. Restarting system."), duration, buffSize);
-    }
-
-    file.close();
-    
-    SD.remove("/update.bin");
+    SD.end();
+    SPIFFS.end();
     ESP.restart();
 }
 

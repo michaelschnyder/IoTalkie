@@ -384,77 +384,13 @@ void Application::whileDownloadingFirmware() {
 
     this->ui->getScreen()->showUpdateScreen();
 
-    logger.trace("Starting to download firmware update from '%s'", this->pendingFirmwareDownloadUrl);
+    this->updater.download(this->pendingFirmwareDownloadUrl.c_str(), [this](int progress) { this->ui->getScreen()->setUpdateProgress(progress); });
 
-    HTTPClient http;
-    http.begin(this->pendingFirmwareDownloadUrl);
-
-    int httpCode = http.GET();
-
-    if (!(httpCode > 0)) {
-        logger.error("failed to download file. Error: %s\n", http.errorToString(httpCode).c_str());
-        return;
-    }
-
-    if(httpCode != HTTP_CODE_OK) {
-        logger.error("failed to download file. Server responded with error: %s\n", http.errorToString(httpCode).c_str());
-        return;
-    }
-
-    int totalSize = http.getSize();
-
-    WiFiClient * stream = http.getStreamPtr();
-
-    File f = SD.open("/update.tmp", FILE_WRITE);
-    uint8_t buff[1024] = { 0 };
-
-    int remaining = totalSize;
-    int totalUpdateProgress = 0;
-
-    while(http.connected() && (remaining > 0 || remaining == -1)) {
-        // get available data size
-        size_t size = stream->available();
-
-        if(size) {
-
-            int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
-            f.write(buff, c);
-
-            if(remaining > 0) {
-                remaining -= c;
-            }
-        }
-
-        if (remaining) {
-
-            long bytesStored = f.position();
-            int percent = (int)((bytesStored * 100.0f) / totalSize);
-
-            int newTotalUpdateProgress = percent / 2;
-
-            if (newTotalUpdateProgress > totalUpdateProgress) {
-                logger.verbose("Download progress: %i/%i, %i%%.", bytesStored, totalSize, percent);
-    
-                totalUpdateProgress = newTotalUpdateProgress;
-                this->ui->getScreen()->setUpdateProgress(newTotalUpdateProgress);
-            }
-        }
-    }
-
-    http.end();
-    f.close();
-
-    if (!remaining) {
-        logger.verbose("Download completed. Renaming file and restarting...");
-        SD.rename("/update.tmp", "/update.bin");
-        fsm.trigger(Event::SYSTEM_SHUTDOWN); 
+    if (this->updater.isUpdateDownloaded()) {
+        fsm.trigger(Event::SYSTEM_SHUTDOWN);
     }
     else {
-        if (SD.exists("/update.tmp")) {
-            SD.remove("/update.tmp");
-        }
-
-        fsm.trigger(Event::UPDATE_FAILED);
+        fsm.trigger(Event::UPDATE_FAILED); 
     }
 }
 

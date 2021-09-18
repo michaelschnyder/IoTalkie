@@ -3,17 +3,18 @@
 
 #include <FunctionFSM.h>
 #include <Log4Esp.h>
-
-#include "DeviceConfig.h"
-#include "Settings.h"
-#include "../ui/UserInterface.h"
-#include "../inbox/Contacts.h"
-#include "../inbox/Inbox.h"
 #include <AzureIoTMqttClient.h>
+
 #include "hardware.h"
-#include "BuildInfo.h"
 #include "core/Diagnostics.h"
-#include <Update.h>
+#include "core/BuildInfo.h"
+#include "core/FirmwareUpdater.h"
+#include "core/DeviceConfig.h"
+#include "core/Settings.h"
+
+#include "ui/UserInterface.h"
+#include "inbox/Contacts.h"
+#include "inbox/Inbox.h"
 
 class Startup {
     
@@ -66,6 +67,7 @@ class Startup {
 
     FunctionFsm fsm;
 
+    FirmwareUpdater updater;
     UserInterface* ui;
     DeviceConfig* config;
     Settings* settings;

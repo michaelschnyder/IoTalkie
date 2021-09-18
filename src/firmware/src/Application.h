@@ -10,6 +10,7 @@
 #include "core/DeviceConfig.h"
 #include "core/Settings.h"
 #include "core/HealthReporter.h"
+#include "core/FirmwareUpdater.h"
 
 #include "ui/UserInterface.h"
 
@@ -55,6 +56,7 @@ class Application
     Settings settings;
 
     HealthReporter healthReporter;
+    FirmwareUpdater updater;
     AzureIoTMqttClient client;
     UserInterface *ui;
     AudioRecorder *recorder;

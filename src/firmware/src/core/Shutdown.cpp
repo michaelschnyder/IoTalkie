@@ -39,8 +39,8 @@ void Shutdown::initShutdown()
 void Shutdown::issueFarewell() 
 {
     logger.verbose("Closing connection to MQTT");
+    client->send("{\"type\": \"ClientBye\"}");
 
-    client->send("Bye");
     client->disconnect();
     fsm.trigger(Event::Continue);    
 }
