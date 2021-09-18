@@ -9,7 +9,7 @@
 #include <AudioFileSourceSD.h>
 
 #include <AudioGeneratorMP3.h>
-#include <AudioGeneratorWav.h>
+#include <AudioGeneratorWAV.h>
 
 #include <AudioOutputI2S.h>
 
