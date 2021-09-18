@@ -66,6 +66,8 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_DOWNLOADED, nullptr);
 
     this->fsm.add_transition(&state_idle, &state_downloadFirmware, DOWNLOAD_FIRMWARE, nullptr);
+    this->fsm.add_transition(&state_downloadFirmware, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
+    this->fsm.add_transition(&state_downloadFirmware, &state_idle, UPDATE_FAILED, nullptr);
 
 //     this->fsm.add_transition(&state_startup, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
     this->fsm.add_transition(&state_idle, &state_shutdown, SYSTEM_SHUTDOWN, nullptr);
@@ -403,7 +405,7 @@ void Application::whileDownloadingFirmware() {
 
     WiFiClient * stream = http.getStreamPtr();
 
-    File f = SD.open("/update.bin", FILE_WRITE);
+    File f = SD.open("/update.tmp", FILE_WRITE);
     uint8_t buff[1024] = { 0 };
 
     int remaining = totalSize;
@@ -436,17 +438,24 @@ void Application::whileDownloadingFirmware() {
                 totalUpdateProgress = newTotalUpdateProgress;
                 this->ui->getScreen()->setUpdateProgress(newTotalUpdateProgress);
             }
-
-        }
-        else {
-            logger.verbose("Download completed.");
         }
     }
 
     http.end();
     f.close();
-    
-    ESP.restart();
+
+    if (!remaining) {
+        logger.verbose("Download completed. Renaming file and restarting...");
+        SD.rename("/update.tmp", "/update.bin");
+        fsm.trigger(Event::SYSTEM_SHUTDOWN); 
+    }
+    else {
+        if (SD.exists("/update.tmp")) {
+            SD.remove("/update.tmp");
+        }
+
+        fsm.trigger(Event::UPDATE_FAILED);
+    }
 }
 
 void Application::connectionStatusChangeHandler(AzIoTConnStatus newStatus) {

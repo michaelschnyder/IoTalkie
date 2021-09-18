@@ -28,6 +28,7 @@ class Application
         SYSTEM_READY,
         SYSTEM_SHUTDOWN,
         DOWNLOAD_FIRMWARE,
+        UPDATE_FAILED,
         
         BUTTON1_CLICK,
         BUTTON2_CLICK,

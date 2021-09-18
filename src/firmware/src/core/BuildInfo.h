@@ -21,7 +21,9 @@
 #define BUILDVAR_USER "Anonynous"
 #endif
 
+#ifndef VERSION
 #define VERSION BUILDVAR_DATEVERSION "-" BUILDVAR_GIT_SHORTREV
+#endif
 
 class BuildInfo {
 

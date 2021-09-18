@@ -30,15 +30,16 @@ void Shutdown::run()
 
 void Shutdown::initShutdown() 
 {
-    ui->isBusy(true);
-    Serial.println("Restarting");
-    Serial.flush();
+    logger.verbose("Shutdown was initiated.");
 
+    ui->isBusy(true);
     fsm.trigger(Event::Continue);    
 }
 
 void Shutdown::issueFarewell() 
 {
+    logger.verbose("Closing connection to MQTT");
+
     client->send("Bye");
     client->disconnect();
     fsm.trigger(Event::Continue);    
@@ -46,6 +47,8 @@ void Shutdown::issueFarewell()
 
 void Shutdown::stopWifi() 
 {
+    logger.verbose("Disconnecting WiFi");
+
     WiFi.disconnect(true, true);
 
     while(WiFi.isConnected()) {
@@ -62,17 +65,25 @@ void Shutdown::stopWifi()
 
 void Shutdown::unmountSdCard() 
 {
+    logger.verbose("Unmounting SD Card...");
+
     SD.end();
     fsm.trigger(Event::Continue);
 }
 
 void Shutdown::unmountSPIIFS() 
 {
+    logger.verbose("Unmounting SPIFFS...");
+
     SPIFFS.end();
     fsm.trigger(Event::Continue);
 }
 
 void Shutdown::reset() 
 {
+    logger.verbose("Reset.");
+    Serial.print("~~~~~ RESET ESP ~~~~~");
+    Serial.flush();
+
     ESP.restart();
 }
