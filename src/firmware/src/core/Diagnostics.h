@@ -2,7 +2,7 @@
 #define __DIAGNOSTICS_H__
 
 #include <Esp.h>
-#include <Wifi.h>
+#include <WiFi.h>
 #include <SD.h>
 #include <SPIFFS.h>
 
