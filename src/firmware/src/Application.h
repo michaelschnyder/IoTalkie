@@ -3,6 +3,7 @@
 
 #include <Log4Esp.h>
 #include <AzureIoTMqttClient.h>
+#include <FunctionFsm.h>
 
 #include "core/Startup.h"
 #include "core/Shutdown.h"
@@ -18,8 +19,6 @@
 
 #include "audio/AudioRecorder.h"
 #include "audio/AudioPlayerBase.h"
-
-#include "FunctionFsm.h"
 
 class Application
 {
