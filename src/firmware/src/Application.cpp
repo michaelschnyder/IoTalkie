@@ -431,7 +431,7 @@ void Application::whileDownloadingFirmware() {
             int newTotalUpdateProgress = percent / 2;
 
             if (newTotalUpdateProgress > totalUpdateProgress) {
-                logger.verbose("Download progress: %i/%i, %i%%", bytesStored, totalSize, percent);
+                logger.verbose("Download progress: %i/%i, %i%%.", bytesStored, totalSize, percent);
     
                 totalUpdateProgress = newTotalUpdateProgress;
                 this->ui->getScreen()->setUpdateProgress(newTotalUpdateProgress);
