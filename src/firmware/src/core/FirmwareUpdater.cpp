@@ -1,77 +1,34 @@
 #include "FirmwareUpdater.h"
 
-void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATURE cb) {
+void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATURE updateProgressCb) {
     
     logger.trace("Starting to download firmware update from '%s'", url);
-    cb(0);
-
-    HTTPClient http;
-    http.begin(url);
-
-    int httpCode = http.GET();
-
-    if (!(httpCode > 0)) {
-        logger.error("failed to download file. Error: %s\n", http.errorToString(httpCode).c_str());
-        return;
-    }
-
-    if(httpCode != HTTP_CODE_OK) {
-        logger.error("failed to download file. Server responded with error: %s\n", http.errorToString(httpCode).c_str());
-        return;
-    }
-
-    int totalSize = http.getSize();
-
-    WiFiClient * stream = http.getStreamPtr();
-
     File f = SD.open(FW_DOWNLOAD_FILENAME, FILE_WRITE);
-    uint8_t buff[1024] = { 0 };
 
-    int remaining = totalSize;
-    int previousDownloadPercent = 0;
+    updateProgressCb(0);
 
+    bool isCompleted, hasFailed;
     int totalUpdateProgress = 0;
 
-    while(http.connected() && (remaining > 0 || remaining == -1)) {
-        // get available data size
-        size_t size = stream->available();
+    downloader.download(url, &f, 
+        [&totalUpdateProgress, updateProgressCb](ulong completed, ulong total) { 
 
-        if(size) {
+            int percent = (int)((completed * 100.0f) / total);
+            int newTotalUpdateProgress = percent / 2;
 
-            int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
-            f.write(buff, c);
-
-            if(remaining > 0) {
-                remaining -= c;
+            if (newTotalUpdateProgress > totalUpdateProgress) {
+                totalUpdateProgress = newTotalUpdateProgress;
+                updateProgressCb(totalUpdateProgress);
             }
-        }
+        },         
+        [&isCompleted]() { isCompleted = true; }, 
+        [&hasFailed]() { hasFailed = true; });
 
-        if (!remaining) {
-            break;
-        }
-
-        long bytesStored = f.position();
-        int percent = (int)((bytesStored * 100.0f) / totalSize);
-
-        if (percent > previousDownloadPercent) {
-            previousDownloadPercent = percent;
-            logger.verbose("Download progress: %i/%i, %i%%.", bytesStored, totalSize, percent);
-        }
-
-        int newTotalUpdateProgress = percent / 2;
-        if (newTotalUpdateProgress > totalUpdateProgress) {
-            totalUpdateProgress = newTotalUpdateProgress;
-
-            if (cb != NULL) {
-                cb(newTotalUpdateProgress);
-            }
-        }
+    while (!isCompleted && !hasFailed) {
+        yield();
     }
 
-    http.end();
-    f.close();
-
-    if (!remaining) {
+    if (!hasFailed) {
         logger.verbose("Download completed. Renaming file and restarting...");
         SD.rename(FW_DOWNLOAD_FILENAME, FW_READY_FILENAME);
         this->downloadCompleted = true;
@@ -82,10 +39,10 @@ void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATUR
     }
 }
 
-void FirmwareUpdater::flashPendingUpdate(UPDATEPROGRESS_CALLBACK_SIGNATURE cb) {
+void FirmwareUpdater::flashPendingUpdate(UPDATEPROGRESS_CALLBACK_SIGNATURE updateProgressCb) {
     
     logger.verbose("Update found. Starting update process...");
-    cb(50);
+    updateProgressCb(50);
 
     File file = SD.open(FW_READY_FILENAME, "r");
     bool canBegin = Update.begin(file.size(), U_FLASH, LED_BUILTIN);
@@ -110,7 +67,7 @@ void FirmwareUpdater::flashPendingUpdate(UPDATEPROGRESS_CALLBACK_SIGNATURE cb) {
         if (newProgress > progressInPercent) {
             progressInPercent = newProgress;
 
-            cb(50 + progressInPercent / 2);
+            updateProgressCb(50 + progressInPercent / 2);
             logger.verbose("Flash progress: %i%% (%i/%i)", progressInPercent, file.position(), file.size());
         }
     }

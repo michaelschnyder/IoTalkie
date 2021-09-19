@@ -7,6 +7,8 @@
 #include <Log4Esp.h>
 #include <Update.h>
 
+#include "http/FileDownloader.h"
+
 #define FW_DOWNLOAD_FILENAME "/update.tmp"
 #define FW_READY_FILENAME "/update.bin"
 
@@ -14,8 +16,10 @@
 class FirmwareUpdater {
 private:
     log4Esp::Logger logger = log4Esp::Logger("FirmwareUpdater");
+    
     bool downloadCompleted;
-
+    FileDownloader downloader;
+    
 public:
     void download(const char* firmwareUrl, UPDATEPROGRESS_CALLBACK_SIGNATURE);
     bool isUpdateDownloaded() { return downloadCompleted; }
