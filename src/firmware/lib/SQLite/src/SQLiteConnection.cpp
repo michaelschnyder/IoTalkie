@@ -77,6 +77,13 @@ long long atoll(const char* ptr) {
 
 ResultSet* SQLiteConnection::query(const char* sql, ...) 
 {
+    va_list args;
+    va_start(args, sql);
+    
+    char statement[500];
+    vsprintf(statement, sql, args);
+    va_end(args);
+
     if (this->currentResultSet) {
         currentResultSet->clear();
     }    
@@ -90,7 +97,7 @@ ResultSet* SQLiteConnection::query(const char* sql, ...)
         rs->addResult(rowIdx, rowData, columnNames, columns);
     };
 
-    query(sql, cb);
+    query(statement, cb);
     rs->seal();
 
     return currentResultSet;
