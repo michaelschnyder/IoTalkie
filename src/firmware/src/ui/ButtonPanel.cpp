@@ -1,4 +1,5 @@
 #include "hardware.h"
+#ifdef HAS_BUTTON_PANEL
 
 #include "ButtonPanel.h"
 
@@ -100,3 +101,4 @@ void ButtonPanel::showHasNewMessageAt(int buttonIdx, bool hasMessages)
 {
     	this->buttonStatus[buttonIdx] = hasMessages;
 }
+#endif // HAS_BUTTON_PANEL

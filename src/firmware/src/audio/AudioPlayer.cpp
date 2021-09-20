@@ -1,3 +1,6 @@
+#include "hardware.h"
+#ifdef HAS_AUDIO_PLAYER 
+
 #include "AudioPlayer.h"
 
 AudioPlayer::AudioPlayer(int clockPin, int lrcPin, int dataPin) {
@@ -81,3 +84,4 @@ const char* AudioPlayer::getFilename()
 {
 	return filename;
 }
+#endif // HAS_AUDIO_PLAYER
