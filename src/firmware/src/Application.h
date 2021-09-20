@@ -61,7 +61,8 @@ class Application
     UserInterface *ui;
     AudioRecorder *recorder;
     FileUploader* uploader;
-
+    TaskHTTPImpl taskHttp;
+    
     Contacts contacts;
     Inbox inbox;
     AudioPlayerBase *player;
