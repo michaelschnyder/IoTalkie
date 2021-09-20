@@ -46,13 +46,11 @@ void ButtonPanel::setup()
 	mcp.pinMode(BUTTON2_LED, OUTPUT);
 	mcp.pinMode(BUTTON3_LED, OUTPUT);
 
-
 	mcp.pinMode(BUTTON1_IN, INPUT);
 	mcp.pinMode(BUTTON2_IN, INPUT);
 	mcp.pinMode(BUTTON3_IN, INPUT);
 
 	mcp.pinMode(BUTTON_OFF_IN, INPUT);
-
 	btnCtx1 = (ButtonContext){1, button1, this};
 	btnCtx2 = (ButtonContext){2, button2, this};
 	btnCtx3 = (ButtonContext){3, button3, this};

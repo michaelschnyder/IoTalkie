@@ -5,7 +5,7 @@
 // +    HARDWARE CAPABILITIES       +
 // ++++++++++++++++++++++++++++++++++
 
-//#define HAS_BUTTON_PANEL
+#define HAS_BUTTON_PANEL
 //#define HAS_SPEAKER
 
 // ++++++++++++++++++++++++++++++++++
