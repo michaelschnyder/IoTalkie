@@ -12,8 +12,9 @@
 #include "http/TaskHTTP.h"
 
 #include "migrations/M_202102211710_Init.h"
+#include "migrations/M_202120092116_AddFaultyColumn.h"
 
-class MessageDownloadTask {
+class MessageRecord {
 
     char* messageId;
     char* senderId;
@@ -21,7 +22,7 @@ class MessageDownloadTask {
     char* localFile;
 
     public:
-    MessageDownloadTask(char* messageId, char* senderId, char* downloadUrl, char* localFile) {
+    MessageRecord(char* messageId, char* senderId, char* downloadUrl, char* localFile) {
 
         this->messageId = (char*)malloc(strlen(messageId) + 1);
         this->senderId = (char*)malloc(strlen(senderId) + 1);
@@ -34,7 +35,7 @@ class MessageDownloadTask {
         strcpy(this->localFile, localFile);
     }
 
-    ~MessageDownloadTask() {
+    ~MessageRecord() {
         free(this->messageId);
         free(this->senderId);
         free(this->downloadUrl);
@@ -50,14 +51,17 @@ class MessageDownloadTask {
 #define ONNEWMESSAGE_CALLBACK_SIGNATURE std::function<void(Contact*)> 
 
 #define QUERY_COUNT_PENDING_DOWNLOADS "SELECT COUNT(*) from messages WHERE localFile Is NULL"
-#define QUERY_COUNT_UNPLAYED_MESSAGE_FOR_USERID "SELECT COUNT(*) from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL"
-#define QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL ORDER BY timestamp ASC LIMIT 1"
-#define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT localFile from messages WHERE senderId = '%s' AND playCount > 0 ORDER BY timestamp DESC LIMIT 1"
+
+#define QUERY_COUNT_UNPLAYED_MESSAGE_FOR_USERID "SELECT COUNT(*) from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL AND isFaulty != 1"
+#define QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID "SELECT messageId, localFile from messages WHERE senderId = '%s' AND playCount = 0 AND localFile is NOT NULL AND isFaulty != 1 ORDER BY timestamp ASC LIMIT 1"
+#define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT messageId, localFile from messages WHERE senderId = '%s' AND localFile is NOT NULL AND isFaulty != 1 ORDER BY timestamp DESC LIMIT 1"
+
 #define QUERY_INSERT_NEW_MESSAGE "INSERT INTO messages (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %i, '%s', %i, '%s')"
 #define QUERY_COUNT_MESSAGES_BY_MESSAGEID "SELECT COUNT(*) FROM messages WHERE messageId = '%s'"
-#define QUERY_INCREASE_PLAYCOUNT_BY_LOCALFILE "UPDATE messages SET playcount = playcount + 1 WHERE localFile = '%s'"
+#define QUERY_INCREASE_PLAYCOUNT_BY_MESSAGEID "UPDATE messages SET playcount = playcount + 1 WHERE messageId = '%s'"
 #define QUERY_NEXT_PENDING_MESSAGE_FOR_DOWNLOAD "SELECT messageId, senderId, remoteUrl from messages WHERE localFile Is NULL ORDER BY timestamp ASC LIMIT 1"
 #define QUERY_UPDATE_LOCALFILE_BY_MESSAGEID "UPDATE messages SET localFile = '%s' WHERE messageId = '%s'"
+#define QUERY_SET_IGNORED_BY_MESSAGEID "UPDATE messages SET isFaulty = 1 WHERE messageId = '%s'"
 
 class Inbox {
     log4Esp::Logger logger = log4Esp::Logger("Inbox");
@@ -68,10 +72,10 @@ class Inbox {
     bool pendingDownloadsAvailable = true;
     bool hasNewMessage[3];
 
-    MessageDownloadTask* getNextDownloadTask();
+    MessageRecord* getNextDownloadTask();
     TaskHTTPImpl taskHttp;
 
-    bool setAvailable(MessageDownloadTask* t);
+    bool setAvailable(MessageRecord* t);
     void findUnplayedMessagesForEachSlot();
     ONNEWMESSAGE_CALLBACK_SIGNATURE onNewMessageCallback;
 public:
@@ -85,9 +89,13 @@ public:
     
     bool hasPendingDownloads(bool);
     void downloadSingleMessage();
+    
     bool hasNewMessages(int slotId);
-    const String getAudioMessageFor(const char* userId);
-    void setPlayed(const char * filename);
+    MessageRecord* getAudioMessageFor(const char* userId);
+    
+    void setPlayed(MessageRecord* message);
+    void setIgnored(MessageRecord* message);
+
     void onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback);
     // int getNumberOfMessagesFrom(String userId);
 };

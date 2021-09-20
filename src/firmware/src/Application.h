@@ -112,6 +112,8 @@ class Application
 
     bool isAppRunning = false;
 
+    MessageRecord* currentMessage;
+
     void dispatchCloudCommand(String, JsonObject&);
     void connectionStatusChangeHandler(AzIoTConnStatus);
     void showNewMessageFrom(Contact*);
