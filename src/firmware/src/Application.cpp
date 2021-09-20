@@ -5,7 +5,7 @@
 #define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
 #define MAXIMAL_MESSAGE_LENGTH_IN_MS 24000
 
-Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player, FileUploader* uploader) : 
+Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player) :
     
     inbox(&contacts),
 
@@ -86,7 +86,6 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->ui = ui;
     this->recorder = recorder;
     this->player = player;
-    this->uploader = uploader;
 
     this->ui->buttonPanel()->onButtonEvent([this](ButtonEvent evt) {
     

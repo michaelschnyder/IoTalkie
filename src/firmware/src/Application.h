@@ -16,7 +16,6 @@
 
 #include "inbox/Contacts.h"
 #include "inbox/Inbox.h"
-#include "http/FileUploader.h"
 
 #include "audio/AudioRecorder.h"
 #include "audio/AudioPlayerBase.h"
@@ -60,7 +59,6 @@ class Application
     AzureIoTMqttClient client;
     UserInterface *ui;
     AudioRecorder *recorder;
-    FileUploader* uploader;
     TaskHTTPImpl taskHttp;
     
     Contacts contacts;
@@ -119,7 +117,7 @@ class Application
     void showNewMessageFrom(Contact*);
     
 public:
-    Application(UserInterface*, AudioRecorder*, AudioPlayerBase*, FileUploader*);
+    Application(UserInterface*, AudioRecorder*, AudioPlayerBase*);
 
     void setup();
     void run();
