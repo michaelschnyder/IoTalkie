@@ -9,7 +9,7 @@ void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATUR
     bool isCompleted = false, isSuccessful = false;
     int totalUpdateProgress = 0;
 
-    downloader.download(url, FW_DOWNLOAD_FILENAME, 
+    taskHttp.download(url, FW_DOWNLOAD_FILENAME, 
         [&isCompleted, &isSuccessful](bool result) { isCompleted = true; isSuccessful = result; }, 
         [&totalUpdateProgress, updateProgressCb](ulong completed, ulong total) { 
 

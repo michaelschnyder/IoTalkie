@@ -88,7 +88,7 @@ void Contacts::update(String remoteUrl) {
     auto oldFile = filename  + ".old";
     auto tmpFile = filename + ".tmp";
     
-    downloader.download(remoteUrl.c_str(), (tmpFile).c_str(), [this, oldFile, tmpFile](bool successful) {
+    taskHttp.download(remoteUrl.c_str(), (tmpFile).c_str(), [this, oldFile, tmpFile](bool successful) {
         
         if (successful) {
 

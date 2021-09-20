@@ -4,7 +4,7 @@
 #include <Log4Esp.h>
 #include <SD.h>
 #include <ArduinoJson.h>
-#include "http/FileDownloader.h"
+#include "http/TaskHTTP.h"
 
 #define NAME_MAX_LENGTH 20
 #define USER_ID_MAX_LENGTH 32
@@ -21,7 +21,7 @@ class Contacts {
     const String filename = "/contacts.json";
 
     log4Esp::Logger logger = log4Esp::Logger("Contacts");
-    FileDownloader downloader;
+    TaskHTTPImpl taskHttp;
 
     Contact* contacts;
     int numberOfContacts = 0;
