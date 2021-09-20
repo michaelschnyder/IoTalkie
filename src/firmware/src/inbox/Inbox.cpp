@@ -4,6 +4,7 @@ bool Inbox::load()
 {
     SchemaMigrator schemaMigrator(&db);
     schemaMigrator.runIfMissing(new M_202102211710_Init());
+    schemaMigrator.runIfMissing(new M_202120092116_AddFaultyColumn());
     
     findUnplayedMessagesForEachSlot();
     
@@ -100,25 +101,38 @@ bool Inbox::hasNewMessages(int slotId)
     return this->hasNewMessage[slotId];
 }
 
-const String Inbox::getAudioMessageFor(const char* userId) 
+MessageRecord* Inbox::getAudioMessageFor(const char* userId) 
 {
     SQLiteConnection conn(&db);
-    String nextUnplayed = conn.queryString(QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID, userId);
+    auto nextUnplayed = conn.query(QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID, userId);
 
-    if (!nextUnplayed.isEmpty()) {
-        logger.verbose("Found next unplayed message '%s' from senderId '%s'", nextUnplayed.c_str(), userId);
-        return nextUnplayed;
+    if (nextUnplayed->read()) {
+        logger.verbose("Found new unplayed message '%s' from senderId '%s'", nextUnplayed->getString(1), userId);
+        return new MessageRecord(nextUnplayed->getString(0), "", "", nextUnplayed->getString(1));
     }
 
-    logger.verbose("No unplayed message available, finding the newest one");
-    String newestMessage = conn.queryString(QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID, userId);
-    return newestMessage;
+    logger.verbose("Only already played available, finding the most recent one");
+    auto newestMessage = conn.query(QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID, userId);
+
+    if (newestMessage->read()) {
+        return new MessageRecord(newestMessage->getString(0), "", "", newestMessage->getString(1));
+    }
+    
+    return NULL;
 }
 
-void Inbox::setPlayed(const char * filename) 
+void Inbox::setPlayed(MessageRecord* message) 
 {
     SQLiteConnection conn(&db);
-    conn.execute(QUERY_INCREASE_PLAYCOUNT_BY_LOCALFILE, filename);
+    conn.execute(QUERY_INCREASE_PLAYCOUNT_BY_MESSAGEID, message->getMessageId());
+
+    findUnplayedMessagesForEachSlot();
+}
+
+void Inbox::setIgnored(MessageRecord* message) 
+{
+    SQLiteConnection conn(&db);
+    conn.execute(QUERY_SET_IGNORED_BY_MESSAGEID, message->getMessageId());
 
     findUnplayedMessagesForEachSlot();
 }
@@ -128,7 +142,7 @@ void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback)
     this->onNewMessageCallback = callback;
 }
 
-MessageDownloadTask* Inbox::getNextDownloadTask() 
+MessageRecord* Inbox::getNextDownloadTask() 
 {
     SQLiteConnection conn(&db);
     auto resultSet = conn.query(QUERY_NEXT_PENDING_MESSAGE_FOR_DOWNLOAD);
@@ -147,10 +161,10 @@ MessageDownloadTask* Inbox::getNextDownloadTask()
     char localFile[256];
     sprintf(localFile, "/from_%s-%s.mp3", senderId, messageId);
 
-    return new MessageDownloadTask(messageId, senderId, remoteUrl, localFile);
+    return new MessageRecord(messageId, senderId, remoteUrl, localFile);
 }
 
-bool Inbox::setAvailable(MessageDownloadTask* task) 
+bool Inbox::setAvailable(MessageRecord* task) 
 {
     logger.trace("Mark message '%s' as available for consumption", task->getMessageId());
 

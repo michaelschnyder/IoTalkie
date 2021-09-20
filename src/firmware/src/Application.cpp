@@ -328,23 +328,26 @@ void Application::tryPlayMessageFrom(int buttonId)
         return;
     }
 
-    String audioMessageFile = inbox.getAudioMessageFor((const char*)c->userId);
+    currentMessage = inbox.getAudioMessageFor((const char*)c->userId);
 
-    if (audioMessageFile.isEmpty()) {
-        logger.warning(F("No available audio message found from user '%s' on slot %i"), c->name, c->slot);
+    if (currentMessage == NULL) {
+        logger.warning(F("No new or old audio message found from user '%s' on slot %i"), c->name, c->slot);
         this->fsm.trigger(Event::MESSAGE_NOTFOUND);
         return;
     }
 
-    if (!SD.exists(audioMessageFile)) {
-        logger.warning(F("File '%s' cannot be found to be played."), audioMessageFile);
+    if (!SD.exists(currentMessage->getStorageLocation())) {
+        logger.warning(F("File '%s' is not available in the filesystem and cannot be played. Mark as faulty."), currentMessage->getStorageLocation());
+
+        inbox.setIgnored(currentMessage);
+        delete currentMessage;
+
         this->fsm.trigger(Event::MESSAGE_NOTFOUND);
         return;
     }
 
-    logger.verbose("Playing file '%s' as message from '%s' (UserId: %s)", audioMessageFile.c_str(), c->name, c->userId);
-    
-    this->player->play(audioMessageFile.c_str());
+    logger.verbose("Playing file '%s' as message from '%s' (UserId: %s)", currentMessage->getStorageLocation(), c->name, c->userId);
+    this->player->play(currentMessage->getStorageLocation());
     this->fsm.trigger(Event::MESSAGE_FOUND);
 }
 
@@ -354,12 +357,13 @@ void Application::whileMessagePlaying()
         this->ui->showAudioPlaying();
     }
     else {
-        this->inbox.setPlayed(this->player->getFilename());
+        this->inbox.setPlayed(currentMessage);
         this->fsm.trigger(Event::MESSAGE_PLAYED);
     }
 }
 
 void Application::messagePlayingEnded() {
+    delete currentMessage;
     this->player->stop();
 }
 
