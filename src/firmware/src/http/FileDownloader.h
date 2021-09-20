@@ -5,11 +5,10 @@
 
 #include <WiFiClient.h>
 #include <HTTPClient.h>
-#include <FS.h>
+#include <SD.h>
 
 #define DOWNLOAD_PROGRESS_CB std::function<void(unsigned long int, unsigned long int)> 
-#define DOWNLOAD_COMPLETED_CB std::function<void()> 
-#define DOWNLOAD_FAILED_CB std::function<void()>
+#define DOWNLOAD_COMPLETED_CB std::function<void(bool)>
 
 // Increase this value if you get exceptions similar to "Debug exception reason: Stack canary watchpoint triggered (_FileDownloaderBackgroundTask)"
 // HTTPS connections seemd to need around 8kb
@@ -28,24 +27,34 @@ class FileDownloader {
     File* currentFile;
 
 public:
-    void download(const char *, File *, DOWNLOAD_PROGRESS_CB, DOWNLOAD_COMPLETED_CB, DOWNLOAD_FAILED_CB);
-//    void __downloadInternal(const char *, File *, DOWNLOAD_PROGRESS_CB, DOWNLOAD_COMPLETED_CB, DOWNLOAD_FAILED_CB);
+    void download(const char *, File *, DOWNLOAD_COMPLETED_CB completedDb = NULL, DOWNLOAD_PROGRESS_CB progressCb = NULL);
+    void download(const char *, const char *, DOWNLOAD_COMPLETED_CB completedDb = NULL, DOWNLOAD_PROGRESS_CB progressCb = NULL);
     void __downloadInternal(const char *, File *);
     void __downloadInternal(void*);
-
 };
 
 class DownloadTask
 {
 
 public:
-    DownloadTask(FileDownloader* instance, const char* url, File* file, DOWNLOAD_PROGRESS_CB progressCb, DOWNLOAD_COMPLETED_CB completedCb, DOWNLOAD_FAILED_CB failedCb) {
+    DownloadTask(FileDownloader* instance, const char* url, const char* filePath, DOWNLOAD_COMPLETED_CB completedCb, DOWNLOAD_PROGRESS_CB progressCb) {
+
+        this->openedFile = SD.open(filePath, "w");
+
+        this->downloader = instance;
+        this->file = &(this->openedFile);
+        this->completedCb = completedCb;
+        this->progressCb = progressCb;
+        this->url = (char*)malloc(strlen(url) +1);
+        strcpy(this->url, url);
+    };
+
+    DownloadTask(FileDownloader* instance, const char* url, File* file, DOWNLOAD_COMPLETED_CB completedCb, DOWNLOAD_PROGRESS_CB progressCb) {
 
         this->downloader = instance;
         this->file = file;
-        this->progressCb = progressCb;
         this->completedCb = completedCb;
-        this->failedCb = failedCb;
+        this->progressCb = progressCb;
         this->url = (char*)malloc(strlen(url) +1);
         strcpy(this->url, url);
     };
@@ -57,26 +66,25 @@ public:
     char* getUrl() { return this->url; }
     File* getFile() { return this->file; }
     FileDownloader* getDownloader() { return this->downloader; }
-    
+
     void reportProgress(unsigned long int completed, unsigned long int total) {
         if (this->progressCb != NULL) this->progressCb(completed, total);
     };
 
-    void reportCompleted() {
-        if (this->completedCb != NULL) this->completedCb();
-    };
+    void reportCompleted(bool result) {
+        if (this->openedFile) {
+            this->openedFile.close();
+        }
 
-    void reportFailed() {
-        if (this->failedCb != NULL) this->failedCb();
-    };
+        if (this->completedCb != NULL) this->completedCb(result); };
 
 private:
+    File openedFile;
     File *file;
     char *url;
     FileDownloader *downloader;
     DOWNLOAD_PROGRESS_CB progressCb = NULL;
     DOWNLOAD_COMPLETED_CB completedCb = NULL;
-    DOWNLOAD_FAILED_CB failedCb = NULL;
 };
 
 #endif // __FILEDOWNLOADER_H__

@@ -3,14 +3,14 @@
 void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATURE updateProgressCb) {
     
     logger.trace("Starting to download firmware update from '%s'", url);
-    File f = SD.open(FW_DOWNLOAD_FILENAME, FILE_WRITE);
 
     updateProgressCb(0);
 
-    bool isCompleted, hasFailed;
+    bool isCompleted, isSuccessful;
     int totalUpdateProgress = 0;
 
-    downloader.download(url, &f, 
+    downloader.download(url, FW_DOWNLOAD_FILENAME, 
+        [&isCompleted, &isSuccessful](bool result) { isCompleted = true; isSuccessful = result; }, 
         [&totalUpdateProgress, updateProgressCb](ulong completed, ulong total) { 
 
             int percent = (int)((completed * 100.0f) / total);
@@ -20,15 +20,13 @@ void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATUR
                 totalUpdateProgress = newTotalUpdateProgress;
                 updateProgressCb(totalUpdateProgress);
             }
-        },         
-        [&isCompleted]() { isCompleted = true; }, 
-        [&hasFailed]() { hasFailed = true; });
+        });
 
-    while (!isCompleted && !hasFailed) {
+    while (!isCompleted) {
         yield();
     }
 
-    if (!hasFailed) {
+    if (isSuccessful) {
         logger.verbose("Download completed. Renaming file and restarting...");
         SD.rename(FW_DOWNLOAD_FILENAME, FW_READY_FILENAME);
         this->downloadCompleted = true;

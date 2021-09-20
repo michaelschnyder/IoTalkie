@@ -9,9 +9,14 @@ void _FileDownloaderBackgroundTask(void *arg)
     vTaskDelete(NULL);
 }
 
-void FileDownloader::download(const char * url, File * file, DOWNLOAD_PROGRESS_CB progressCb = NULL, DOWNLOAD_COMPLETED_CB onCompletedCb = NULL, DOWNLOAD_FAILED_CB onFailedCb = NULL) {
+void FileDownloader::download(const char * url, const char * file, DOWNLOAD_COMPLETED_CB completedCb, DOWNLOAD_PROGRESS_CB progressCb) {
+    auto task = new DownloadTask(this, url, file, completedCb, progressCb);
+    xTaskCreate(_FileDownloaderBackgroundTask, "_FileDownloaderBackgroundTask", TASK_STACK_DEPT, task, 1, NULL);
+}
+
+void FileDownloader::download(const char * url, File * file, DOWNLOAD_COMPLETED_CB completedCb, DOWNLOAD_PROGRESS_CB progressCb) {
     
-    auto task = new DownloadTask(this, url, file, progressCb, onCompletedCb, onFailedCb);   
+    auto task = new DownloadTask(this, url, file, completedCb, progressCb);   
     xTaskCreate(_FileDownloaderBackgroundTask, "_FileDownloaderBackgroundTask", TASK_STACK_DEPT, task, 1, NULL);
 }
 
@@ -62,10 +67,6 @@ void FileDownloader::__downloadInternal(void *arg) {
             }
         }
 
-        if (!remaining) {
-            break;
-        }
-
         long bytesStored = file->position();
         task->reportProgress(bytesStored, totalSize);
 
@@ -78,12 +79,5 @@ void FileDownloader::__downloadInternal(void *arg) {
     }
 
     http.end();
-    file->close();
-
-    if (!remaining) {
-        task->reportCompleted();
-    }
-    else {
-        task->reportFailed();
-    }
+    task->reportCompleted(!remaining);
 }
