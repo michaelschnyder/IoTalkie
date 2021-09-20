@@ -9,7 +9,7 @@
 #include <SchemaMigration.h>
 
 #include "Contacts.h"
-#include "http/FileDownloader.h"
+#include "http/TaskHTTP.h"
 
 #include "migrations/M_202102211710_Init.h"
 
@@ -69,7 +69,7 @@ class Inbox {
     bool hasNewMessage[3];
 
     MessageDownloadTask* getNextDownloadTask();
-    FileDownloader downloader;
+    TaskHTTPImpl taskHttp;
 
     bool setAvailable(MessageDownloadTask* t);
     void findUnplayedMessagesForEachSlot();

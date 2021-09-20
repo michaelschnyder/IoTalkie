@@ -5,7 +5,7 @@
 #define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
 #define MAXIMAL_MESSAGE_LENGTH_IN_MS 24000
 
-Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player, FileUploader* uploader) : 
+Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player) :
     
     inbox(&contacts),
 
@@ -86,7 +86,6 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->ui = ui;
     this->recorder = recorder;
     this->player = player;
-    this->uploader = uploader;
 
     this->ui->buttonPanel()->onButtonEvent([this](ButtonEvent evt) {
     
@@ -280,41 +279,42 @@ void Application::sendLastMessage()
 
     logger.trace(F("Sending message '%s' to '%s'"), currentRecordingName, config.getPostMessageUrl().c_str());
 
-    f = SD.open(currentRecordingName, FILE_READ);
-    logger.trace(F("Message size: %i bytes"), f.size());
-
     String url = config.getPostMessageUrl();
     url.replace("{recipientId}", currentRecipient->userId);
 
-    uploader->send(&f, url.c_str());
+    bool isCompleted = false, isSuccessful = false;
+    int totalUploadProgress = 0;
+
+    taskHttp.upload(currentRecordingName, url.c_str(), 
+        [this, &isCompleted, &isSuccessful](bool result) { 
+            isCompleted = true; isSuccessful = result; 
+
+            if (isSuccessful) {
+                this->ui->showSuccess();
+            }
+            else {
+                this->ui->showError();
+            }
+
+            this->fsm.trigger(Event::MESSAGE_SENT);
+
+        }, 
+        [this, &totalUploadProgress](ulong completed, ulong total) { 
+
+            int percent = (int)((completed * 100.0f) / total);
+            int newTotalUpdateProgress = percent / 2;
+
+            if (newTotalUpdateProgress > totalUploadProgress) {
+                totalUploadProgress = newTotalUpdateProgress;
+                logger.verbose("Upload progress: %i/%i, %i%%", currentBytesSent, total, percent);
+            }
+        });
 }
 
 void Application::whileMessageSending() 
 {
-    if (uploader->isCompleted()) {
-        currentBytesSent = 0;
-        f.close();
-        
-        bool wasSuccessful = uploader->isSuccessful();
-        logger.trace(F("Message is sent. Successful: %s"), wasSuccessful ? "yes" : "no");
-
-        if (wasSuccessful) {
-            this->ui->showSuccess();
-        }
-        else {
-            this->ui->showError();
-        }
-
-        this->fsm.trigger(Event::MESSAGE_SENT);
-        return;  
-    }
-
-    if (this->uploader->getBytesSent() != currentBytesSent) {
-        currentBytesSent = this->uploader->getBytesSent();
-        long total = this->uploader->getBytesTotal();
-        int percent = (int)((currentBytesSent * 100.0f) / total);
-        logger.verbose("Upload progress: %i/%i, %i%%", currentBytesSent, total, percent);
-    }
+    // Updates are done via callbacks above and state transition happens there as well
+    yield();
 }
 
 void Application::tryPlayMessageFrom(int buttonId) 

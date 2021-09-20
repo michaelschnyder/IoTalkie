@@ -64,7 +64,7 @@ void Inbox::downloadSingleMessage()
 
     bool isCompleted = false, isSuccessful = false;
 
-    downloader.download(next->getDownloadUrl(), next->getStorageLocation(),
+    taskHttp.download(next->getDownloadUrl(), next->getStorageLocation(),
         [&isCompleted, &isSuccessful](bool result) { 
             isCompleted = true; isSuccessful = result; 
             });
