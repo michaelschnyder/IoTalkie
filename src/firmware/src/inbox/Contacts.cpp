@@ -82,3 +82,44 @@ int Contacts::size()
 {
     return this->numberOfContacts;
 }
+
+void Contacts::update(String remoteUrl) {
+    
+    auto oldFile = filename  + ".old";
+    auto tmpFile = filename + ".tmp";
+    
+    downloader.download(remoteUrl.c_str(), (tmpFile).c_str(), [this, oldFile, tmpFile](bool successful) {
+        
+        if (successful) {
+
+            logger.trace("Contacts download successful, moving files and try to load...");
+            
+            // Rename old
+            SD.rename(filename, oldFile);
+            SD.rename(tmpFile, filename);
+
+            logger.trace("Loading new version of contacts.json");
+            if (this->load()) {
+
+                if (this->contactsUpdatedCb != NULL) {
+                    this->contactsUpdatedCb(true);
+                }
+
+                logger.trace("Contacts refreshed successfully. Removing old file.");
+                SD.remove(oldFile);
+            }
+            else {
+                logger.error("Could not update contacts. rolling back");
+                SD.remove(filename);
+                SD.rename(oldFile, filename);
+
+                if (this->contactsUpdatedCb != NULL) {
+                    this->contactsUpdatedCb(false);
+                }
+            }
+        }
+        else {
+            logger.error("Downloading of new contacts.json was not successful.");
+        }
+    });
+}
