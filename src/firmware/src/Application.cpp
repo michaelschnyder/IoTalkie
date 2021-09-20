@@ -140,6 +140,12 @@ void Application::setup()
         this->fsm.trigger(Event::SYSTEM_READY); 
     });
 
+    contacts.onContactsUpdated([this](boolean ok) {
+        if (ok) {
+            ui->getScreen()->showHomeScreen();
+        }
+    });
+
     healthReporter.setup(&client);
 }
 
@@ -167,7 +173,6 @@ void Application::afterStarting()
 {
     this->isAppRunning = true;
     this->ui->showWelcome();
-    
 }
 
 void Application::whileShuttingDown() 
@@ -377,6 +382,15 @@ void Application::dispatchCloudCommand(String commandName, JsonObject& value)
 
         String remoteUrl = value.get<String>("remoteUrl");
         this->pendingFirmwareDownloadUrl = remoteUrl;
+    }
+    if (commandName == "updateContacts") {
+        
+        if (!value.containsKey("remoteUrl")) {
+            return;
+        }
+
+        String remoteUrl = value.get<String>("remoteUrl");
+        contacts.update(remoteUrl);
     }
 }
 
