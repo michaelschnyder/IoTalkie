@@ -6,7 +6,7 @@ void FirmwareUpdater::download(const char* url, UPDATEPROGRESS_CALLBACK_SIGNATUR
 
     updateProgressCb(0);
 
-    bool isCompleted, isSuccessful;
+    bool isCompleted = false, isSuccessful = false;
     int totalUpdateProgress = 0;
 
     downloader.download(url, FW_DOWNLOAD_FILENAME, 
