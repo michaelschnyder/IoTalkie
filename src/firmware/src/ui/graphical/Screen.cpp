@@ -138,6 +138,9 @@ void Screen::showHomeScreen() {
     }
     while (display.nextPage());    
 
+    if (contacts->size() <= 0) {
+        return;
+    }
 
     // Display contacts
     display.setTextColor(GxEPD_BLACK);
@@ -177,9 +180,6 @@ void Screen::showHomeScreen() {
             {
                 display.drawFastHLine(0, card_y_start, display.width(), GxEPD_BLACK);
             }
-
-            // display.drawFastHLine(x, card_y_center, display.width(), GxEPD_BLACK);
-            // display.drawFastHLine(x, card_y_end, display.width(), GxEPD_BLACK);
 
             display.setCursor(x, text_y_start);
             display.print(c->name);

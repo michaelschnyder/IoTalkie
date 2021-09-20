@@ -110,11 +110,9 @@ void Startup::loadSettings()
 
 void Startup::loadContacts() 
 {
-    if(contacts->load()) {
-
-        ui->getScreen()->setContacts(contacts);
-        fsm.trigger(Event::Continue);
-    }    
+    contacts->load();
+    ui->getScreen()->setContacts(contacts);
+    fsm.trigger(Event::Continue);        
 }
 
 void Startup::startWifi() 
