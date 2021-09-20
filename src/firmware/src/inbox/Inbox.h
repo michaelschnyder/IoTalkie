@@ -7,8 +7,9 @@
 #include <SQLite.h>
 #include <SchemaMigrator.h>
 #include <SchemaMigration.h>
-#include <HTTPClient.h>
+
 #include "Contacts.h"
+#include "http/FileDownloader.h"
 
 #include "migrations/M_202102211710_Init.h"
 
@@ -68,7 +69,8 @@ class Inbox {
     bool hasNewMessage[3];
 
     MessageDownloadTask* getNextDownloadTask();
-    bool download(MessageDownloadTask* t);
+    FileDownloader downloader;
+
     bool setAvailable(MessageDownloadTask* t);
     void findUnplayedMessagesForEachSlot();
     ONNEWMESSAGE_CALLBACK_SIGNATURE onNewMessageCallback;

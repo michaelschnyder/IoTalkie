@@ -62,7 +62,19 @@ void Inbox::downloadSingleMessage()
         return;
     }
 
-    if (!download(next)) {
+    bool isCompleted = false, isSuccessful = false;
+
+    downloader.download(next->getDownloadUrl(), next->getStorageLocation(),
+        [&isCompleted, &isSuccessful](bool result) { 
+            isCompleted = true; isSuccessful = result; 
+            });
+
+    while (!isCompleted) {
+        yield();
+    }
+
+    if (!isSuccessful) {
+        free(next);
         return;
     }
 
@@ -138,64 +150,10 @@ MessageDownloadTask* Inbox::getNextDownloadTask()
     return new MessageDownloadTask(messageId, senderId, remoteUrl, localFile);
 }
 
-bool Inbox::download(MessageDownloadTask* task) 
-{
-    HTTPClient http;
-    http.begin(task->getDownloadUrl());
-
-    int httpCode = http.GET();
-
-    if (!(httpCode > 0)) {
-        logger.error("failed to download file. Error: %s\n", http.errorToString(httpCode).c_str());
-        return false;
-    }
-
-    if(httpCode != HTTP_CODE_OK) {
-        logger.error("failed to download file. Server responded with error: %s\n", http.errorToString(httpCode).c_str());
-        return false;
-    }
-
-    int totalSize = http.getSize();
-
-    WiFiClient * stream = http.getStreamPtr();
-
-    File f = SD.open(task->getStorageLocation(), FILE_WRITE);
-    uint8_t buff[1024] = { 0 };
-
-    int remaining = totalSize;
-    while(http.connected() && (remaining > 0 || remaining == -1)) {
-        // get available data size
-        size_t size = stream->available();
-
-        if(size) {
-
-            int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
-            f.write(buff, c);
-
-            if(remaining > 0) {
-                remaining -= c;
-            }
-        }
-
-        if (remaining) {
-            long bytesStored = f.position();
-            int percent = (int)((bytesStored * 100.0f) / totalSize);
-            logger.verbose("Download progress: %i/%i, %i%%", bytesStored, totalSize, percent);
-        }
-        else {
-            logger.verbose("Download progress: %i");
-        }
-
-        delay(10);
-    }
-    
-    http.end();
-    f.close();
-    return true;
-}
-
 bool Inbox::setAvailable(MessageDownloadTask* task) 
 {
+    logger.trace("Mark message '%s' as available for consumption", task->getMessageId());
+
     SQLiteConnection conn(&db);
     if (conn.execute(QUERY_UPDATE_LOCALFILE_BY_MESSAGEID, task->getStorageLocation(), task->getMessageId())) {
         
