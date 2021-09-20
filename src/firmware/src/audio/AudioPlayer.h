@@ -2,7 +2,6 @@
 #define __AUDIOPLAYER_H__
 
 #include "hardware.h"
-#ifdef HAS_AUDIO_PLAYER 
 
 #include <functional>
 #include <FS.h>
@@ -58,5 +57,4 @@ class AudioPlayer : public AudioPlayerBase {
         bool isPlaying();
         const char* getFilename();
 };
-#endif // HAS_AUDIO_PLAYER
 #endif // __AUDIOPLAYER_H__

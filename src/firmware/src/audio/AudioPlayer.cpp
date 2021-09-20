@@ -1,5 +1,4 @@
 #include "hardware.h"
-#ifdef HAS_AUDIO_PLAYER 
 
 #include "AudioPlayer.h"
 
@@ -84,4 +83,3 @@ const char* AudioPlayer::getFilename()
 {
 	return filename;
 }
-#endif // HAS_AUDIO_PLAYER
