@@ -23,6 +23,7 @@ namespace IoTalkie.MessageSenderCmd
             services.Configure<AzureSettings>(configuration.GetSection(typeof(AzureSettings).Name));
             services.AddSingleton<SendMessageFunctionality>();
             services.AddSingleton<UpdateFirmwareFunctionality>();
+            services.AddSingleton<UpdateContactsFunctionality>();
 
             var provider = services.BuildServiceProvider();
             return provider;
@@ -38,24 +39,29 @@ namespace IoTalkie.MessageSenderCmd
             services = ServiceProviderBuilder.GetServiceProvider(args);
             var options = services.GetRequiredService<IOptions<AzureSettings>>();
 
-            Command sendMessage = new Command("message", "Send a voice message to a device from a specific user")
+            var sendMessage = new Command("message", "Send a voice message to a device from a specific user")
             {
                 new Argument<string>("file", "The message to be sent"),
                 new Argument<string>("deviceId", "Target device the message should be sent to"),
                 new Argument<string>("senderId", "From which user the message should come from"),
             };
-
             sendMessage.Handler = CommandHandler.Create<string, string, string, IConsole>(SendMessageAsync);
 
-            Command updateFirmware = new Command("updateFirmware", "Upload firmware and advice a single device download to update.")
+            var updateFirmware = new Command("updateFirmware", "Upload firmware and advice a single device download to update.")
             {
                 new Argument<string>("file", "The file to be sent."),
                 new Argument<string>("deviceId", "Target device the message should be sent to"),
             };
-
             updateFirmware.Handler = CommandHandler.Create<string, string, IConsole>(UpdateFirmwareAsync);
 
-            var cmd = new RootCommand { sendMessage, updateFirmware };
+            var updateContacts = new Command("updateContacts", "Upload contacts.json and advice single device to download & update.")
+            {
+                new Argument<string>("file", "The file to be sent."),
+                new Argument<string>("deviceId", "Target device the message should be sent to"),
+            };
+            updateContacts.Handler = CommandHandler.Create<string, string, IConsole>(UpdateContactsAsync);
+
+            var cmd = new RootCommand { sendMessage, updateFirmware, updateContacts };
 
             return cmd.Invoke(args);
         }
@@ -67,6 +73,10 @@ namespace IoTalkie.MessageSenderCmd
         private static async Task UpdateFirmwareAsync(string file, string deviceId, IConsole arg4)
         {
             await services.GetService<UpdateFirmwareFunctionality>().Run(file, deviceId);
+        }
+        private static async Task UpdateContactsAsync(string file, string deviceId, IConsole arg4)
+        {
+            await services.GetService<UpdateContactsFunctionality>().Run(file, deviceId);
         }
     }
 
@@ -88,6 +98,20 @@ namespace IoTalkie.MessageSenderCmd
     public class UpdateFirmwareCmd
     {
         public string Cmd { get; set; } = "updateFirmware";
+
+        public string MessageId { get; set; } = Guid.NewGuid().ToString();
+
+        public long Timestamp { get; set; } = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+
+        public long Size { get; set; }
+
+        public string RemoteUrl { get; set; }
+    }
+
+    public class UpdateContactsCmd
+    {
+        public string Cmd { get; set; } = "updateContacts";
 
         public string MessageId { get; set; } = Guid.NewGuid().ToString();
 

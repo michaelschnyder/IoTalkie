@@ -9,5 +9,7 @@
         public string AudioMessagesContainerName { get; set; }
         
         public string FirmwareUpdatesContainerName { get; set; }
+
+        public string ContactsContainerName { get; set; }
     }
 }
