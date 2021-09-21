@@ -92,9 +92,11 @@ namespace IoTalkie.Messaging
 
     public class ContactMessageRecipient
     {
+        private readonly string _recipientId;
+
         public ContactMessageRecipient(string recipientId)
         {
-            
+            _recipientId = recipientId;
         }
     }
 
