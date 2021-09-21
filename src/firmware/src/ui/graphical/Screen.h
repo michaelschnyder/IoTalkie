@@ -20,11 +20,12 @@ public:
     void setup();
 
     void showPostScreen();
+    void showSleepScreen();
     void showHomeScreen();
     void showUpdateScreen();
     void setUpdateProgress(int);
     void showErrorScreen(int code, const char* message);
-    
+
     void setWifiSSID(const char * name);
     void setConnected(bool status);
     void setContacts(Contacts*);

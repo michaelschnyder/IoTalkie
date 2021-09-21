@@ -34,14 +34,16 @@ void Startup::post()
     Serial.printf("IoTalkie Version: %s build at: %s by %s@%s", BuildInfo::getVersion(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
-    ui->getScreen()->showPostScreen();
     this->ui->isBusy(false);
 
     if (!ui->isPowerButtonOn()) {
         fsm.trigger(Event::Halt);
+        ui->getScreen()->showSleepScreen();
     }
     else {
         this->ui->isBusy(true);
+        ui->getScreen()->showPostScreen();
+    
         fsm.trigger(Event::Continue);
     }
 }
@@ -83,9 +85,8 @@ void Startup::checkSDCardFS()
             fsm.trigger(Event::Continue);
         }
     }
-    else {
-        delay(50);
-    }
+    
+    delay(50);
 }
 
 void Startup::updateSystem() {
@@ -107,7 +108,7 @@ void Startup::loadSettings()
         fsm.trigger(Event::Continue);
     }
 
-    sleep(100);
+    delay(100);
 }
 
 void Startup::loadContacts() 

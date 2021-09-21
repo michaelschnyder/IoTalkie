@@ -4,10 +4,27 @@
 
 void Screen::setup() {    
     display.init(SCRN_SCK, SCRN_BUSY, SCRN_SDI, SCRN_CS, otherSPI);
+    display.setRotation(0);
+
+    display.firstPage();
+}
+
+void Screen::showSleepScreen() {
+
+    display.setPartialWindow(0, 0, display.width(), display.height());
+    display.firstPage();
+    
+    do
+    {
+        display.writeFillRect(0, 0, display.width(), display.height(), GxEPD_BLACK);
+    }
+
+    while (display.nextPage());
+}
+
+void Screen::showPostScreen() {
 
     const char HelloWorld[] = "IoTalkie";
-
-    display.setRotation(0);
     display.setTextColor(GxEPD_BLACK);
 
     // Hello Text
@@ -27,11 +44,7 @@ void Screen::setup() {
         display.setCursor(hello_x, hello_y);
         display.print(HelloWorld);
     }
-
     while (display.nextPage());
-}
-
-void Screen::showPostScreen() {
 
     char info[20];
     sprintf(info, "%s-%s", BuildInfo::buildDateVersion(), BuildInfo::gitCommit());
