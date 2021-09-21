@@ -1,15 +1,13 @@
 #include "Application.h"
-#include "SD.h"
-#include "WiFi.h"
 
 #define MINIMAL_MESSAGE_LENGTH_IN_MS 1000
 #define MAXIMAL_MESSAGE_LENGTH_IN_MS 24000
 
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player) :
     
-    mailbox(&contacts, &config),
+    mailbox(&contacts, &config, &timeService),
 
-    startup(ui, &config, &settings, &contacts, &mailbox, &client),
+    startup(ui, &config, &settings, &contacts, &mailbox, &client, &timeService),
     shutdown(ui, &client),
 
     state_startup(nullptr, [this]() { whileStarting(); }, [this]() { afterStarting(); }),
@@ -136,7 +134,6 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
 
 void Application::setup() 
 {
-    client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
     client.onConnectionStatusChange(std::bind(&Application::connectionStatusChangeHandler, this, std::placeholders::_1));
 
     mailbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
@@ -150,7 +147,7 @@ void Application::setup()
         }
     });
 
-    healthReporter.setup(&client);
+    healthReporter.setup(&client, &timeService);
 }
 
 void Application::run() {    
@@ -158,13 +155,15 @@ void Application::run() {
     if (isAppRunning) {
         ui->loop();   
         player->loop();
-        client.loop();
+
         float maxVolume = 0.5;
         player->setGain(ui->getVolume() * 4.0f * maxVolume);
     }
 
     fsm.run_machine();
 
+    client.loop();
+    timeService.loop();
     healthReporter.loop();
 }
 
@@ -175,6 +174,8 @@ void Application::whileStarting()
 
 void Application::afterStarting() 
 {
+    client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
+
     this->isAppRunning = true;
     this->ui->showWelcome();
 }
@@ -235,7 +236,7 @@ void Application::recordMessageFor(int buttonId)
         return;
     }
 
-    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId, millis());
+    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId, timeService.getTimestamp());
     logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name, currentRecordingName);
 
     f = SD.open(currentRecordingName, FILE_WRITE);

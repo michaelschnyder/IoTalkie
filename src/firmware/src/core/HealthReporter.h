@@ -2,6 +2,7 @@
 #define __HEALTHREPORTER_H__
 
 #include <AzureIoTMqttClient.h>
+#include "core/TimeService.h"
 #include "core/BuildInfo.h"
 #include "core/Diagnostics.h"
 
@@ -13,6 +14,9 @@
         "\"type\": \"ClientHello\","
         "\"fwVersion\": \"%s\","
         
+        "\"startTime\": %lu,"
+        "\"uptime\": %lu,"
+
         "\"chipModel\": \"%s\","
         "\"chipRevision\": %i,"
         "\"cpuFreqMhz\": %i,"
@@ -39,6 +43,7 @@
     "{"
         "\"type\": \"DiagMessage\","
         
+        "\"uptime\": %lu,"
         "\"heapFreeSize\": %u,"
         "\"heapLargestFreeBlockSize\": %u,"
         "\"spiffsUsed\": %llu,"
@@ -52,12 +57,13 @@ class HealthReporter {
 
 private:
     AzureIoTMqttClient* client;
+    TimeService* timeService;
     long lastPrint, lastSent;
     void sendStats();
     void printStats();
 
 public:
-    void setup(AzureIoTMqttClient*);
+    void setup(AzureIoTMqttClient*, TimeService*);
     void loop();
 
     void sayHello();
