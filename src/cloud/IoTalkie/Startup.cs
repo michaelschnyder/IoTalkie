@@ -1,15 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using IoTalkie.Common;
 using IoTalkie.Messaging;
 
 namespace IoTalkie
@@ -29,6 +23,15 @@ namespace IoTalkie
             services.AddControllers();
 
             services.AddScoped<MessageHandler>();
+            services.AddScoped<AudioPayloadStore>();
+
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", true, true)
+                .AddEnvironmentVariables()
+                .AddUserSecrets(typeof(Program).Assembly)
+                .Build();
+
+            services.Configure<AzureSettings>(configuration.GetSection(typeof(AzureSettings).Name));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

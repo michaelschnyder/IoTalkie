@@ -7,11 +7,9 @@ namespace IoTalkie.Messaging
 {
     public class MessageHandler
     {
-
-        void Handle()
+        public void Process(RoutingMessage routingMessage)
         {
-
+            
         }
-
     }
 }

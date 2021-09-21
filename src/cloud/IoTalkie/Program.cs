@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace IoTalkie
@@ -12,8 +13,15 @@ namespace IoTalkie
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                //.ConfigureAppConfiguration(config =>
+                //{
+                //    config.AddJsonFile("appsettings.json", true, true);
+                //    config.AddEnvironmentVariables();
+                //    config.AddUserSecrets(typeof(Program).Assembly);
+                //})
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    
                     webBuilder.UseStartup<Startup>();
                 });
     }

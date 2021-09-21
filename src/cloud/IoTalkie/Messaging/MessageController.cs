@@ -15,10 +15,14 @@ namespace IoTalkie.Messaging
     public class MessageController : ControllerBase
     {
         private readonly ILogger<MessageController> _logger;
+        private readonly MessageHandler _handler;
+        private readonly AudioPayloadStore _store;
 
-        public MessageController(ILogger<MessageController> logger, MessageHandler handler)
+        public MessageController(ILogger<MessageController> logger, MessageHandler handler, AudioPayloadStore store)
         {
             _logger = logger;
+            _handler = handler;
+            _store = store;
         }
 
         [HttpPost("{messageId}")]
@@ -31,18 +35,21 @@ namespace IoTalkie.Messaging
 
                 var sender = new DeviceMessageSender(clientId, userAgent);
                 var recipient = new ContactMessageRecipient(recipientId);
+                var payload = await _store.Store(messageId, Request.Body);
+
+                var routingMessage = new RoutingMessage(sender, recipient, payload);
+
+                _handler.Process(routingMessage);
+
+                //string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
+
+                //using (var file = new FileStream(Path.Combine("messages", path2), FileMode.CreateNew))
+                //{
+                //    await Request.Body.CopyToAsync(file);
+                //}
 
 
-
-                string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
-
-                using (var file = new FileStream(Path.Combine("messages", path2), FileMode.CreateNew))
-                {
-                    await Request.Body.CopyToAsync(file);
-                }
-
-
-                Debug.WriteLine($"Saved to '{Path.GetFullPath(Path.Combine("messages", path2)) }'");
+                //Debug.WriteLine($"Saved to '{Path.GetFullPath(Path.Combine("messages", path2)) }'");
             }
             catch (Exception e)
             {
@@ -67,6 +74,20 @@ namespace IoTalkie.Messaging
             return this.Ok();
         }
 
+    }
+
+    public class RoutingMessage
+    {
+        private readonly DeviceMessageSender _sender;
+        private readonly ContactMessageRecipient _recipientId;
+        private readonly AzureBlobPayload _payload;
+
+        public RoutingMessage(DeviceMessageSender sender, ContactMessageRecipient recipientId, AzureBlobPayload payload)
+        {
+            _sender = sender;
+            _recipientId = recipientId;
+            _payload = payload;
+        }
     }
 
     public class ContactMessageRecipient
