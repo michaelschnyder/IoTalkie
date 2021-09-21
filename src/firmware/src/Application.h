@@ -14,8 +14,8 @@
 
 #include "ui/UserInterface.h"
 
-#include "inbox/Contacts.h"
-#include "inbox/Inbox.h"
+#include "mailbox/Contacts.h"
+#include "mailbox/Mailbox.h"
 
 #include "audio/AudioRecorder.h"
 #include "audio/AudioPlayerBase.h"
@@ -62,7 +62,7 @@ class Application
     TaskHTTPImpl taskHttp;
     
     Contacts contacts;
-    Inbox inbox;
+    Mailbox mailbox;
     AudioPlayerBase *player;
     
     Startup startup;

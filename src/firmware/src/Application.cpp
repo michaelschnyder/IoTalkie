@@ -7,9 +7,9 @@
 
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player) :
     
-    inbox(&contacts),
+    mailbox(&contacts),
 
-    startup(ui, &config, &settings, &contacts, &inbox, &client),
+    startup(ui, &config, &settings, &contacts, &mailbox, &client),
     shutdown(ui, &client),
 
     state_startup(nullptr, [this]() { whileStarting(); }, [this]() { afterStarting(); }),
@@ -134,7 +134,7 @@ void Application::setup()
     client.onCommand(std::bind(&Application::dispatchCloudCommand, this, std::placeholders::_1, std::placeholders::_2));
     client.onConnectionStatusChange(std::bind(&Application::connectionStatusChangeHandler, this, std::placeholders::_1));
 
-    inbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
+    mailbox.onNewMessage(std::bind(&Application::showNewMessageFrom, this, std::placeholders::_1));
     startup.onCompleted([this](long duration) { 
         this->fsm.trigger(Event::SYSTEM_READY); 
     });
@@ -187,14 +187,14 @@ void Application::beforeIdling()
 
     for (size_t i = 0; i < contacts.size(); i++)
     {
-        this->ui->showHasNewMessageAt(i, inbox.hasNewMessages(i));
+        this->ui->showHasNewMessageAt(i, mailbox.hasNewMessages(i));
     }
 
 }
 
 void Application::whileIdling() {   
     
-    if (inbox.hasPendingDownloads(false)) {
+    if (mailbox.hasPendingDownloads(false)) {
         fsm.trigger(Event::DOWNLOAD_MESSAGE);
     }
 
@@ -328,7 +328,7 @@ void Application::tryPlayMessageFrom(int buttonId)
         return;
     }
 
-    currentMessage = inbox.getAudioMessageFor((const char*)c->userId);
+    currentMessage = mailbox.getAudioMessageFor((const char*)c->userId);
 
     if (currentMessage == NULL) {
         logger.warning(F("No new or old audio message found from user '%s' on slot %i"), c->name, c->slot);
@@ -339,7 +339,7 @@ void Application::tryPlayMessageFrom(int buttonId)
     if (!SD.exists(currentMessage->getStorageLocation())) {
         logger.warning(F("File '%s' is not available in the filesystem and cannot be played. Mark as faulty."), currentMessage->getStorageLocation());
 
-        inbox.setIgnored(currentMessage);
+        mailbox.setIgnored(currentMessage);
         delete currentMessage;
 
         this->fsm.trigger(Event::MESSAGE_NOTFOUND);
@@ -357,7 +357,7 @@ void Application::whileMessagePlaying()
         this->ui->showAudioPlaying();
     }
     else {
-        this->inbox.setPlayed(currentMessage);
+        this->mailbox.setPlayed(currentMessage);
         this->fsm.trigger(Event::MESSAGE_PLAYED);
     }
 }
@@ -369,14 +369,14 @@ void Application::messagePlayingEnded() {
 
 void Application::whileReceivingMessage() 
 {
-    inbox.downloadSingleMessage();
+    mailbox.downloadSingleMessage();
     fsm.trigger(Event::MESSAGE_DOWNLOADED);
 }
 
 void Application::dispatchCloudCommand(String commandName, JsonObject& value) 
 {
     if (commandName == "newMessage") {
-        inbox.handleNotification(value);
+        mailbox.handleNotification(value);
     }
     if (commandName == "updateFirmware") {
         

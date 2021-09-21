@@ -9,7 +9,7 @@
 #include <Fonts/FreeSansBold12pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
 
-#include "inbox/Contacts.h"
+#include "mailbox/Contacts.h"
 
 class Screen {
 

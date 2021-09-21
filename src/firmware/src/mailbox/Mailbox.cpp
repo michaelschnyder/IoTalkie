@@ -1,17 +1,16 @@
-#include "Inbox.h"
+#include "Mailbox.h"
 
-bool Inbox::load() 
+bool Mailbox::load() 
 {
     SchemaMigrator schemaMigrator(&db);
-    schemaMigrator.runIfMissing(new M_202102211710_Init());
-    schemaMigrator.runIfMissing(new M_202120092116_AddFaultyColumn());
+    schemaMigrator.runIfMissing(new M_202109211300_Init());
     
     findUnplayedMessagesForEachSlot();
     
     return true;
 }
 
-bool Inbox::handleNotification(JsonObject& notification) 
+bool Mailbox::handleNotification(JsonObject& notification) 
 {
     auto mustHave = {"messageId", "timestamp", "senderId", "size", "remoteUrl"};
     std::initializer_list<const char*>::iterator key;
@@ -37,7 +36,7 @@ bool Inbox::handleNotification(JsonObject& notification)
         return false;
     }
 
-    if(conn.execute(QUERY_INSERT_NEW_MESSAGE, messageId.c_str(), timestamp, senderId.c_str(), size, remoteUrl.c_str())) {
+    if(conn.execute(QUERY_INSERT_NEW_INCOMING_MESSAGE, messageId.c_str(), timestamp, senderId.c_str(), size, remoteUrl.c_str())) {
         pendingDownloadsAvailable = true;
         return true;
     }
@@ -45,7 +44,7 @@ bool Inbox::handleNotification(JsonObject& notification)
     return false;
 }
 
-bool Inbox::hasPendingDownloads(bool forceCheck) 
+bool Mailbox::hasPendingDownloads(bool forceCheck) 
 {
     if (forceCheck) {
         SQLiteConnection conn(&db);
@@ -55,7 +54,7 @@ bool Inbox::hasPendingDownloads(bool forceCheck)
     return pendingDownloadsAvailable;
 }
 
-void Inbox::downloadSingleMessage() 
+void Mailbox::downloadSingleMessage() 
 {
     auto next = getNextDownloadTask();
 
@@ -83,7 +82,7 @@ void Inbox::downloadSingleMessage()
     free(next);
 }
 
-void Inbox::findUnplayedMessagesForEachSlot() {
+void Mailbox::findUnplayedMessagesForEachSlot() {
     
     SQLiteConnection conn(&db);
     for (size_t slot = 0; slot < contacts->size(); slot++)
@@ -96,12 +95,12 @@ void Inbox::findUnplayedMessagesForEachSlot() {
     }
 }
 
-bool Inbox::hasNewMessages(int slotId) 
+bool Mailbox::hasNewMessages(int slotId) 
 {
     return this->hasNewMessage[slotId];
 }
 
-MessageRecord* Inbox::getAudioMessageFor(const char* userId) 
+MessageRecord* Mailbox::getAudioMessageFor(const char* userId) 
 {
     SQLiteConnection conn(&db);
     auto nextUnplayed = conn.query(QUERY_OLDEST_UNPLAYED_MESSAGE_FOR_USERID, userId);
@@ -121,7 +120,7 @@ MessageRecord* Inbox::getAudioMessageFor(const char* userId)
     return NULL;
 }
 
-void Inbox::setPlayed(MessageRecord* message) 
+void Mailbox::setPlayed(MessageRecord* message) 
 {
     SQLiteConnection conn(&db);
     conn.execute(QUERY_INCREASE_PLAYCOUNT_BY_MESSAGEID, message->getMessageId());
@@ -129,7 +128,7 @@ void Inbox::setPlayed(MessageRecord* message)
     findUnplayedMessagesForEachSlot();
 }
 
-void Inbox::setIgnored(MessageRecord* message) 
+void Mailbox::setIgnored(MessageRecord* message) 
 {
     SQLiteConnection conn(&db);
     conn.execute(QUERY_SET_IGNORED_BY_MESSAGEID, message->getMessageId());
@@ -137,12 +136,12 @@ void Inbox::setIgnored(MessageRecord* message)
     findUnplayedMessagesForEachSlot();
 }
 
-void Inbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback) 
+void Mailbox::onNewMessage(ONNEWMESSAGE_CALLBACK_SIGNATURE callback) 
 {
     this->onNewMessageCallback = callback;
 }
 
-MessageRecord* Inbox::getNextDownloadTask() 
+MessageRecord* Mailbox::getNextDownloadTask() 
 {
     SQLiteConnection conn(&db);
     auto resultSet = conn.query(QUERY_NEXT_PENDING_MESSAGE_FOR_DOWNLOAD);
@@ -164,7 +163,7 @@ MessageRecord* Inbox::getNextDownloadTask()
     return new MessageRecord(messageId, senderId, remoteUrl, localFile);
 }
 
-bool Inbox::setAvailable(MessageRecord* task) 
+bool Mailbox::setAvailable(MessageRecord* task) 
 {
     logger.trace("Mark message '%s' as available for consumption", task->getMessageId());
 
