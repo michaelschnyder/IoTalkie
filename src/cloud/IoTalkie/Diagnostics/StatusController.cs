@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace IoTalkie.Controllers
+namespace IoTalkie.Diagnostics
 {
     [ApiController]
     [Route("api/status")]

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IoTalkie.MessageSenderCmd
+namespace IoTalkie.Common
 {
     public class UpdateContactsCmd
     {

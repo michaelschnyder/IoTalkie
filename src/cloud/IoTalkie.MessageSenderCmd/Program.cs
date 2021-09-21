@@ -5,6 +5,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading.Tasks;
+using IoTalkie.Common;
 
 namespace IoTalkie.MessageSenderCmd
 {
