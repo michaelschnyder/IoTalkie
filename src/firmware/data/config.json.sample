@@ -1,0 +1,7 @@
+{
+    "azIoTHubName": "iotalkie-eu",
+    "azIoTSASToken": "SharedAccessSignature sr=...",
+    "deviceId": "YOUR_DEVICE_ID",
+    "postMessageUrl": "https://the.domain.com/api/message/{messageId}?recipientId={recipientId}",
+    "getMessageUrl": "https://the.domain.com/api/message/{messageId}"
+}
