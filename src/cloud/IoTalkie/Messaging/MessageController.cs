@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace IoTalkie.Messaging
 {
@@ -13,7 +16,7 @@ namespace IoTalkie.Messaging
     {
         private readonly ILogger<MessageController> _logger;
 
-        public MessageController(ILogger<MessageController> logger)
+        public MessageController(ILogger<MessageController> logger, MessageHandler handler)
         {
             _logger = logger;
         }
@@ -25,6 +28,10 @@ namespace IoTalkie.Messaging
             {
                 var userAgent = GetHeaderValue("User-Agent");
                 var clientId = GetHeaderValue("ClientId");
+
+                var sender = new DeviceMessageSender(clientId, userAgent);
+                var recipient = new ContactMessageRecipient(recipientId);
+
 
 
                 string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
@@ -60,5 +67,25 @@ namespace IoTalkie.Messaging
             return this.Ok();
         }
 
+    }
+
+    public class ContactMessageRecipient
+    {
+        public ContactMessageRecipient(string recipientId)
+        {
+            
+        }
+    }
+
+    public class DeviceMessageSender
+    {
+        private readonly string _clientId;
+        private readonly string _userAgent;
+
+        public DeviceMessageSender(string clientId, string userAgent)
+        {
+            _clientId = clientId;
+            _userAgent = userAgent;
+        }
     }
 }
