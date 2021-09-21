@@ -94,6 +94,62 @@ void Screen::showUpdateScreen() {
 
 }
 
+void Screen::showErrorScreen(int code, const char* message) {
+
+    char title[14] = "Error X";
+    char detail[255] = "Message";
+
+    sprintf(title, "Error %02X", code);
+    sprintf(detail, "%s", message);
+
+    display.setFont(&FreeSansBold12pt7b);      
+    int16_t tbx, tby; uint16_t tbw, tbh;
+    display.getTextBounds(title, 0, 0, &tbx, &tby, &tbw, &tbh);
+    uint16_t x = (display.width()- 6 - tbw) / 2;
+    uint16_t y = (display.height() - tbh) / 2;
+
+
+    display.setPartialWindow(0, 0, display.width(), display.height());
+    display.firstPage();
+    
+    do
+    {
+        display.writeFillRect(0, 0, display.width(), display.height(), GxEPD_BLACK);
+        display.setTextColor(GxEPD_WHITE);
+        
+        display.setCursor(x, y);
+        display.print(title);
+    }
+
+    while (display.nextPage());
+
+    // Display Message
+    display.setFont(&FreeSansBold9pt7b);      
+    int16_t ibx, iby; uint16_t ibw, ibh;
+    display.getTextBounds(detail, 0, 0, &ibx, &iby, &ibw, &ibh);
+
+    if (ibh > 10) {
+        display.setFont(0);      
+        display.getTextBounds(detail, 0, 0, &ibx, &iby, &ibw, &ibh);
+    }
+
+    uint16_t info_x = ((display.width() -6 - ibw) / 2) - ibx;
+    uint16_t info_y = y + 7;
+
+    display.setPartialWindow(0, info_y, display.width(), 50);
+    display.firstPage();
+    
+    do
+    {
+        display.writeFillRect(0, info_y, display.width(), 50, GxEPD_BLACK);
+        display.setTextColor(GxEPD_WHITE);
+        display.setCursor(info_x, info_y);
+        display.print(detail);
+    }
+
+    while (display.nextPage());
+}
+
 void Screen::setUpdateProgress(int percentage) {
 
     uint16_t y = 130;
@@ -226,7 +282,5 @@ void Screen::setConnected(bool status) {
 }
 
 void Screen::setContacts(Contacts* contacts) {
-    Serial.printf("Number of contacts %i\n", contacts->size());
-
     this->contacts = contacts;
 }

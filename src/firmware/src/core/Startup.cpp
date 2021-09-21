@@ -167,6 +167,8 @@ void Startup::setError(int code, const char* message)
     ui->showHasNewMessageAt(0, thirdBit);
     ui->showHasNewMessageAt(1, secondBit);
     ui->showHasNewMessageAt(2, firstBit);
+
+    ui->getScreen()->showErrorScreen(code, message);
 }
 
 void Startup::whileError() 
