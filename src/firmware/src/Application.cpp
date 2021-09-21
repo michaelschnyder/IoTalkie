@@ -236,7 +236,7 @@ void Application::recordMessageFor(int buttonId)
         return;
     }
 
-    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId, millis());
+    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId, timeService.getTimestamp());
     logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name, currentRecordingName);
 
     f = SD.open(currentRecordingName, FILE_WRITE);

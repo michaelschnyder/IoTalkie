@@ -79,6 +79,7 @@ public:
     Mailbox(Contacts* contacts, DeviceConfig* config, TimeService*) : db(SQLITE_FILENAME) {
         this->contacts = contacts;
         this->config = config;
+        this->timeService = timeService;
     }
 
     bool load();
