@@ -25,10 +25,14 @@
 
 class TaskHTTPImpl {
 
+    static char _userAgent[128];
+    static char _clientId[128];
+
+private:
     log4Esp::Logger logger = log4Esp::Logger("TaskHTTP");
 
-public:
 
+public:
     void download(const char *, File *, DOWNLOAD_COMPLETED_CB completedDb = NULL, DOWNLOAD_PROGRESS_CB progressCb = NULL);
     void download(const char *, const char *, DOWNLOAD_COMPLETED_CB completedDb = NULL, DOWNLOAD_PROGRESS_CB progressCb = NULL);
     void __downloadInternal(const char *, File *);
@@ -38,6 +42,21 @@ public:
     void upload(const char *, const char *, UPLOAD_COMPLETED_CB completedDb = NULL, UPLOAD_PROGRESS_CB progressCb = NULL);
     void __uploadInternal(const char *, File *);
     void __uploadInternal(void*);
+
+    static void setUserAgent(const char* value);
+    static void setClientId(const char* value);
+
+    // static void setClientId(const char* clientId);    
+    // static void setClientId(const char* clientId) {
+    //     strncpy(_clientId, clientId, sizeof(_clientId));
+    // }
+
+    // static void setUserAgent(const char* userAgent) {
+    //     strncpy(_userAgent, userAgent, sizeof(_userAgent));
+    // }
+
+    
+    
 };
 
 // extern TaskHTTPImpl TaskHTTP;

@@ -23,6 +23,10 @@ namespace IoTalkie.Messaging
         {
             try
             {
+                var userAgent = GetHeaderValue("User-Agent");
+                var clientId = GetHeaderValue("ClientId");
+
+
                 string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
 
                 using (var file = new FileStream(Path.Combine("messages", path2), FileMode.CreateNew))
@@ -38,6 +42,16 @@ namespace IoTalkie.Messaging
                 Console.WriteLine(e);
             }
             return this.Ok();
+        }
+
+        private string GetHeaderValue(string key)
+        {
+            if (Request.Headers.ContainsKey(key))
+            {
+                return this.Request.Headers[key].First();
+            }
+
+            return "";
         }
 
         [HttpGet]
