@@ -159,10 +159,6 @@ bool AzureIoTMqttClient::connectInternal() {
     return false;
   }
 
-  if (onConnectionStatusChangeCallback != NULL) {
-      onConnectionStatusChangeCallback(CONNECTED);
-  }
-
   enableReconnect = true;
 
   setStatus(CONNECTED);
