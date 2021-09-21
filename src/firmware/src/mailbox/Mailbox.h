@@ -76,7 +76,7 @@ class Mailbox {
     void findUnplayedMessagesForEachSlot();
 
 public:
-    Mailbox(Contacts* contacts, DeviceConfig* config, TimeService*) : db(SQLITE_FILENAME) {
+    Mailbox(Contacts* contacts, DeviceConfig* config, TimeService* timeService) : db(SQLITE_FILENAME) {
         this->contacts = contacts;
         this->config = config;
         this->timeService = timeService;
