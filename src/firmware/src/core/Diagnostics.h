@@ -8,6 +8,9 @@
 
 class DiagnosticsClass
 {
+private:
+    u_long startTime;
+
 public:
     uint32_t getHeapSize() { return ESP.getHeapSize();}
     uint32_t getFreeHeapSize() { return esp_get_free_heap_size();}
@@ -36,6 +39,9 @@ public:
 
     uint64_t getSPIFFSTotalBytes() { return SPIFFS.totalBytes(); }
     uint64_t getSPIFFSUsedBytes() { return SPIFFS.usedBytes(); }
+
+    void setStartTime(unsigned long startTime);
+    unsigned long getStartTime();
 };
 
 extern DiagnosticsClass Diag;

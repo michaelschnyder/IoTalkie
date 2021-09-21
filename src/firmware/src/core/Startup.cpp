@@ -130,6 +130,10 @@ void Startup::startWifi()
 void Startup::waitForWifi() 
 {
     if (WiFi.isConnected()) {
+
+        timeService->setup();
+        timeService->update();
+
         ui->getScreen()->setWifiSSID(settings->getWifiSSID().c_str());
         fsm.trigger(Event::Continue);        
     }
@@ -145,16 +149,18 @@ void Startup::startMailbox()
 {
     mailbox->load();
     mailbox->hasPendingDownloads(true);
+    mailbox->hasPendingUploads(true);
 
     fsm.trigger(Event::Continue);
 }
 
 void Startup::whenReady() 
 {
-    logger.trace("Startup completed!");
+    auto durationInSeconds = millis() / 1000;
+    logger.trace("Startup completed after %lus!");
 
     if (this->onCompletedCallback) {
-        this->onCompletedCallback(0);
+        this->onCompletedCallback(durationInSeconds);
     }
 }
 

@@ -6,6 +6,7 @@
 #include <AzureIoTMqttClient.h>
 
 #include "hardware.h"
+#include "core/TimeService.h"
 #include "core/Diagnostics.h"
 #include "core/BuildInfo.h"
 #include "core/FirmwareUpdater.h"
@@ -74,6 +75,7 @@ class Startup {
     Contacts* contacts;
     Mailbox* mailbox;
     AzureIoTMqttClient* client;
+    TimeService* timeService;
 
     enum Event {
         Continue,
@@ -91,7 +93,7 @@ class Startup {
     };
 
 public:
-    Startup(UserInterface* userInterface, DeviceConfig* config, Settings* settings, Contacts* contacts, Mailbox* mailbox, AzureIoTMqttClient* azClient) :
+    Startup(UserInterface* userInterface, DeviceConfig* config, Settings* settings, Contacts* contacts, Mailbox* mailbox, AzureIoTMqttClient* azClient, TimeService* timeService) :
         state_post(nullptr,                            [this]() { post(); },            nullptr),
         state_halt(nullptr,                            [this]() { whileHalt(); },       nullptr),
 
@@ -135,6 +137,7 @@ public:
         this->contacts = contacts;
         this->mailbox = mailbox;
         this->client = azClient;
+        this->timeService = timeService;
     }
 
     void run();

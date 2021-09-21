@@ -1,7 +1,8 @@
 #include "HealthReporter.h"
 
-void HealthReporter::setup(AzureIoTMqttClient* client) {
+void HealthReporter::setup(AzureIoTMqttClient* client, TimeService* timeService) {
     this->client = client;
+    this->timeService = timeService;
 }
 
 void HealthReporter::loop() {
@@ -26,8 +27,14 @@ void HealthReporter::printStats() {
 
 void HealthReporter::sendStats() {
 
+    if (Diag.getStartTime() <= 0) {
+        Diag.setStartTime(timeService->getTimestamp() - millis() / 1000);
+    }
+
     char buffer[512];  
     sprintf_P(buffer, STATS_TEMPLATE, 
+        timeService->getTimestamp() - Diag.getStartTime(),
+
         Diag.getFreeHeapSize(),
         Diag.getLargestFreeHeapBlockSize(),
 
@@ -45,10 +52,19 @@ void HealthReporter::sendStats() {
 }
 
 void HealthReporter::sayHello() {
+
+    if (Diag.getStartTime() <= 0) {
+        Diag.setStartTime(timeService->getTimestamp() - millis() / 1000);
+    }
+
     char buffer[512];
    
     sprintf_P(buffer, HELLO_TEMPLATE, 
         BuildInfo::getVersion(), 
+
+        Diag.getStartTime(),
+        timeService->getTimestamp() - Diag.getStartTime(),
+
         Diag.getChipModel(), 
         Diag.getChipRevision(), 
         Diag.getCpuFreqMHz(),
@@ -60,7 +76,6 @@ void HealthReporter::sayHello() {
         Diag.getSPIFFSTotalBytes(),
         Diag.getSPIFFSUsedBytes(),
         Diag.getSPIFFSTotalBytes() - Diag.getSPIFFSUsedBytes(),
-
 
         Diag.getSDCardSize(),
         Diag.getSDTotalBytes(),

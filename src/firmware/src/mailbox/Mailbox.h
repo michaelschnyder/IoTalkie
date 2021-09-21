@@ -11,6 +11,8 @@
 #include <SchemaMigration.h>
 
 #include "core/DeviceConfig.h"
+#include "core/TimeService.h"
+
 #include "MessageRecord.h"
 #include "Contacts.h"
 #include "http/TaskHTTP.h"
@@ -50,6 +52,7 @@ class Mailbox {
     
     DeviceConfig* config;
     Contacts* contacts;
+    TimeService* timeService;
 
     SQLiteDatabase db;
     TaskHTTPImpl taskHttp;
@@ -73,7 +76,7 @@ class Mailbox {
     void findUnplayedMessagesForEachSlot();
 
 public:
-    Mailbox(Contacts* contacts, DeviceConfig* config) : db(SQLITE_FILENAME) {
+    Mailbox(Contacts* contacts, DeviceConfig* config, TimeService*) : db(SQLITE_FILENAME) {
         this->contacts = contacts;
         this->config = config;
     }

@@ -8,6 +8,8 @@
 #include "core/Startup.h"
 #include "core/Shutdown.h"
 #include "core/DeviceConfig.h"
+#include "core/TimeService.h"
+
 #include "core/Settings.h"
 #include "core/HealthReporter.h"
 #include "core/FirmwareUpdater.h"
@@ -53,6 +55,7 @@ class Application
 
     DeviceConfig config;
     Settings settings;
+    TimeService timeService;
 
     HealthReporter healthReporter;
     FirmwareUpdater updater;
@@ -110,7 +113,7 @@ class Application
     FunctionFsm fsm;
 
     bool isAppRunning = false;
-
+    
     MessageRecord* currentMessage;
 
     void dispatchCloudCommand(String, JsonObject&);

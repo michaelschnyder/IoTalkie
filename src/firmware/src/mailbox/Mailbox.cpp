@@ -57,7 +57,7 @@ bool Mailbox::enqueueMessage(const char* sourceFile, const char* recipientId) {
     ESPRandom::uuid4(uuid_array);
     
     auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
-    auto timestamp = 0; // TODO Add NTP Client time here
+    auto timestamp = timeService->getTimestamp();
 
     char outboxFilename[256];
     sprintf(outboxFilename, OUTBOX_FOLDER "/" MESSAGE_FILENAME_TEMPLATE, messageId);
