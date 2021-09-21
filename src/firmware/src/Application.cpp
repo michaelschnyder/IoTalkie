@@ -7,7 +7,7 @@
 
 Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayerBase* player) :
     
-    mailbox(&contacts),
+    mailbox(&contacts, &config),
 
     startup(ui, &config, &settings, &contacts, &mailbox, &client),
     shutdown(ui, &client),
@@ -20,12 +20,12 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     state_record2([this]() { recordMessageFor(2); }, [this]() { whileMessageRecording(); }, nullptr),
     state_record3([this]() { recordMessageFor(3); }, [this]() { whileMessageRecording(); }, nullptr),
     state_validate(nullptr, [this]() { validateRecording(); }, nullptr),
-    state_send([this]() { sendLastMessage(); }, [this]() { whileMessageSending(); }, [this]() {}),
+    state_send(nullptr,     [this]() { whileMessageSending(); }, [this]() {}),
 
     state_tryPlay1(nullptr, [this]() { tryPlayMessageFrom(1); }, nullptr),
     state_tryPlay2(nullptr, [this]() { tryPlayMessageFrom(2); }, nullptr),
     state_tryPlay3(nullptr, [this]() { tryPlayMessageFrom(3); }, nullptr),
-    state_play(nullptr, [this]() { whileMessagePlaying(); }, [this]() { messagePlayingEnded(); }),
+    state_play(nullptr,     [this]() { whileMessagePlaying(); }, [this]() { messagePlayingEnded(); }),
 
     state_receiveMessage(nullptr, [this]() { whileReceivingMessage(); }, nullptr),
 
@@ -44,6 +44,10 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_record1, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
     this->fsm.add_transition(&state_record2, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
     this->fsm.add_transition(&state_record3, &state_validate, RECORDING_LENGTH_EXCEEDED, nullptr);
+    this->fsm.add_transition(&state_record1, &state_idle, DISCARD_MESSAGE, nullptr);
+    this->fsm.add_transition(&state_record2, &state_idle, DISCARD_MESSAGE, nullptr);
+    this->fsm.add_transition(&state_record3, &state_idle, DISCARD_MESSAGE, nullptr);
+
     this->fsm.add_transition(&state_validate, &state_send, SEND_MESSAGE, nullptr);
     this->fsm.add_transition(&state_send, &state_idle, MESSAGE_SENT, nullptr);
     this->fsm.add_transition(&state_validate, &state_idle, DISCARD_MESSAGE, nullptr);
@@ -63,6 +67,7 @@ Application::Application(UserInterface* ui, AudioRecorder* recorder, AudioPlayer
     this->fsm.add_transition(&state_play, &state_idle, BUTTON3_CLICK, nullptr);
 
     this->fsm.add_transition(&state_idle, &state_receiveMessage, DOWNLOAD_MESSAGE, nullptr);
+    this->fsm.add_transition(&state_idle, &state_send, SEND_MESSAGE, nullptr);
     this->fsm.add_transition(&state_receiveMessage, &state_idle, MESSAGE_DOWNLOADED, nullptr);
 
     this->fsm.add_transition(&state_idle, &state_downloadFirmware, DOWNLOAD_FIRMWARE, nullptr);
@@ -198,6 +203,10 @@ void Application::whileIdling() {
         fsm.trigger(Event::DOWNLOAD_MESSAGE);
     }
 
+    if (mailbox.hasPendingUploads(false)) {
+        fsm.trigger(Event::SEND_MESSAGE);
+    }
+
     if (!this->ui->isPowerButtonOn()) {
         fsm.trigger(Event::SYSTEM_SHUTDOWN);
     }
@@ -242,7 +251,6 @@ void Application::recordMessageFor(int buttonId)
     this->recorder->record(&f);    
 }
 
-
 void Application::whileMessageRecording() 
 {
     int recordingDuration = this->recorder->duration();
@@ -263,7 +271,8 @@ void Application::validateRecording()
     logger.trace(F("Stopped recording. Validating recording length: %ims"), lenghtInMs);
 
     if (lenghtInMs >= MINIMAL_MESSAGE_LENGTH_IN_MS) {
-        this->fsm.trigger(Event::SEND_MESSAGE);
+        mailbox.enqueueMessage(currentRecordingName, currentRecipient->userId);
+        fsm.trigger(Event::SEND_MESSAGE);
     }
     else {
         logger.trace(F("Message length was below threshold of %ims, ignoring."), MINIMAL_MESSAGE_LENGTH_IN_MS);
@@ -273,48 +282,22 @@ void Application::validateRecording()
     }
 }
 
-void Application::sendLastMessage() 
-{
-    this->ui->isBusy(true);
-
-    logger.trace(F("Sending message '%s' to '%s'"), currentRecordingName, config.getPostMessageUrl().c_str());
-
-    String url = config.getPostMessageUrl();
-    url.replace("{recipientId}", currentRecipient->userId);
-
-    bool isCompleted = false, isSuccessful = false;
-    int totalUploadProgress = 0;
-
-    taskHttp.upload(currentRecordingName, url.c_str(), 
-        [this, &isCompleted, &isSuccessful](bool result) { 
-            isCompleted = true; isSuccessful = result; 
-
-            if (isSuccessful) {
-                this->ui->showSuccess();
-            }
-            else {
-                this->ui->showError();
-            }
-
-            this->fsm.trigger(Event::MESSAGE_SENT);
-
-        }, 
-        [this, &totalUploadProgress](ulong completed, ulong total) { 
-
-            int percent = (int)((completed * 100.0f) / total);
-            int newTotalUpdateProgress = percent / 2;
-
-            if (newTotalUpdateProgress > totalUploadProgress) {
-                totalUploadProgress = newTotalUpdateProgress;
-                logger.verbose("Upload progress: %i/%i, %i%%", currentBytesSent, total, percent);
-            }
-        });
-}
-
 void Application::whileMessageSending() 
 {
-    // Updates are done via callbacks above and state transition happens there as well
-    yield();
+    this->ui->isBusy(true);
+    bool isSuccessful = mailbox.sendSingleMessage();
+
+
+    if (isSuccessful) {
+        this->ui->showSuccess();
+    }
+    else {
+        this->ui->showError();
+    }
+
+    this->fsm.trigger(Event::MESSAGE_SENT);
+
+    fsm.trigger(Event::MESSAGE_SENT);
 }
 
 void Application::tryPlayMessageFrom(int buttonId) 

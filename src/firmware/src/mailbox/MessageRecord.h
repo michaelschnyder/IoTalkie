@@ -8,6 +8,7 @@ class MessageRecord {
 
     char* messageId;
     char* senderId;
+    char* recipientId;
     char* downloadUrl;
     char* localFile;
 
@@ -25,15 +26,28 @@ class MessageRecord {
         strcpy(this->localFile, localFile);
     }
 
+    MessageRecord(char* messageId, char* recipientId, char* localFile) {
+
+        this->messageId = (char*)malloc(strlen(messageId) + 1);
+        this->recipientId = (char*)malloc(strlen(recipientId) + 1);
+        this->localFile = (char*)malloc(strlen(localFile) + 1);
+
+        strcpy(this->messageId, messageId);
+        strcpy(this->recipientId, recipientId);
+        strcpy(this->localFile, localFile);
+    }
+
     ~MessageRecord() {
         free(this->messageId);
         free(this->senderId);
+        free(this->recipientId);
         free(this->downloadUrl);
         free(this->localFile);
     }
 
     char* getMessageId() { return this->messageId; }
     char* getSenderId() { return this->senderId; }
+    char* getRecipient() { return this->recipientId; }
     char* getDownloadUrl() { return this->downloadUrl; }
     char* getStorageLocation() { return this->localFile; }
 };

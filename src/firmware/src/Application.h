@@ -89,7 +89,6 @@ class Application
     void validateRecording();
 
     FunctionState state_send;
-    void sendLastMessage();
     void whileMessageSending();
 
     FunctionState state_tryPlay1;

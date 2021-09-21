@@ -32,6 +32,7 @@ public:
                     "	\"recipientId\"	VARCHAR(50) NOT NULL,\n"
                     "	\"sentCount\"	INTEGER     NOT NULL DEFAULT 0,\n"
                     "	\"localFile\"	VARCHAR(128),\n"
+                    "	\"isSent\"      INTEGER NOT NULL DEFAULT 0,"
                     "	\"isFaulty\"    INTEGER NOT NULL DEFAULT 0"
                     ");\n"
                     );
