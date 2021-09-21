@@ -141,10 +141,10 @@ void Startup::connectToMqtt()
     fsm.trigger(Event::Continue);
 }
 
-void Startup::startInbox() 
+void Startup::startMailbox() 
 {
-    inbox->load();
-    inbox->hasPendingDownloads(true);
+    mailbox->load();
+    mailbox->hasPendingDownloads(true);
 
     fsm.trigger(Event::Continue);
 }

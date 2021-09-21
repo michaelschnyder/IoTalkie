@@ -13,8 +13,8 @@
 #include "core/Settings.h"
 
 #include "ui/UserInterface.h"
-#include "inbox/Contacts.h"
-#include "inbox/Inbox.h"
+#include "mailbox/Contacts.h"
+#include "mailbox/Mailbox.h"
 
 class Startup {
     
@@ -54,8 +54,8 @@ class Startup {
     FunctionState state_connectToMqtt;
     void connectToMqtt();
 
-    FunctionState state_startInbox;
-    void startInbox();
+    FunctionState state_startMailbox;
+    void startMailbox();
 
     FunctionState state_ready;
     void whenReady();
@@ -72,7 +72,7 @@ class Startup {
     DeviceConfig* config;
     Settings* settings;
     Contacts* contacts;
-    Inbox* inbox;
+    Mailbox* mailbox;
     AzureIoTMqttClient* client;
 
     enum Event {
@@ -91,7 +91,7 @@ class Startup {
     };
 
 public:
-    Startup(UserInterface* userInterface, DeviceConfig* config, Settings* settings, Contacts* contacts, Inbox* inbox, AzureIoTMqttClient* azClient) :
+    Startup(UserInterface* userInterface, DeviceConfig* config, Settings* settings, Contacts* contacts, Mailbox* mailbox, AzureIoTMqttClient* azClient) :
         state_post(nullptr,                            [this]() { post(); },            nullptr),
         state_halt(nullptr,                            [this]() { whileHalt(); },       nullptr),
 
@@ -103,7 +103,7 @@ public:
         state_loadContacts(nullptr,                    [this]() { loadContacts(); },    nullptr),
         state_startWifi([this]() { startWifi(); },     [this]() { waitForWifi(); },     nullptr),
         state_connectToMqtt(nullptr,                   [this]() { connectToMqtt(); },   nullptr),
-        state_startInbox(nullptr,                      [this]() { startInbox(); },      nullptr),
+        state_startMailbox(nullptr,                    [this]() { startMailbox(); },      nullptr),
 
         state_ready([this]() { whenReady(); },          nullptr,                        nullptr),
         state_error(nullptr,                           [this]() { whileError(); },      nullptr),
@@ -119,8 +119,8 @@ public:
         fsm.add_transition(&state_loadSettings, &state_loadContacts, Event::Continue, nullptr);
         fsm.add_transition(&state_loadContacts, &state_startWifi, Event::Continue, nullptr);
         fsm.add_transition(&state_startWifi, &state_connectToMqtt, Event::Continue, nullptr);
-        fsm.add_transition(&state_connectToMqtt, &state_startInbox, Event::Continue, nullptr);
-        fsm.add_transition(&state_startInbox, &state_ready, Event::Continue, nullptr);
+        fsm.add_transition(&state_connectToMqtt, &state_startMailbox, Event::Continue, nullptr);
+        fsm.add_transition(&state_startMailbox, &state_ready, Event::Continue, nullptr);
 
         fsm.add_timed_transition(&state_checkSPIFFS,    &state_error, 2000l,  [this]() { setError(INT_STORAGE_ERR,  "Internal Storage"); });
         fsm.add_timed_transition(&state_loadConfig,     &state_error, 2000l,  [this]() { setError(CONFIG_MISSING,   "Config Missing"); });
@@ -129,13 +129,11 @@ public:
         fsm.add_timed_transition(&state_startWifi,      &state_error, 10000l, [this]() { setError(WIFI_TIMEOUT,     "WiFi Connection"); });
         fsm.add_timed_transition(&state_connectToMqtt,  &state_error, 10000l, [this]() { setError(MQTT_TIMEOUT,     "MQTT Connection"); });
 
-// Load settimgs issue
-
         this->ui = userInterface;
         this->config = config;
         this->settings = settings;
         this->contacts = contacts;
-        this->inbox = inbox;
+        this->mailbox = mailbox;
         this->client = azClient;
     }
 

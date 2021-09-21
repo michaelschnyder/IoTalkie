@@ -18,8 +18,8 @@ namespace IoTalkie.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SubmitMessage(string recipientId)
+        [HttpPost("{messageId}")]
+        public async Task<IActionResult> SubmitMessage(string messageId, string recipientId)
         {
             try
             {
