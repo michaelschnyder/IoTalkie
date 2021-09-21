@@ -82,10 +82,12 @@ class Startup {
     };
 
     enum ErrorCode {
-        INT_STORAGE_ERR = 0b001,
-        SD_STORAGE_ERR  = 0b010,
-        WIFI_TIMEOUT    = 0b011,
-        MQTT_TIMEOUT    = 0b100,
+        INT_STORAGE_ERR  = 0b001,
+        CONFIG_MISSING   = 0b010,
+        SD_STORAGE_ERR   = 0b011,
+        SETTINGS_MISSING = 0b100,
+        WIFI_TIMEOUT     = 0b101,
+        MQTT_TIMEOUT     = 0b110,
     };
 
 public:
@@ -120,10 +122,14 @@ public:
         fsm.add_transition(&state_connectToMqtt, &state_startInbox, Event::Continue, nullptr);
         fsm.add_transition(&state_startInbox, &state_ready, Event::Continue, nullptr);
 
-        fsm.add_timed_transition(&state_checkSPIFFS,    &state_error, 2000l,  [this]() { setError(INT_STORAGE_ERR, "Internal Storage Error"); });
-        fsm.add_timed_transition(&state_checkSDCardFS,  &state_error, 2000l,  [this]() { setError(SD_STORAGE_ERR, "SD Card Missing/Error"); });
-        fsm.add_timed_transition(&state_startWifi,      &state_error, 10000l, [this]() { setError(WIFI_TIMEOUT, "WiFi Connection Issue"); });
-        fsm.add_timed_transition(&state_connectToMqtt,  &state_error, 10000l, [this]() { setError(MQTT_TIMEOUT, "MQTT Connection Issue"); });
+        fsm.add_timed_transition(&state_checkSPIFFS,    &state_error, 2000l,  [this]() { setError(INT_STORAGE_ERR,  "Internal Storage"); });
+        fsm.add_timed_transition(&state_loadConfig,     &state_error, 2000l,  [this]() { setError(CONFIG_MISSING,   "Config Missing"); });
+        fsm.add_timed_transition(&state_checkSDCardFS,  &state_error, 2000l,  [this]() { setError(SD_STORAGE_ERR,   "SD Card Missing"); });
+        fsm.add_timed_transition(&state_loadSettings,   &state_error, 2000l,  [this]() { setError(SETTINGS_MISSING, "Settings Missing"); });
+        fsm.add_timed_transition(&state_startWifi,      &state_error, 10000l, [this]() { setError(WIFI_TIMEOUT,     "WiFi Connection"); });
+        fsm.add_timed_transition(&state_connectToMqtt,  &state_error, 10000l, [this]() { setError(MQTT_TIMEOUT,     "MQTT Connection"); });
+
+// Load settimgs issue
 
         this->ui = userInterface;
         this->config = config;

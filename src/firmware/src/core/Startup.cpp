@@ -106,6 +106,8 @@ void Startup::loadSettings()
     if(settings->load()) {
         fsm.trigger(Event::Continue);
     }
+
+    sleep(100);
 }
 
 void Startup::loadContacts() 
