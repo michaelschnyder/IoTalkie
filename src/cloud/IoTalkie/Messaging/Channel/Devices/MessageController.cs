@@ -22,9 +22,17 @@ namespace IoTalkie.Messaging.Channel.Devices
             _store = store;
         }
 
+        /// <summary>
+        ///     Processes a message from a client device.
+        /// </summary>
+        /// <example>
+        ///     curl -X POST --header "ClientId: Gander-fcf5c42f71c0" -v --data Bla https://localhost:5001/api/message/123456?recipientId=8274387298
+        /// </example>
+
         [HttpPost("{messageId}")]
         public async Task<IActionResult> SubmitMessage(string messageId, string recipientId)
         {
+            _logger.LogDebug($"Starting to process message '{messageId}'");
             try
             {
                 var userAgent = GetHeaderValue("User-Agent");
@@ -37,21 +45,12 @@ namespace IoTalkie.Messaging.Channel.Devices
                 var routingMessage = new RoutingMessage(messageId, sender, recipient, payload);
 
                 await _handler.ProcessAsync(routingMessage);
-
-                //string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
-
-                //using (var file = new FileStream(Path.Combine("messages", path2), FileMode.CreateNew))
-                //{
-                //    await Request.Body.CopyToAsync(file);
-                //}
-
-
-                //Debug.WriteLine($"Saved to '{Path.GetFullPath(Path.Combine("messages", path2)) }'");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError(e , $"Handling of message '{messageId}' has failed.");
             }
+
             return this.Ok();
         }
 
