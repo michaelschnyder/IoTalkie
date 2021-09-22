@@ -33,7 +33,14 @@ namespace IoTalkie.Messaging.Processing
             if (routingMessage.Sender is DevicePrincipal devicePrincipal)
             {
                 // Update
-                var sender = _deviceRegistry.GetOwner(devicePrincipal);
+                var sender = await _deviceRegistry.GetOwner(devicePrincipal);
+
+                if (sender is null)
+                {
+                    _logger.LogError($"Unable to find owner for '{devicePrincipal.ClientId}'. Skipping message.");
+                    return;
+                }
+
                 routingMessage.Sender = sender;
 
                 _logger.LogDebug($"Upgraded message '{routingMessage.MessageId}' with sender as '{sender.GetType().Name}'");
@@ -45,22 +52,17 @@ namespace IoTalkie.Messaging.Processing
             {
                 // Update
                 var recipient = _endpointRegistry.GetTarget(contactPrincipal);
+
+                if (recipient is null)
+                {
+                    _logger.LogError($"Unable to find contact '{contactPrincipal.UserId}' to send message to. Skipping message.");
+                    return;
+                }
+
                 routingMessage.Recipient = recipient;
 
                 _logger.LogDebug($"Upgraded message '{routingMessage.MessageId}' with recipient as '{recipient.GetType().Name}'");
                 await _handler.ProcessAsync(routingMessage);
-                return;
-            }
-
-            if (routingMessage.Sender == null)
-            {
-                _logger.LogWarning($"Upgraded message '{routingMessage.MessageId}' has no sender! Ignoring message.");
-                return;
-            }
-
-            if (routingMessage.Recipient == null)
-            {
-                _logger.LogWarning($"Upgraded message '{routingMessage.MessageId}' has no receiver! Ignoring message.");
                 return;
             }
 

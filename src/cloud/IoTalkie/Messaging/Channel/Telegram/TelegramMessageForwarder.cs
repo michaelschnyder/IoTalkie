@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Data.Tables;
 using IoTalkie.Common;
 using IoTalkie.Messaging.Processing;
@@ -12,25 +11,6 @@ using Telegram.Bot;
 
 namespace IoTalkie.Messaging.Channel.Telegram
 {
-    public class BotCredentialEntity : ITableEntity
-    {
-        public BotCredentialEntity() { }
-
-        public string UserId { get; set; }
-
-        public string Credential { get; set; }
-
-        public string Service { get; set; }
-        
-        public string PartitionKey { get; set; }
-        
-        public string RowKey { get; set; }
-
-        public DateTimeOffset? Timestamp { get; set; }
-
-        public ETag ETag { get; set; }
-    }
-
     public class TelegramMessageForwarder : IMessageForwarder
     {
         private readonly ILogger<TelegramMessageForwarder> _logger;
@@ -67,7 +47,6 @@ namespace IoTalkie.Messaging.Channel.Telegram
 
         private async Task<string> GetToken(ContactPrincipal contactPrincipal)
         {
-
             var client = new TableClient(_settings.BlobStorageConnectionString, "BotCredentials");
             await client.CreateIfNotExistsAsync();
 
