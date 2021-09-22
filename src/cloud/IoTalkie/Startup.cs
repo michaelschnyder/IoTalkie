@@ -29,7 +29,7 @@ namespace IoTalkie
             services.AddScoped<AudioPayloadStore>();
 
             services.AddSingleton<DeviceRegistry>();
-            services.AddSingleton<EndpointRegistry>();
+            services.AddSingleton<UserEndpointRegistry>();
 
             services.AddScoped<IMessageForwarder, TelegramMessageForwarder>();
 

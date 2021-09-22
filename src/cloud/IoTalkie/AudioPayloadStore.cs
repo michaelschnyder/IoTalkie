@@ -5,16 +5,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using IoTalkie.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace IoTalkie
 {
     public class AudioPayloadStore
     {
+        private readonly ILogger<AudioPayloadStore> _logger;
         private readonly AzureSettings _settings;
 
-        public AudioPayloadStore(IOptions<AzureSettings> options)
+        public AudioPayloadStore(IOptions<AzureSettings> options, ILogger<AudioPayloadStore> logger)
         {
+            _logger = logger;
             _settings = options.Value;
         }
 
@@ -31,7 +34,7 @@ namespace IoTalkie
 
             BlobClient blobClient = containerClient.GetBlobClient(filename);
 
-            Console.WriteLine("Uploading to Blob storage as blob:\n\t {0}\n", blobClient.Uri);
+            _logger.LogInformation("Uploading to Blob storage as blob: {0}", blobClient.Uri);
 
             // Open the file and upload its data
             await blobClient.UploadAsync(content, true);

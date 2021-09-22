@@ -12,17 +12,17 @@ namespace IoTalkie.Messaging.Processing
     {
         private readonly ILogger<MessageHandler> _logger;
         private readonly MessageHandler _handler;
-        private readonly IEnumerable<IMessageForwarder> _messageForwarders; // = new(new []{ new TelegramMessageForwarder() });
+        private readonly IEnumerable<IMessageForwarder> _messageForwarders;
         private readonly DeviceRegistry _deviceRegistry;
-        private readonly EndpointRegistry _endpointRegistry;
+        private readonly UserEndpointRegistry _userEndpointRegistry;
 
-        public MessageHandler(ILogger<MessageHandler> logger, IEnumerable<IMessageForwarder> messageForwarders, EndpointRegistry endpointRegistry, DeviceRegistry deviceRegistry)
+        public MessageHandler(ILogger<MessageHandler> logger, IEnumerable<IMessageForwarder> messageForwarders, UserEndpointRegistry userEndpointRegistry, DeviceRegistry deviceRegistry)
         {
             _handler = this;
             _logger = logger;
 
             _messageForwarders = messageForwarders;
-            _endpointRegistry = endpointRegistry;
+            _userEndpointRegistry = userEndpointRegistry;
             _deviceRegistry = deviceRegistry;
         }
 
@@ -51,7 +51,7 @@ namespace IoTalkie.Messaging.Processing
             if (routingMessage.Recipient is ContactPrincipal contactPrincipal)
             {
                 // Update
-                var recipient = _endpointRegistry.GetTarget(contactPrincipal);
+                var recipient = await _userEndpointRegistry.GetTarget(contactPrincipal);
 
                 if (recipient is null)
                 {

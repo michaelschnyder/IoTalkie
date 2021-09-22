@@ -40,9 +40,9 @@ namespace IoTalkie.Messaging.Channel.Telegram
             var telegramRecipient = (TelegramPrincipal)routingMessage.Recipient;
 
             var client = new TelegramBotClient(botIdentity);
-            var result = await client.SendTextMessageAsync(telegramRecipient.TelegramId, "New Message");
+            var result = await client.SendTextMessageAsync(telegramRecipient.TelegramId, $"New Message '{routingMessage.MessageId}'");
 
-            _logger.LogInformation("Message sent");
+            _logger.LogInformation($"Message '{routingMessage.MessageId}' sent");
         }
 
         private async Task<string> GetToken(ContactPrincipal contactPrincipal)
