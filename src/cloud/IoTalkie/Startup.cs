@@ -5,6 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using IoTalkie.Common;
 using IoTalkie.Messaging;
+using IoTalkie.Messaging.Channel;
+using IoTalkie.Messaging.Channel.Devices;
+using IoTalkie.Messaging.Channel.Telegram;
+using IoTalkie.Messaging.Processing;
 
 namespace IoTalkie
 {
@@ -25,6 +29,12 @@ namespace IoTalkie
             services.AddScoped<MessageHandler>();
             services.AddScoped<AudioPayloadStore>();
 
+            services.AddSingleton<DeviceRegistry>();
+            services.AddSingleton<EndpointRegistry>();
+
+            services.AddScoped<TelegramMessageForwarder>();
+            services.AddScoped<IMessageForwarder>(provider => provider.GetService<TelegramMessageForwarder>());
+            
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)
                 .AddEnvironmentVariables()
