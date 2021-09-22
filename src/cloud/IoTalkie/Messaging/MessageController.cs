@@ -33,13 +33,13 @@ namespace IoTalkie.Messaging
                 var userAgent = GetHeaderValue("User-Agent");
                 var clientId = GetHeaderValue("ClientId");
 
-                var sender = new DeviceMessageSender(clientId, userAgent);
-                var recipient = new ContactMessageRecipient(recipientId);
+                var sender = new DevicePrincipal(clientId, userAgent);
+                var recipient = new ContactPrincipal(recipientId);
                 var payload = await _store.Store(messageId, Request.Body);
 
-                var routingMessage = new RoutingMessage(sender, recipient, payload);
+                var routingMessage = new RoutingMessage(messageId, sender, recipient, payload);
 
-                _handler.Process(routingMessage);
+                await _handler.ProcessAsync(routingMessage);
 
                 //string path2 = $"to_{recipientId}-{Path.GetRandomFileName().Replace(".", "")}.wav";
 
@@ -78,37 +78,57 @@ namespace IoTalkie.Messaging
 
     public class RoutingMessage
     {
-        private readonly DeviceMessageSender _sender;
-        private readonly ContactMessageRecipient _recipientId;
-        private readonly AzureBlobPayload _payload;
+        private readonly string _messageId;
+        private AzureBlobPayload _payload;
 
-        public RoutingMessage(DeviceMessageSender sender, ContactMessageRecipient recipientId, AzureBlobPayload payload)
+        public RoutingMessage(string messageId, DevicePrincipal sender, ContactPrincipal recipient, AzureBlobPayload payload)
         {
-            _sender = sender;
-            _recipientId = recipientId;
+            Sender = sender;
+            _messageId = messageId;
+            Recipient = recipient;
             _payload = payload;
         }
+
+        public Principal Sender { get; set; }
+
+        public Principal Recipient { get; set; }
+
+        public AzureBlobPayload Payload => _payload;
+
+        public string MessageId => _messageId;
     }
 
-    public class ContactMessageRecipient
+    public class ContactPrincipal : Principal
     {
-        private readonly string _recipientId;
+        private readonly string _userId;
+        private readonly Principal _original;
 
-        public ContactMessageRecipient(string recipientId)
+        public ContactPrincipal(string userId, Principal original = null)
         {
-            _recipientId = recipientId;
+            _userId = userId;
+            _original = original;
         }
+
+        public string UserId => _userId;
+
+        public Principal Original => _original;
     }
 
-    public class DeviceMessageSender
+    public class DevicePrincipal : Principal
     {
         private readonly string _clientId;
         private readonly string _userAgent;
 
-        public DeviceMessageSender(string clientId, string userAgent)
+        public DevicePrincipal(string clientId, string userAgent)
         {
             _clientId = clientId;
             _userAgent = userAgent;
         }
+
+        public string ClientId => _clientId;
+    }
+
+    public abstract class Principal
+    {
     }
 }
