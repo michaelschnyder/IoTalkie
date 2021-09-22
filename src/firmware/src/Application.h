@@ -4,6 +4,7 @@
 #include <Log4Esp.h>
 #include <AzureIoTMqttClient.h>
 #include <FunctionFSM.h>
+#include <ESPRandom.h>
 
 #include "core/Startup.h"
 #include "core/Shutdown.h"

@@ -51,20 +51,27 @@ bool Mailbox::enqueueMessage(const char* sourceFile, const char* recipientId) {
     
     logger.trace(F("Enqueueing message '%s' to '%s'"), sourceFile, config->getPostMessageUrl().c_str());
 
-    SQLiteConnection conn(&db);
-
-    uint8_t uuid_array[16];
-    ESPRandom::uuid4(uuid_array);
-    
-    auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
-    auto timestamp = timeService->getTimestamp();
-
+    bool recordInserted = false;
     char outboxFilename[256];
-    sprintf(outboxFilename, OUTBOX_FOLDER "/" MESSAGE_FILENAME_TEMPLATE, messageId);
 
-    if(conn.execute(QUERY_INSERT_NEW_OUTGOING_MESSAGE, messageId, timestamp, recipientId, outboxFilename)) {
-        pendingUploadsAvailable = true;
+    { // Scoped
+        SQLiteConnection conn(&db);
 
+        uint8_t uuid_array[16];
+        ESPRandom::uuid4(uuid_array);
+
+        auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
+        auto timestamp = timeService->getTimestamp();
+
+        sprintf(outboxFilename, OUTBOX_FOLDER "/" MESSAGE_FILENAME_TEMPLATE, messageId);
+
+        if(conn.execute(QUERY_INSERT_NEW_OUTGOING_MESSAGE, messageId, timestamp, recipientId, outboxFilename)) {
+            pendingUploadsAvailable = true;
+            recordInserted = true;
+        }
+    } // End Scope
+
+    if (recordInserted) {
         // Move file to outbox
         SD.rename(sourceFile, outboxFilename);
         return true;
@@ -127,7 +134,6 @@ void Mailbox::downloadSingleMessage()
 
 bool Mailbox::sendSingleMessage() {
 
-    SQLiteConnection conn(&db);
     auto message = getNextUpload();
 
     if (message == NULL) {
@@ -150,9 +156,6 @@ bool Mailbox::sendSingleMessage() {
     url.replace("{recipientId}", recipientId);
 
     increaseSentAttempt(message->getMessageId());
-
-    // Close before new http connection is established
-    conn.~SQLiteConnection();
 
     bool isCompleted = false, isSuccessful = false;
     taskHttp.upload(sourceFile, url.c_str(), 
