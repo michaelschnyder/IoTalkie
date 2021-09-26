@@ -68,11 +68,13 @@ void TaskHTTPImpl::__downloadInternal(void *arg) {
 
     if (!(httpCode > 0)) {
         logger.error(F("failed to download file. Error: %s\n"), http.errorToString(httpCode).c_str());
+        task->reportCompleted(false);
         return;
     }
 
     if(httpCode != HTTP_CODE_OK) {
         logger.error(F("failed to download file. Server responded with error: %s\n"), http.errorToString(httpCode).c_str());
+        task->reportCompleted(false);
         return;
     }
 
