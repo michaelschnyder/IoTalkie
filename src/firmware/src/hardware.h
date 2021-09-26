@@ -6,7 +6,7 @@
 // ++++++++++++++++++++++++++++++++++
 
 #define HAS_BUTTON_PANEL
-//#define HAS_SPEAKER
+#define HAS_SPEAKER
 
 // ++++++++++++++++++++++++++++++++++
 // +    HARDWARE CONFIGURATION      +
