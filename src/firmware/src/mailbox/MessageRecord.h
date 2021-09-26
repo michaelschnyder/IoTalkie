@@ -8,7 +8,7 @@ class MessageRecord {
 
     char* messageId;
     char* senderId;
-    char* recipientId;
+    char* recipientId = nullptr;
     char* downloadUrl;
     char* localFile;
 
@@ -40,7 +40,7 @@ class MessageRecord {
     ~MessageRecord() {
         free(this->messageId);
         free(this->senderId);
-        free(this->recipientId);
+        if (this->recipientId != nullptr) free(this->recipientId);
         free(this->downloadUrl);
         free(this->localFile);
     }
