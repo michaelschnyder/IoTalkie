@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
@@ -8,17 +9,22 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
+using File = System.IO.File;
 
 namespace IoTalkie.Messaging.Channel.Telegram
 {
     public class TelegramMessageForwarder : IMessageForwarder
     {
         private readonly BotCredentialsRegistry _botCredentialsRegistry;
+        private readonly AudioPayloadStore _audioPayloadStore;
         private readonly ILogger<TelegramMessageForwarder> _logger;
 
-        public TelegramMessageForwarder(BotCredentialsRegistry botCredentialsRegistry, ILogger<TelegramMessageForwarder> logger)
+        public TelegramMessageForwarder(BotCredentialsRegistry botCredentialsRegistry, AudioPayloadStore audioPayloadStore, ILogger<TelegramMessageForwarder> logger)
         {
             _botCredentialsRegistry = botCredentialsRegistry;
+            _audioPayloadStore = audioPayloadStore;
             _logger = logger;
         } 
 
@@ -41,6 +47,15 @@ namespace IoTalkie.Messaging.Channel.Telegram
 
             var client = new TelegramBotClient(botIdentity);
             var result = await client.SendTextMessageAsync(telegramRecipient.TelegramId, $"New Message '{routingMessage.MessageId}'");
+
+            var ms = new MemoryStream();
+            await _audioPayloadStore.DownloadTo(routingMessage.MessageId, ms, "audio/ogg");
+            ms.Position = 0;
+            ms.WriteTo(new FileStream(Path.GetTempFileName() + ".ogg", FileMode.CreateNew));
+
+            var url = await _audioPayloadStore.GetDownloadLink(routingMessage.MessageId, "audio/ogg");
+
+            await client.SendVoiceAsync(telegramRecipient.TelegramId, new InputOnlineFile(new Uri(url)));
 
             _logger.LogInformation($"Message '{routingMessage.MessageId}' sent");
         }
