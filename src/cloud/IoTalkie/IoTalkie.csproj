@@ -16,8 +16,10 @@
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.2.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.0-beta.1" />
+    <PackageReference Include="Microsoft.Azure.Devices" Version="1.30.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
-    <PackageReference Include="Telegram.Bot" Version="16.0.2" />
+    <PackageReference Include="Telegram.Bot" Version="17.0.0-alpha.3" />
+    <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.0-alpha.1" />
   </ItemGroup>
 
   <ItemGroup>

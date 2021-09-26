@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using IoTalkie.Common;
 using IoTalkie.Messaging.Processing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -40,7 +41,7 @@ namespace IoTalkie.Messaging.Channel.Devices
 
                 var sender = new DevicePrincipal(clientId, userAgent);
                 var recipient = new ContactPrincipal(recipientId);
-                var payload = await _store.Store(messageId, Request.Body);
+                var payload = await _store.Store(messageId, Request.Body, new MimeTypeLookup().GetMimeType(".wav"));
 
                 var routingMessage = new RoutingMessage(messageId, sender, recipient, payload);
 

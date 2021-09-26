@@ -25,16 +25,18 @@ namespace IoTalkie
         {
             services.AddControllers();
 
-            services.AddScoped<MessageHandler>();
-            services.AddScoped<AudioPayloadStore>();
+            services.AddHostedService<BotMessagesHandler>();
+
+            services.AddTransient<MessageHandler>();
+            services.AddTransient<AudioPayloadStore>();
 
             services.AddSingleton<DeviceRegistry>();
             services.AddSingleton<UserEndpointRegistry>();
+            services.AddSingleton<BotCredentialsRegistry>();
 
-            services.AddScoped<IMessageForwarder, TelegramMessageForwarder>();
 
-            //services.AddScoped<TelegramMessageForwarder>();
-            //services.AddScoped<IMessageForwarder>(provider => provider.GetService<TelegramMessageForwarder>());
+            services.AddTransient<IMessageForwarder, TelegramMessageForwarder>();
+            services.AddTransient<IMessageForwarder, DeviceMessageForwarder>();
             
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", true, true)

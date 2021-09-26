@@ -13,13 +13,13 @@ namespace IoTalkie.Messaging.Channel.Telegram
 {
     public class TelegramMessageForwarder : IMessageForwarder
     {
+        private readonly BotCredentialsRegistry _botCredentialsRegistry;
         private readonly ILogger<TelegramMessageForwarder> _logger;
-        private readonly AzureSettings _settings;
 
-        public TelegramMessageForwarder(IOptions<AzureSettings> options, ILogger<TelegramMessageForwarder> logger)
+        public TelegramMessageForwarder(BotCredentialsRegistry botCredentialsRegistry, ILogger<TelegramMessageForwarder> logger)
         {
+            _botCredentialsRegistry = botCredentialsRegistry;
             _logger = logger;
-            _settings = options.Value;
         } 
 
         public bool Supports(Type @from, Type to)
@@ -29,7 +29,7 @@ namespace IoTalkie.Messaging.Channel.Telegram
 
         public async Task Process(RoutingMessage routingMessage)
         {
-            var botIdentity = await GetToken((routingMessage.Sender as ContactPrincipal));
+            var botIdentity = await _botCredentialsRegistry.GetToken((routingMessage.Sender as ContactPrincipal), "Telegram");
 
             if (botIdentity == null)
             {
@@ -43,26 +43,6 @@ namespace IoTalkie.Messaging.Channel.Telegram
             var result = await client.SendTextMessageAsync(telegramRecipient.TelegramId, $"New Message '{routingMessage.MessageId}'");
 
             _logger.LogInformation($"Message '{routingMessage.MessageId}' sent");
-        }
-
-        private async Task<string> GetToken(ContactPrincipal contactPrincipal)
-        {
-            var client = new TableClient(_settings.BlobStorageConnectionString, "BotCredentials");
-            await client.CreateIfNotExistsAsync();
-
-            var result = client.Query<BotCredentialEntity>(ent => ent.UserId == contactPrincipal.UserId && ent.Service == "Telegram");
-
-            if (result.Any())
-            {
-                var entity = result.AsPages().First().Values.First();
-
-                if (!string.IsNullOrWhiteSpace(entity.Credential))
-                {
-                    return entity.Credential;
-                }
-            }
-
-            return null;
         }
     }
 }

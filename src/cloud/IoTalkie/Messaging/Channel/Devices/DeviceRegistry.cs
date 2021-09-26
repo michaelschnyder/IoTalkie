@@ -4,6 +4,7 @@ using Azure.Data.Tables;
 using IoTalkie.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Telegram.Bot.Types;
 
 namespace IoTalkie.Messaging.Channel.Devices
 {
@@ -20,8 +21,7 @@ namespace IoTalkie.Messaging.Channel.Devices
 
         public async Task<ContactPrincipal> GetOwner(DevicePrincipal principal)
         {
-            var client = new TableClient(_settings.BlobStorageConnectionString, "DeviceAssignments");
-            await client.CreateIfNotExistsAsync();
+            var client = await GetTableClient();
 
             var result = client.Query<DeviceAssignmentEntity>(ent => ent.DeviceId == principal.ClientId);
 
@@ -34,6 +34,30 @@ namespace IoTalkie.Messaging.Channel.Devices
             var userId = result.AsPages().First().Values.First().UserId;
 
             return new ContactPrincipal(userId, principal);
+        }
+
+        private async Task<TableClient> GetTableClient()
+        {
+            var client = new TableClient(_settings.BlobStorageConnectionString, "DeviceAssignments");
+            await client.CreateIfNotExistsAsync();
+            return client;
+        }
+
+        public async Task<DevicePrincipal> GetDevice(ContactPrincipal principal)
+        {
+            var client = await GetTableClient();
+            var result = client.Query<DeviceAssignmentEntity>(ent => ent.UserId == principal.UserId);
+
+            if (!result.Any())
+            {
+                _logger.LogError($"Unable to find device for owner '{principal.UserId}'");
+                return null;
+            }
+
+            var deviceId = result.AsPages().First().Values.First().DeviceId;
+
+            return new DevicePrincipal(deviceId, principal);
+
         }
     }
 }

@@ -2,11 +2,19 @@
 {
     public class AzureBlobPayload
     {
-        private string _messageId;
+        private readonly string _messageId;
 
-        public AzureBlobPayload(string messageId)
+        public string Filename { get; }
+        public long Length { get; }
+
+        public string MimeType { get; }
+
+        public AzureBlobPayload(string messageId, string filename, string mimeType, long contentLength)
         {
-            this._messageId = messageId;
+            _messageId = messageId;
+            MimeType = mimeType;
+            Filename = filename;
+            Length = contentLength;
         }
     }
 }

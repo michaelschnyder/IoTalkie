@@ -3,7 +3,7 @@
 AzureIoTMqttClient::AzureIoTMqttClient() { 
   
   mqttClient.setClient(AzureIoTMqttClient::wifiClient);
-  mqttClient.setBufferSize(512);
+  mqttClient.setBufferSize(1024);
 
   AzureIoTMqttClient::wifiClient.setInsecure();
 

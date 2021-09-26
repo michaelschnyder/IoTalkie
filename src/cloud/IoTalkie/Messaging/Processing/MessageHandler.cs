@@ -35,17 +35,16 @@ namespace IoTalkie.Messaging.Processing
                 // Update
                 var sender = await _deviceRegistry.GetOwner(devicePrincipal);
 
-                if (sender is null)
+                if (sender is not null)
                 {
-                    _logger.LogError($"Unable to find owner for '{devicePrincipal.ClientId}'. Skipping message.");
+                    routingMessage.Sender = sender;
+
+                    _logger.LogDebug($"Upgraded message '{routingMessage.MessageId}' with sender as '{sender.GetType().Name}'");
+                    await _handler.ProcessAsync(routingMessage);
                     return;
                 }
 
-                routingMessage.Sender = sender;
-
-                _logger.LogDebug($"Upgraded message '{routingMessage.MessageId}' with sender as '{sender.GetType().Name}'");
-                await _handler.ProcessAsync(routingMessage);
-                return;
+                _logger.LogDebug($"Unable to find elevated principal type for '{devicePrincipal.ClientId}'. Keeping {routingMessage.Sender.GetType().Name}.");
             }
 
             if (routingMessage.Recipient is ContactPrincipal contactPrincipal)
@@ -53,17 +52,16 @@ namespace IoTalkie.Messaging.Processing
                 // Update
                 var recipient = await _userEndpointRegistry.GetTarget(contactPrincipal);
 
-                if (recipient is null)
+                if (recipient is not null)
                 {
-                    _logger.LogError($"Unable to find contact '{contactPrincipal.UserId}' to send message to. Skipping message.");
+                    routingMessage.Recipient = recipient;
+
+                    _logger.LogDebug($"Upgraded message '{routingMessage.MessageId}' with recipient as '{recipient.GetType().Name}'");
+                    await _handler.ProcessAsync(routingMessage);
                     return;
                 }
 
-                routingMessage.Recipient = recipient;
-
-                _logger.LogDebug($"Upgraded message '{routingMessage.MessageId}' with recipient as '{recipient.GetType().Name}'");
-                await _handler.ProcessAsync(routingMessage);
-                return;
+                _logger.LogDebug($"Unable to find elevated principal type for '{contactPrincipal.UserId}' to send message to. Continuing with '{routingMessage.Recipient.GetType().Name}'...");
             }
 
             var fromType = routingMessage.Sender.GetType().Name;

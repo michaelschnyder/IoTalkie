@@ -8,7 +8,7 @@ namespace IoTalkie.Messaging.Processing
         private readonly string _messageId;
         private AzureBlobPayload _payload;
 
-        public RoutingMessage(string messageId, DevicePrincipal sender, ContactPrincipal recipient, AzureBlobPayload payload)
+        public RoutingMessage(string messageId, Principal sender, Principal recipient, AzureBlobPayload payload)
         {
             Sender = sender;
             _messageId = messageId;

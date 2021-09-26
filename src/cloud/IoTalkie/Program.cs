@@ -23,6 +23,7 @@ namespace IoTalkie
                 {
                     
                     webBuilder.UseStartup<Startup>();
-                });
+                })
+                ;
     }
 }

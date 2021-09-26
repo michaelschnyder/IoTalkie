@@ -15,5 +15,7 @@ namespace IoTalkie.Common
         public long Size { get; set; }
 
         public string RemoteUrl { get; set; }
+
+        public string MimeType { get; set; }
     }
 }
