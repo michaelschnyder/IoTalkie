@@ -63,7 +63,7 @@ bool Mailbox::enqueueMessage(const char* sourceFile, const char* recipientId) {
         auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
         auto timestamp = timeService->getTimestamp();
 
-        sprintf(outboxFilename, OUTBOX_FOLDER "/" MESSAGE_FILENAME_TEMPLATE, messageId);
+        sprintf(outboxFilename, OUTBOX_FOLDER "/%s%s", messageId, FileInfo::getExtension(sourceFile));
 
         if(conn.execute(QUERY_INSERT_NEW_OUTGOING_MESSAGE, messageId, timestamp, recipientId, outboxFilename)) {
             pendingUploadsAvailable = true;
@@ -267,8 +267,15 @@ MessageRecord* Mailbox::getNextDownloadTask()
 
     logger.trace("Found pending message %s to be downloaded from %s", messageId, remoteUrl);
 
+    String remoteUrlString(remoteUrl);
+    
+    auto qPos = remoteUrlString.indexOf("?");
+    if (qPos) {
+        remoteUrlString = remoteUrlString.substring(0, qPos);
+    }
+
     char localFile[256];
-    sprintf(localFile, (INBOX_FOLDER "/" MESSAGE_FILENAME_TEMPLATE), messageId);
+    sprintf(localFile, (INBOX_FOLDER "/%s%s"), messageId, FileInfo::getExtension(remoteUrlString.c_str()));
 
     return new MessageRecord(messageId, senderId, remoteUrl, localFile);
 }

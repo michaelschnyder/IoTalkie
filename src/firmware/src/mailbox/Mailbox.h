@@ -12,6 +12,7 @@
 
 #include "core/DeviceConfig.h"
 #include "core/TimeService.h"
+#include "file/FileInfo.h"
 
 #include "MessageRecord.h"
 #include "Contacts.h"
@@ -24,7 +25,6 @@
 #define SQLITE_FILENAME "/sd/mailbox.db"
 #define INBOX_FOLDER "/inbox"
 #define OUTBOX_FOLDER "/outbox"
-#define MESSAGE_FILENAME_TEMPLATE "%s.wav"
 
 #define QUERY_COUNT_PENDING_DOWNLOADS "SELECT COUNT(*) from inbox WHERE localFile IS NULL AND downloadCount < 3"
 

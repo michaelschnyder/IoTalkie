@@ -15,27 +15,54 @@ void AudioPlayer::setup()
 	out->SetGain(0.128);
 	out->SetPinout(clockPin, lrcPin, dataPin);
 
-	progmemSoundSource = new AudioFileSourcePROGMEM(emptyMp3, sizeof(emptyMp3));
+
 	sdCardSoundSource = new AudioFileSourceSD();
 
-	audioGenerator = new AudioGeneratorMP3();
-
-	playing = audioGenerator->begin(progmemSoundSource, out);
+	audioGeneratorOpus = new AudioGeneratorOpus();
+	audioGeneratorWAV = new AudioGeneratorWAV();
+	audioGeneratorMp3 = new AudioGeneratorMP3();
+	
+	currentAudioGenerator = audioGeneratorMp3;
+	progmemSoundSource = new AudioFileSourcePROGMEM(emptyMp3, sizeof(emptyMp3));
+	playing = currentAudioGenerator->begin(progmemSoundSource, out);
 }
 
 void AudioPlayer::play(const char *filename)
 {
-	logger.trace("Playing audio from '%s'", filename);
+	if (playing) {
+		logger.error("Player is still busy with playing previous file.");
+		return;
+	}
 
+	String extension = FileInfo::getExtension(filename);
+
+	logger.trace("Identifying audio player for '%s' with extension '%s'", filename, extension.c_str());
+	if (extension == ".mp3") {
+		currentAudioGenerator = audioGeneratorMp3;
+	}
+
+	else if (extension == ".wav") {
+		currentAudioGenerator = audioGeneratorWAV;
+	}
+
+	else if (extension == ".ogg") {
+		currentAudioGenerator = audioGeneratorOpus;
+	}
+	else {
+		logger.error("Unsupported file extension '%s'", extension);
+		return;
+	}
+
+	logger.trace("Playing audio from '%s'", filename);
 	sdCardSoundSource->open(filename);
-	playing = audioGenerator->begin(sdCardSoundSource, out);
+	playing = currentAudioGenerator->begin(sdCardSoundSource, out);
 	strncpy(this->filename, filename, sizeof(this->filename) - 1);
 }
 
 void AudioPlayer::stop() 
 {
 	if (playing) {
-		audioGenerator->stop();
+		currentAudioGenerator->stop();
 	}
 }
 
@@ -53,7 +80,7 @@ void AudioPlayer::loop()
 		return;
 	}
 
-	bool stillRunning = audioGenerator->isRunning() && audioGenerator->loop();
+	bool stillRunning = currentAudioGenerator->isRunning() && currentAudioGenerator->loop();
 
 	if (!stillRunning) {
 		
@@ -66,7 +93,7 @@ void AudioPlayer::loop()
 		}
 
 		playing = false;
-		audioGenerator->stop();
+		currentAudioGenerator->stop();
 		if (sdCardSoundSource->isOpen())
 		{
 			sdCardSoundSource->close();

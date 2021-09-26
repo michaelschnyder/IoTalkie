@@ -12,6 +12,7 @@
 
 #include <AudioGeneratorMP3.h>
 #include <AudioGeneratorWAV.h>
+#include <AudioGeneratorOpus.h>
 
 #include <AudioOutputI2S.h>
 
@@ -19,6 +20,7 @@
 #include <SD.h>
 
 #include "AudioPlayerBase.h"
+#include "file/FileInfo.h"
 
 const unsigned char emptyMp3[] PROGMEM = {
     0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x54, 0x45, 0x4E, 0x43, 0x00, 0x00,
@@ -35,7 +37,12 @@ class AudioPlayer : public AudioPlayerBase {
 
     AudioFileSourcePROGMEM *progmemSoundSource;
     AudioFileSourceSD *sdCardSoundSource;
-    AudioGenerator *audioGenerator;
+    AudioGenerator *currentAudioGenerator;
+
+    AudioGeneratorMP3 *audioGeneratorMp3;
+    AudioGeneratorOpus *audioGeneratorOpus;
+    AudioGeneratorWAV *audioGeneratorWAV;
+
     AudioOutputI2S *out;
 
     bool playing = false;
