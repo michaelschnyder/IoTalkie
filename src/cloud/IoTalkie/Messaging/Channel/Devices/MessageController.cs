@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using IoTalkie.Common;
@@ -28,6 +29,7 @@ namespace IoTalkie.Messaging.Channel.Devices
         /// </summary>
         /// <example>
         ///     curl -X POST --header "ClientId: Gander-fcf5c42f71c0" -v --data Bla https://localhost:5001/api/message/123456?recipientId=8274387298
+        ///     curl -X POST --header "ClientId: Gander-fcf5c42f71c0" --header "Content-Type: Unknown" -v --data-binary "@recording.wav" https://localhost:5001/api/message/123456?recipientId=8274387298
         /// </example>
 
         [HttpPost("{messageId}")]
@@ -41,7 +43,12 @@ namespace IoTalkie.Messaging.Channel.Devices
 
                 var sender = new DevicePrincipal(clientId, userAgent);
                 var recipient = new ContactPrincipal(recipientId);
-                var payload = await _store.Store(messageId, Request.Body, new MimeTypeLookup().GetMimeType(".wav"));
+
+                var content = new MemoryStream();
+                await Request.Body.CopyToAsync(content);
+                content.Position = 0;
+
+                var payload = await _store.Store(messageId, content, new MimeTypeLookup().GetMimeType(".wav"));
 
                 var routingMessage = new RoutingMessage(messageId, sender, recipient, payload);
 

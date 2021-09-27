@@ -125,10 +125,6 @@ namespace IoTalkie
 
                 if (await wavSourceFile.ExistsAsync() && mimeType == "audio/ogg")
                 {
-                    //var tempFileName = Path.GetTempFileName() + ".wav";
-                    //await wavSourceFile.DownloadToAsync(tempFileName);
-                    //var oggTargetFileMemoryStream = _audioConverter.ConvertWavToOgg(File.OpenRead(tempFileName));
-
                     var ms = new MemoryStream();
                     await wavSourceFile.DownloadToAsync(ms);
                     ms.Position = 0;
