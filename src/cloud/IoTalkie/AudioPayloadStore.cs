@@ -1,20 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
-using Concentus.Enums;
-using Concentus.Oggfile;
-using Concentus.Structs;
 using IoTalkie.Common;
-using Microsoft.Azure.Amqp.Framing;
+using IoTalkie.Media;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NAudio.Lame;
-using NAudio.Vorbis;
-using NAudio.Wave;
 
 namespace IoTalkie
 {
@@ -22,11 +14,13 @@ namespace IoTalkie
     {
         private readonly ILogger<AudioPayloadStore> _logger;
         private readonly AzureSettings _settings;
+        private readonly AudioConverter _audioConverter;
 
         public AudioPayloadStore(IOptions<AzureSettings> options, ILogger<AudioPayloadStore> logger)
         {
             _logger = logger;
             _settings = options.Value;
+            _audioConverter = new AudioConverter();
         }
 
         public async Task<AzureBlobPayload> Store(string messageId, Stream content, string mimeType)
@@ -50,7 +44,10 @@ namespace IoTalkie
             // Open the file and upload its data
             var response = await blobClient.UploadAsync(content, true);
 
-            return new AzureBlobPayload(messageId, filename, mimeType, 0);
+            var contentLength = (await blobClient.GetPropertiesAsync()).Value.ContentLength;
+            _logger.LogDebug($"File {filename} is uploaded. Size: {contentLength}");
+
+            return new AzureBlobPayload(messageId, filename, mimeType, contentLength);
         }
 
         private static string GetExtensionFromMimeType(string mimeType)
@@ -122,15 +119,21 @@ namespace IoTalkie
                     var tempFileName = Path.GetTempFileName() + ".ogg";
 
                     await oggSourceFile.DownloadToAsync(tempFileName);
-                    var mp3TargetFile = ConvertOggToMp3(tempFileName);
+                    var mp3TargetFile = _audioConverter.ConvertOggToMp3(tempFileName);
                     await containerClient.UploadBlobAsync(filename, File.OpenRead(mp3TargetFile));
                 }
 
                 if (await wavSourceFile.ExistsAsync() && mimeType == "audio/ogg")
                 {
-                    var waveMemoryStream = new MemoryStream();
-                    await wavSourceFile.DownloadToAsync(waveMemoryStream);
-                    var oggTargetFileMemoryStream = ConvertWavToOgg(waveMemoryStream);
+                    //var tempFileName = Path.GetTempFileName() + ".wav";
+                    //await wavSourceFile.DownloadToAsync(tempFileName);
+                    //var oggTargetFileMemoryStream = _audioConverter.ConvertWavToOgg(File.OpenRead(tempFileName));
+
+                    var ms = new MemoryStream();
+                    await wavSourceFile.DownloadToAsync(ms);
+                    ms.Position = 0;
+
+                    var oggTargetFileMemoryStream = _audioConverter.ConvertWavToOgg(ms);
                     await containerClient.UploadBlobAsync(filename, oggTargetFileMemoryStream);
                 }
             }
@@ -146,76 +149,6 @@ namespace IoTalkie
             // Create the container and return a container client object
             var containerClient = blobServiceClient.GetBlobContainerClient(_settings.AudioMessagesContainerName);
             return containerClient;
-        }
-
-        private Stream ConvertWavToOgg(MemoryStream waveMemoryStream)
-        {
-            waveMemoryStream.Position = 0;
-
-            using WaveFileReader reader = new WaveFileReader(waveMemoryStream);
-            var tempFileName = Path.GetTempFileName() + ".ogg";
-            var opusFileStream = new FileStream(tempFileName, FileMode.CreateNew);
-            
-            var writer = new OpusOggWriteStream(new OpusEncoder(48000, 1, OpusApplication.OPUS_APPLICATION_AUDIO), opusFileStream);
-
-            for (int i = 0; i < reader.SampleCount; i++)
-            {
-                var frame = reader.ReadNextSampleFrame();
-
-                if (frame != null)
-                {
-                    writer.WriteSamples(frame, 0, frame.Length);
-                }
-            }
-
-            writer.Finish();
-
-            opusFileStream.Close();
-
-            var ms = new MemoryStream();
-            new FileStream(tempFileName, FileMode.Open).CopyTo(ms);
-            ms.Position = 0;
-            // opusMemoryStream.Position = 0;
-            return ms;
-        }
-
-        private string ConvertOggToMp3(string fileOgg)
-        {
-            var tempFile = Path.GetTempFileName();
-            var fileMp3 = tempFile + ".mp3";
-
-            using (FileStream fileIn = new FileStream($"{fileOgg}", FileMode.Open))
-            using (MemoryStream pcmStream = new MemoryStream())
-            {
-                OpusDecoder decoder = OpusDecoder.Create(48000, 1);
-                OpusOggReadStream oggIn = new OpusOggReadStream(decoder, fileIn);
-                while (oggIn.HasNextPacket)
-                {
-                    short[] packet = oggIn.DecodeNextPacket();
-                    if (packet != null)
-                    {
-                        for (int i = 0; i < packet.Length; i++)
-                        {
-                            var bytes = BitConverter.GetBytes(packet[i]);
-                            pcmStream.Write(bytes, 0, bytes.Length);
-                        }
-                    }
-                }
-
-                pcmStream.Position = 0;
-                var wavStream = new RawSourceWaveStream(pcmStream, new WaveFormat(48000, 1));
-
-                pcmStream.Position = 0;
-                using (var writer = new LameMP3FileWriter(fileMp3, wavStream.WaveFormat, 48000))
-                {
-                    pcmStream.CopyTo(writer);
-                }
-
-            }
-
-            var tempFileName = fileMp3;
-
-            return tempFileName;
         }
     }
 }

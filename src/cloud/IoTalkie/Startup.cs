@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using IoTalkie.Common;
+using IoTalkie.Media;
 using IoTalkie.Messaging.Channel;
 using IoTalkie.Messaging.Channel.Devices;
 using IoTalkie.Messaging.Channel.Telegram;
@@ -33,7 +34,7 @@ namespace IoTalkie
             services.AddSingleton<DeviceRegistry>();
             services.AddSingleton<UserEndpointRegistry>();
             services.AddSingleton<BotCredentialsRegistry>();
-
+            services.AddSingleton<AudioConverter>();
 
             services.AddTransient<IMessageForwarder, TelegramMessageForwarder>();
             services.AddTransient<IMessageForwarder, DeviceMessageForwarder>();
@@ -44,7 +45,7 @@ namespace IoTalkie
                 .AddUserSecrets(typeof(Program).Assembly)
                 .Build();
 
-            services.Configure<AzureSettings>(configuration.GetSection(typeof(AzureSettings).Name));
+            services.Configure<AzureSettings>(configuration.GetSection(nameof(AzureSettings)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
