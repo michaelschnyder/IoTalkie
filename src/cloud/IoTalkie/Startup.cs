@@ -1,15 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using IoTalkie.Common;
+using IoTalkie.Media;
+using IoTalkie.Messaging.Channel;
+using IoTalkie.Messaging.Channel.Devices;
+using IoTalkie.Messaging.Channel.Telegram;
+using IoTalkie.Messaging.Processing;
 
 namespace IoTalkie
 {
@@ -26,6 +25,27 @@ namespace IoTalkie
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddHostedService<BotMessagesHandler>();
+
+            services.AddTransient<MessageHandler>();
+            services.AddTransient<AudioPayloadStore>();
+
+            services.AddSingleton<DeviceRegistry>();
+            services.AddSingleton<UserEndpointRegistry>();
+            services.AddSingleton<BotCredentialsRegistry>();
+            services.AddSingleton<AudioConverter>();
+
+            services.AddTransient<IMessageForwarder, TelegramMessageForwarder>();
+            services.AddTransient<IMessageForwarder, DeviceMessageForwarder>();
+            
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", true, true)
+                .AddEnvironmentVariables()
+                .AddUserSecrets(typeof(Program).Assembly)
+                .Build();
+
+            services.Configure<AzureSettings>(configuration.GetSection(nameof(AzureSettings)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

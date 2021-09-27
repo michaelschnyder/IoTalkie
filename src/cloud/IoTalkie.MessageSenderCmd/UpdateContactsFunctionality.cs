@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
+using IoTalkie.Common;
 using Microsoft.Azure.Devices;
 using Microsoft.Extensions.Options;
 

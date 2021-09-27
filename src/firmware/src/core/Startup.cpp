@@ -34,6 +34,10 @@ void Startup::post()
     Serial.printf("IoTalkie Version: %s build at: %s by %s@%s", BuildInfo::getVersion(), BuildInfo::buildTimeGmt(), BuildInfo::buildUser(), BuildInfo::buildHost());
     Serial.println();
 
+    char buff[64];
+    sprintf(buff, "IoTalkie/%s", BuildInfo::getVersion());
+    TaskHTTPImpl::setUserAgent(buff);
+
     this->ui->isBusy(false);
 
     if (!ui->isPowerButtonOn()) {
@@ -69,6 +73,9 @@ void Startup::checkSPIFFS()
 void Startup::loadConfig()
 {
     if(config->load()) {
+
+        TaskHTTPImpl::setClientId(config->getDeviceId().c_str());
+
         fsm.trigger(Event::Continue);
     }
 }

@@ -18,7 +18,7 @@
     },
     "IoTalkie": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "api/status",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

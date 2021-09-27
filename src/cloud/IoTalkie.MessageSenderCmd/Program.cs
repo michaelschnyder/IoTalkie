@@ -5,6 +5,7 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading.Tasks;
+using IoTalkie.Common;
 
 namespace IoTalkie.MessageSenderCmd
 {
@@ -79,48 +80,4 @@ namespace IoTalkie.MessageSenderCmd
             await services.GetService<UpdateContactsFunctionality>().Run(file, deviceId);
         }
     }
-
-    public class NewMessageCmd
-    {
-        public string Cmd { get; set; } = "newMessage";
-
-        public string MessageId { get; set; } = Guid.NewGuid().ToString();
-
-        public long Timestamp { get; set; } = DateTimeOffset.Now.ToUnixTimeSeconds();
-        
-        public string SenderId { get; set; }
-
-        public long Size { get; set; }
-
-        public string RemoteUrl { get; set; }
-    }
-
-    public class UpdateFirmwareCmd
-    {
-        public string Cmd { get; set; } = "updateFirmware";
-
-        public string MessageId { get; set; } = Guid.NewGuid().ToString();
-
-        public long Timestamp { get; set; } = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-
-        public long Size { get; set; }
-
-        public string RemoteUrl { get; set; }
-    }
-
-    public class UpdateContactsCmd
-    {
-        public string Cmd { get; set; } = "updateContacts";
-
-        public string MessageId { get; set; } = Guid.NewGuid().ToString();
-
-        public long Timestamp { get; set; } = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-
-        public long Size { get; set; }
-
-        public string RemoteUrl { get; set; }
-    }
-
 }

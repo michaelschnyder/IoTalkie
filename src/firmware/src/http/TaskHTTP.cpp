@@ -38,6 +38,18 @@ void TaskHTTPImpl::upload(File * file, const char * url, UPLOAD_COMPLETED_CB com
     xTaskCreate(_FileUploaderBackgroundTask, "_FileUploaderBackgroundTask", TASK_STACK_DEPT, task, 1, NULL);
 }
 
+char TaskHTTPImpl::_userAgent[128] = "IoTalkie/Unknown";
+char TaskHTTPImpl::_clientId[128] = "Unknown";
+
+
+void TaskHTTPImpl::setUserAgent(const char* userAgent) {
+    strncpy(_userAgent, userAgent, sizeof(_userAgent));
+}
+
+void TaskHTTPImpl::setClientId(const char* clientId) {
+    strncpy(_clientId, clientId, sizeof(_clientId));
+}
+
 void TaskHTTPImpl::__downloadInternal(void *arg) {
     DownloadTask* task = (DownloadTask*)arg;
 
@@ -47,17 +59,22 @@ void TaskHTTPImpl::__downloadInternal(void *arg) {
     logger.trace(F("Starting to download from '%s'"), url);
 
     HTTPClient http;
+    http.setUserAgent(_userAgent);
+    http.addHeader("clientId", _clientId);
+
     http.begin(url);
     
     int httpCode = http.GET();
 
     if (!(httpCode > 0)) {
         logger.error(F("failed to download file. Error: %s\n"), http.errorToString(httpCode).c_str());
+        task->reportCompleted(false);
         return;
     }
 
     if(httpCode != HTTP_CODE_OK) {
         logger.error(F("failed to download file. Server responded with error: %s\n"), http.errorToString(httpCode).c_str());
+        task->reportCompleted(false);
         return;
     }
 
@@ -112,8 +129,8 @@ void TaskHTTPImpl::__uploadInternal(void *arg) {
 
     client.begin(task->getUrl());
     
-    client.setUserAgent("IoTalkie/Arduino");
-    client.addHeader("clientId", "abcdefg");
+    client.setUserAgent(_userAgent);
+    client.addHeader("clientId", _clientId);
 
     int previousUploadPercent = 0;
 

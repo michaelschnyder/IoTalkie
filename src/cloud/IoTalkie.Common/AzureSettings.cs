@@ -1,4 +1,4 @@
-﻿namespace IoTalkie.MessageSenderCmd
+﻿namespace IoTalkie.Common
 {
     public class AzureSettings
     {

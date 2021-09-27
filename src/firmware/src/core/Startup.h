@@ -119,10 +119,10 @@ public:
         fsm.add_transition(&state_checkSDCardFS, &state_loadSettings, Event::Continue, nullptr);
         fsm.add_transition(&state_checkSDCardFS, &state_updateSystem, Event::FirmwareFileFound, nullptr);
         fsm.add_transition(&state_loadSettings, &state_loadContacts, Event::Continue, nullptr);
-        fsm.add_transition(&state_loadContacts, &state_startWifi, Event::Continue, nullptr);
+        fsm.add_transition(&state_loadContacts, &state_startMailbox, Event::Continue, nullptr);
+        fsm.add_transition(&state_startMailbox, &state_startWifi, Event::Continue, nullptr);
         fsm.add_transition(&state_startWifi, &state_connectToMqtt, Event::Continue, nullptr);
-        fsm.add_transition(&state_connectToMqtt, &state_startMailbox, Event::Continue, nullptr);
-        fsm.add_transition(&state_startMailbox, &state_ready, Event::Continue, nullptr);
+        fsm.add_transition(&state_connectToMqtt, &state_ready, Event::Continue, nullptr);
 
         fsm.add_timed_transition(&state_checkSPIFFS,    &state_error, 2000l,  [this]() { setError(INT_STORAGE_ERR,  "Internal Storage"); });
         fsm.add_timed_transition(&state_loadConfig,     &state_error, 2000l,  [this]() { setError(CONFIG_MISSING,   "Config Missing"); });

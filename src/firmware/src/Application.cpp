@@ -235,8 +235,13 @@ void Application::recordMessageFor(int buttonId)
         this->ui->showError();
         return;
     }
+     
+    uint8_t uuid_array[16];
+    ESPRandom::uuid4(uuid_array);
 
-    sprintf(currentRecordingName, "/to_%i_at_%i.wav\0", currentRecipient->userId, timeService.getTimestamp());
+    auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
+    sprintf(currentRecordingName, "/%s.wav\0", messageId);
+
     logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name, currentRecordingName);
 
     f = SD.open(currentRecordingName, FILE_WRITE);
