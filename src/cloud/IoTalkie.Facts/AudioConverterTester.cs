@@ -31,6 +31,17 @@ namespace IoTalkie.Facts
         }
 
         [Fact]
+        public void SimilarFile_NoException()
+        {
+            var converter = new AudioConverter();
+
+            var result = converter.ConvertWavToOgg(File.OpenRead("esp32-example-similar.wav"));
+            var file = File.OpenWrite("esp32-example-similar.ogg");
+            result.CopyTo(file);
+            file.Close();
+        }
+
+        [Fact]
         public void ConvertWavToOgg_SameLength()
         {
             var converter = new AudioConverter();
