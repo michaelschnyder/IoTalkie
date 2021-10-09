@@ -23,6 +23,8 @@
 #include "audio/AudioRecorder.h"
 #include "audio/AudioPlayerBase.h"
 
+#define RECORDING_FILE_NAME "/temprec.wav"
+
 class Application
 {
     log4Esp::Logger logger = log4Esp::Logger("Application");
@@ -115,6 +117,8 @@ class Application
 
     bool isAppRunning = false;
     
+    Contact* selectecContact;
+    File currentRecording;
     MessageRecord* currentMessage;
 
     void dispatchCloudCommand(String, JsonObject&);
