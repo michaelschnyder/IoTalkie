@@ -49,23 +49,26 @@ bool Mailbox::handleNotification(JsonObject& notification)
 
 bool Mailbox::enqueueMessage(const char* sourceFile, const char* recipientId) {
     
-    logger.trace(F("Enqueueing message '%s' to '%s'"), sourceFile, config->getPostMessageUrl().c_str());
+    logger.trace(F("Enqueueing file '%s' be send to  '%s'"), sourceFile, config->getPostMessageUrl().c_str());
 
     bool recordInserted = false;
     char outboxFilename[256];
 
+    uint8_t uuid_array[16];
+    ESPRandom::uuid4(uuid_array);
+
+    auto messageId = ESPRandom::uuidToString(uuid_array);
+    auto timestamp = timeService->getTimestamp();
+
+    logger.trace("Generated messageId '%s' for message.", messageId.c_str());
+
     { // Scoped
         SQLiteConnection conn(&db);
+        auto messageNumber = conn.queryInt(QUERY_MAX_ROW_ID_UPLOADS) + 1;
 
-        uint8_t uuid_array[16];
-        ESPRandom::uuid4(uuid_array);
+        sprintf(outboxFilename, (OUTBOX_FOLDER "/%08llu%s"), messageNumber, FileInfo::getExtension(sourceFile));
 
-        auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
-        auto timestamp = timeService->getTimestamp();
-
-        sprintf(outboxFilename, OUTBOX_FOLDER "/%s%s", messageId, FileInfo::getExtension(sourceFile));
-
-        if(conn.execute(QUERY_INSERT_NEW_OUTGOING_MESSAGE, messageId, timestamp, recipientId, outboxFilename)) {
+        if(conn.execute(QUERY_INSERT_NEW_OUTGOING_MESSAGE, messageId.c_str(), timestamp, recipientId, outboxFilename)) {
             pendingUploadsAvailable = true;
             recordInserted = true;
         }
@@ -264,6 +267,7 @@ MessageRecord* Mailbox::getNextDownloadTask()
     char* messageId = resultSet->getString(0);
     char* senderId = resultSet->getString(1);
     char* remoteUrl = resultSet->getString(2);
+    auto messageIdx = conn.queryInt(QUERY_MAX_ROW_ID_INCOMING) + 1;
 
     logger.trace("Found pending message %s to be downloaded from %s", messageId, remoteUrl);
 
@@ -275,7 +279,7 @@ MessageRecord* Mailbox::getNextDownloadTask()
     }
 
     char localFile[256];
-    sprintf(localFile, (INBOX_FOLDER "/%s%s"), messageId, FileInfo::getExtension(remoteUrlString.c_str()));
+    sprintf(localFile, (INBOX_FOLDER "/%08llu%s"), messageIdx, FileInfo::getExtension(remoteUrlString.c_str()));
 
     return new MessageRecord(messageId, senderId, remoteUrl, localFile);
 }
