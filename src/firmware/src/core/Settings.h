@@ -8,7 +8,7 @@
 
 class Settings {
 private:
-    const String filename = "/settings.json";
+    const String filename = "/settings.jsn";
 
     char wifiSSID[33];
     char wifiKey[33]; 

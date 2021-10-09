@@ -218,17 +218,12 @@ void Application::whileIdling() {
 
 }
 
-char currentRecordingName[64];
-Contact* currentRecipient;
-long currentBytesSent = 0;
-File f;
-
 void Application::recordMessageFor(int buttonId) 
 {
     int position = buttonId - 1;
-    currentRecipient = contacts.get(position);
+    selectecContact = contacts.get(position);
 
-    if (currentRecipient == NULL) {
+    if (selectecContact == NULL) {
         logger.warning(F("Unable to find contact for button %i (position: %i)"), buttonId, position);
         this->fsm.trigger(Event::DISCARD_MESSAGE);
 
@@ -236,25 +231,20 @@ void Application::recordMessageFor(int buttonId)
         return;
     }
      
-    uint8_t uuid_array[16];
-    ESPRandom::uuid4(uuid_array);
+    logger.trace(F("Capturing message for '%s' in file '%s'"), selectecContact->name, RECORDING_FILE_NAME);
 
-    auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
-    sprintf(currentRecordingName, "/%s.wav\0", messageId);
+    currentRecording = SD.open(RECORDING_FILE_NAME, FILE_WRITE);
 
-    logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name, currentRecordingName);
-
-    f = SD.open(currentRecordingName, FILE_WRITE);
-
-    if (!f.write(1)) {
-        logger.warning(F("Could not create file '%'. Write error: %i"), currentRecordingName, f.getWriteError());
+    if (!currentRecording.write(1)) {
+        logger.warning(F("Could not create file '%'. Write error: %i"), RECORDING_FILE_NAME, currentRecording.getWriteError());
         this->fsm.trigger(Event::DISCARD_MESSAGE);
 
         this->ui->showError();
         return;
     }
-    f.seek(0);
-    this->recorder->record(&f);    
+
+    currentRecording.seek(0);
+    this->recorder->record(&currentRecording);    
 }
 
 void Application::whileMessageRecording() 
@@ -272,12 +262,12 @@ void Application::whileMessageRecording()
 void Application::validateRecording() 
 {
     long lenghtInMs = this->recorder->stop();
-    f.close();
+    currentRecording.close();
 
     logger.trace(F("Stopped recording. Validating recording length: %ims"), lenghtInMs);
 
     if (lenghtInMs >= MINIMAL_MESSAGE_LENGTH_IN_MS) {
-        mailbox.enqueueMessage(currentRecordingName, currentRecipient->userId);
+        mailbox.enqueueMessage(RECORDING_FILE_NAME, selectecContact->userId);
         fsm.trigger(Event::SEND_MESSAGE);
     }
     else {

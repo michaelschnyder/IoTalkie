@@ -18,7 +18,7 @@ typedef struct Contact {
 };
 
 class Contacts {
-    const String filename = "/contacts.json";
+    const String filename = "/contacts.jsn";
 
     log4Esp::Logger logger = log4Esp::Logger("Contacts");
     TaskHTTPImpl taskHttp;
