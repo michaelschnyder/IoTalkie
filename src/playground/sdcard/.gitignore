@@ -5,6 +5,4 @@
 .vscode/ipch
 
 # Prevent from checking in an sensitive data (Wifi, Tokens, etc.)
-sdcard/settings.jsn
-data/config.json
-data/config.emma.json
+*.log
