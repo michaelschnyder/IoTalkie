@@ -236,11 +236,7 @@ void Application::recordMessageFor(int buttonId)
         return;
     }
      
-    uint8_t uuid_array[16];
-    ESPRandom::uuid4(uuid_array);
-
-    auto messageId = ESPRandom::uuidToString(uuid_array).c_str();
-    sprintf(currentRecordingName, "/%s.wav\0", messageId);
+    sprintf(currentRecordingName, "/rec.wav");
 
     logger.trace(F("Capturing message for '%s' to '%s'"), currentRecipient->name, currentRecordingName);
 

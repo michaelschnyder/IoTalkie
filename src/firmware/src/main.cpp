@@ -3,9 +3,6 @@
 
 #include "Application.h"
 
-#include <SdFat.h>
-SdFat sd;
-
 BUTTON_PANEL_TYPE panel;
 
 UserInterface ui(&panel, POT_IN, LDR_PIN);
@@ -20,37 +17,11 @@ void stats() {
 
 void setup() {
   
-  Serial.begin(115200); 
+  ui.setup();
+  player.setup();
+  recorder.setup();
 
-  Serial.println("starting");
-
-  if (!sd.begin(5)) {
-    Serial.println("begin failed");
-    return;
-  }
-
-  // Remove existing file.
-   sd.remove("READTEST.TXT"); 
-   
-  // Create the file.
-  auto file = sd.open("READTEST.TXT", 'w');
-  if (!file) {
-    Serial.println("open failed");
-    return;
-  }
-  // Write test data.
-  file.print(F("blblabla"));
-
-  file.close();
-
-
-  // sleep(36000000);
-
-  // ui.setup();
-  // player.setup();
-  // recorder.setup();
-
-  // app.setup();
+  app.setup();
 }
 
 long lastPrint = 0;
@@ -62,6 +33,6 @@ void loop() {
     stats();
   }
 
-  // app.run();
+  app.run();
 }
 

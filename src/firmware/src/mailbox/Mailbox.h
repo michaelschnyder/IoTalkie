@@ -33,6 +33,7 @@
 #define QUERY_MOST_RECENT_PLAYED_MESSAGE_FOR_USERID "SELECT messageId, localFile from inbox WHERE senderId = '%s' AND localFile is NOT NULL AND isFaulty != 1 ORDER BY timestamp DESC LIMIT 1"
 
 #define QUERY_INSERT_NEW_INCOMING_MESSAGE "INSERT INTO inbox (messageId, timestamp, senderId, size, remoteUrl) VALUES('%s', %i, '%s', %i, '%s')"
+#define QUERY_MAX_ROW_ID_INCOMING "SELECT IFNULL(MAX(rowId),0) from inbox"
 #define QUERY_COUNT_MESSAGES_BY_MESSAGEID "SELECT COUNT(*) FROM inbox WHERE messageId = '%s'"
 #define QUERY_INCREASE_PLAYCOUNT_BY_MESSAGEID "UPDATE inbox SET playcount = playcount + 1 WHERE messageId = '%s'"
 #define QUERY_NEXT_PENDING_MESSAGE_FOR_DOWNLOAD "SELECT messageId, senderId, remoteUrl from inbox WHERE localFile Is NULL AND downloadCount < 3 ORDER BY timestamp ASC LIMIT 1"
@@ -41,6 +42,7 @@
 #define QUERY_INCREASE_DOWNLOADCOUNT_BY_MESSAGEID "UPDATE inbox SET downloadCount = downloadCount + 1 WHERE messageId = '%s'"
 
 #define QUERY_INSERT_NEW_OUTGOING_MESSAGE "INSERT INTO outbox (messageId, timestamp, recipientId, localFile) VALUES('%s', %i, %s, '%s')"
+#define QUERY_MAX_ROW_ID_UPLOADS "SELECT IFNULL(MAX(rowId),0) from outbox"
 #define QUERY_COUNT_PENDING_UPLOADS "SELECT COUNT(*) from outbox WHERE isSent = 0 AND sentCount < 3"
 #define QUERY_NEXT_PENDING_MESSAGE_FOR_UPLOAD "SELECT messageId, recipientId, localFile from outbox WHERE isSent = 0 AND isFaulty = 0 AND sentCount < 3 ORDER BY timestamp ASC LIMIT 1"
 #define QUERY_SET_OUTBOX_IGNORED_BY_MESSAGEID "UPDATE outbox SET isFaulty = 1 WHERE messageId = '%s'"
