@@ -128,7 +128,7 @@ public:
         fsm.add_timed_transition(&state_loadConfig,     &state_error, 2000l,  [this]() { setError(CONFIG_MISSING,   "Config Missing"); });
         fsm.add_timed_transition(&state_checkSDCardFS,  &state_error, 2000l,  [this]() { setError(SD_STORAGE_ERR,   "SD Card Missing"); });
         fsm.add_timed_transition(&state_loadSettings,   &state_error, 2000l,  [this]() { setError(SETTINGS_MISSING, "Settings Missing"); });
-        fsm.add_timed_transition(&state_startWifi,      &state_error, 10000l, [this]() { setError(WIFI_TIMEOUT,     "WiFi Connection"); });
+        fsm.add_timed_transition(&state_startWifi,      &state_error, 20000l, [this]() { setError(WIFI_TIMEOUT,     "WiFi Connection"); });
         fsm.add_timed_transition(&state_connectToMqtt,  &state_error, 10000l, [this]() { setError(MQTT_TIMEOUT,     "MQTT Connection"); });
 
         this->ui = userInterface;
